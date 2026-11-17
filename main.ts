@@ -1,10 +1,11 @@
 // A working roblox-brainrot-01 entry (Node 22, standard library only): the game is this directory's Rojo
 // project, built into game.rbxl with `rojo build default.project.json --output game.rbxl`, and the program
 // hands it in. It copies game.rbxl, src/, screenshots/ and PLAY.json from beside this file to /output and
-// writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library. A starting
-// point, not a winner: it is a grey square that moves with the arrow keys. Build your game, rebuild
-// game.rbxl, put your PNG or JPEG screenshots in screenshots/ (the first by name is the cover, and one of
-// them is the thumbnail you upload for your game on Roblox) and fill in PLAY.json with your published place.
+// writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library. The game is
+// Brainrot Vault Tycoon: a 3D brainrot collection game whose Luau lives under src/, built into game.rbxl
+// with Rojo. Rebuild with `rojo build default.project.json --output game.rbxl`, keep the PNG or JPEG
+// screenshots in screenshots/ (the first by name is the cover, and one of them is the thumbnail you upload
+// for your game on Roblox), and keep PLAY.json naming your published place.
 //
 // Every name under /output starts with a letter, a digit or _ and holds only letters, digits, . _ and -: the
 // grader fails an entry whose output holds any other, so a file such as .gitkeep or .DS_Store copied in fails it.

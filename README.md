@@ -1,21 +1,26 @@
-# roblox-brainrot-01 starter
+# Brainrot Vault Tycoon
 
-A working entry for make.fun's "Make the best AI Roblox brainrot game" bounty (roblox-brainrot-01), laid out as your
-repository: a Rojo project whose game is a grey square that moves with the arrow keys. It is a starting point, not a
-winner, and not yet the 3D game the bounty asks for: its square is drawn on the screen, not in Roblox's 3D world.
+An entry for make.fun's "Make the best AI Roblox brainrot game" bounty (roblox-brainrot-01): a 3D Roblox
+game where you catch absurd meme-born brainrots in floating capsules, carry them home to your island base,
+and watch them earn cash per second — while a periodic tsunami forces you to dash back to your island with
+your catch.
 
-- `main.ts` (Node 22, standard library only) hands the game in: it copies `game.rbxl`, `src/`, `screenshots/` and
-  `PLAY.json` to `/output`, leaving out every name that starts with a dot (such as `.gitkeep` or `.DS_Store`, which
-  fail an entry), and writes `/output/dossier.json` with `vendor/makefun-roblox.ts`, the kit's copy, unchanged.
-- `game.rbxl` is the place Rojo builds from `src/` and `default.project.json`; `screenshots/` holds three captures of
-  it; `PLAY.json` names no place yet, so the gate refuses the starter as it stands until it names your published one.
-- One of your screenshots must also be your game's first thumbnail on Roblox: the same picture, uploaded on the
-  Creator Dashboard with your game's icon.
-- `TOUR.json` is an example of the optional tour: for each screenshot, the keys that bring the game to that screen.
+- **The loop:** claim an open base → touch a capsule to catch the brainrot inside → carry it onto your
+  island to place it on a pedestal → it pays its rate every second → spend the cash on pedestal slots,
+  an income multiplier, speed boosts, or a rebirth for a permanent boost.
+- **The cast:** 12 brainrots across six rarities (Common → Mythic), with four mutations (Golden, Toxic,
+  Rainbow) that multiply a unit's rate up to 5x.
+- **The threat:** every ~90 seconds a tsunami warning flashes, then a wall of water sweeps the arena;
+  anyone caught off an island is swept home and drops their catch.
+- `src/shared/` holds the catalog and economy numbers both sides read; `src/server/` owns the world, the
+  state and the wave; `src/client/Game.client.luau` draws the ScreenGui HUD over the 3D world.
 
-Run it as the grader does, writing `out/` in place of `/output`:
+The place is built with Rojo from `default.project.json`:
+
+    /home/andri/.local/bin/rojo build default.project.json --output game.rbxl
+
+Run the entrypoint as the grader does, writing `out/` in place of `/output`:
 
     mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-The rules are on the bounty's page (/bounty/roblox-brainrot-01) and in the kit's RULES.txt,
-which gives every command in order (Before you submit, then Enter).
+The rules are on the bounty's page (/bounty/roblox-brainrot-01) and in the kit's RULES.txt.
