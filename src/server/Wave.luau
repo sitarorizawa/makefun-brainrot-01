@@ -37,12 +37,25 @@ local function buildWall(direction)
 	water.CanCollide = false
 	water.CanQuery = false
 	water.Size = direction.axis == "X"
-		and Vector3.new(6, Config.Wave.waterHeight, TRAVEL)
-		or Vector3.new(TRAVEL, Config.Wave.waterHeight, 6)
-	water.Color = Color3.fromRGB(40, 140, 220)
-	water.Material = Enum.Material.Glass
-	water.Transparency = 0.35
+		and Vector3.new(8, Config.Wave.waterHeight, TRAVEL)
+		or Vector3.new(TRAVEL, Config.Wave.waterHeight, 8)
+	water.Color = Color3.fromRGB(60, 165, 255)
+	water.Material = Enum.Material.Neon
+	water.Transparency = 0.5
 	water.Parent = wall
+
+	local core = Instance.new("Part")
+	core.Name = "Core"
+	core.Anchored = true
+	core.CanCollide = false
+	core.CanQuery = false
+	core.Size = direction.axis == "X"
+		and Vector3.new(3, Config.Wave.waterHeight, TRAVEL)
+		or Vector3.new(TRAVEL, Config.Wave.waterHeight, 3)
+	core.Color = Color3.fromRGB(30, 90, 200)
+	core.Material = Enum.Material.Glass
+	core.Transparency = 0.35
+	core.Parent = wall
 
 	local foam = Instance.new("Part")
 	foam.Name = "Foam"
@@ -50,22 +63,22 @@ local function buildWall(direction)
 	foam.CanCollide = false
 	foam.CanQuery = false
 	foam.Size = direction.axis == "X"
-		and Vector3.new(7, 1.4, TRAVEL)
-		or Vector3.new(TRAVEL, 1.4, 7)
-	foam.Color = Color3.fromRGB(235, 245, 255)
+		and Vector3.new(9, 1.6, TRAVEL)
+		or Vector3.new(TRAVEL, 1.6, 9)
+	foam.Color = Color3.fromRGB(240, 250, 255)
 	foam.Material = Enum.Material.Neon
-	foam.Transparency = 0.2
+	foam.Transparency = 0.1
 	foam.Parent = wall
 
 	local spray = Instance.new("ParticleEmitter")
 	spray.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	spray.Color = ColorSequence.new(Color3.fromRGB(200, 230, 255))
+	spray.Color = ColorSequence.new(Color3.fromRGB(210, 235, 255))
 	spray.Lifetime = NumberRange.new(0.6, 1.2)
-	spray.Rate = 60
-	spray.Speed = NumberRange.new(4, 9)
-	spray.SpreadAngle = Vector2.new(25, 25)
-	spray.Size = NumberSequence.new(1.4)
-	spray.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
+	spray.Rate = 140
+	spray.Speed = NumberRange.new(5, 12)
+	spray.SpreadAngle = Vector2.new(30, 30)
+	spray.Size = NumberSequence.new(1.8)
+	spray.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1) })
 	spray.Parent = foam
 
 	wall.Parent = workspace

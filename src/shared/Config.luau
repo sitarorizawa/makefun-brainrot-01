@@ -59,11 +59,11 @@ Config.Economy = {
 }
 
 Config.Wave = {
-	firstDelay = 75, -- seconds of calm before the first tsunami
-	interval = 90, -- seconds of calm between tsunamis
+	firstDelay = 55, -- seconds of calm before the first tsunami
+	interval = 80, -- seconds of calm between tsunamis
 	warning = 15, -- seconds of red-alert countdown before the water moves
 	sweep = 14, -- seconds for the wave to cross the whole arena
-	waterHeight = 12, -- anything below this height off a base is swept
+	waterHeight = 14, -- anything below this height off a base is swept (island tops sit at 16)
 }
 
 Config.Capsule = {

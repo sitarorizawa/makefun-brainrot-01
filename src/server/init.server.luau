@@ -59,6 +59,40 @@ local function setHint(player, text)
 	player:SetAttribute("Hint", text)
 end
 
+local function rarityIndex(name)
+	for index, entry in ipairs(Config.Rarities) do
+		if entry.name == name then
+			return index
+		end
+	end
+	return 1
+end
+
+-- Publish collection progress: unique brainrots found and a per-rarity row
+-- (rich text so each count wears its rarity colour in the HUD).
+local function publishCollection(player, state)
+	local count = 0
+	for _ in pairs(state.collectedIds) do
+		count += 1
+	end
+	player:SetAttribute("CollectionCount", count)
+	player:SetAttribute("CollectionMax", #Config.Brainrots)
+
+	local parts = {}
+	for _, rarity in ipairs(Config.Rarities) do
+		local n = state.rarityCounts[rarity.name] or 0
+		table.insert(parts, string.format(
+			'<font color="#%02X%02X%02X">%s %d</font>',
+			math.floor(rarity.color.R * 255 + 0.5),
+			math.floor(rarity.color.G * 255 + 0.5),
+			math.floor(rarity.color.B * 255 + 0.5),
+			string.upper(string.sub(rarity.name, 1, 1)),
+			n
+		))
+	end
+	player:SetAttribute("RarityProgress", table.concat(parts, "  "))
+end
+
 -- Total placed income per second, before the shop/rebirth multiplier.
 local function placedIncome(state)
 	local total = 0
@@ -148,6 +182,22 @@ local function catchCapsule(player, record)
 	state.carriedModel = model
 	model.Parent = workspace
 
+	-- Sparkle burst on the pickup — small for Common/Uncommon, big and glowing
+	-- for Rare and above so a good pull is impossible to miss.
+	local rarityColor = Config.rarity(record.entry.rarity).color
+	local bigSparkle = rarityIndex(record.entry.rarity) >= 3
+	if record.model.PrimaryPart then
+		BrainrotModels.sparkleAt(record.model.PrimaryPart.Position, rarityColor, bigSparkle)
+	end
+
+	-- New-discovery bookkeeping for the HUD collection panel.
+	local isNew = state.collectedIds[record.entry.id] == nil
+	if isNew then
+		state.collectedIds[record.entry.id] = true
+		state.rarityCounts[record.entry.rarity] = (state.rarityCounts[record.entry.rarity] or 0) + 1
+		publishCollection(player, state)
+	end
+
 	-- Retire the pad and schedule the next capsule.
 	BrainrotModels.retire(record.model)
 	record.model:Destroy()
@@ -158,11 +208,19 @@ local function catchCapsule(player, record)
 		end
 	end)
 
-	showToast(player, string.format(
-		"Caught %s! %s",
-		record.entry.name,
-		state.baseIndex and "Bring it to your base!" or "Claim an open base first!"
-	))
+	if isNew then
+		local found = 0
+		for _ in pairs(state.collectedIds) do
+			found += 1
+		end
+		showToast(player, string.format("NEW DISCOVERY! %s (%d/%d)", record.entry.name, found, #Config.Brainrots))
+	else
+		showToast(player, string.format(
+			"Caught %s! %s",
+			record.entry.name,
+			state.baseIndex and "Bring it to your base!" or "Claim an open base first!"
+		))
+	end
 	setHint(player, state.baseIndex and "Carry it onto YOUR island to place it" or "Stand on an open base to claim it")
 end
 
@@ -242,7 +300,17 @@ end
 local function unlockPedestalVisual(base, slot)
 	local pedestal = base:FindFirstChild("Pedestal" .. slot)
 	if pedestal then
-		pedestal.Color = Color3.fromRGB(70, 70, 80)
+		pedestal.Color = Color3.fromRGB(115, 120, 135)
+		pedestal.Material = Enum.Material.Slate
+	end
+end
+
+local function resetPedestalVisual(base, slot, slotsUnlocked)
+	local pedestal = base:FindFirstChild("Pedestal" .. slot)
+	if pedestal then
+		local unlocked = slot <= (slotsUnlocked or Config.Economy.startSlots)
+		pedestal.Color = unlocked and Color3.fromRGB(115, 120, 135) or Color3.fromRGB(58, 60, 70)
+		pedestal.Material = Enum.Material.Slate
 	end
 end
 
@@ -277,6 +345,14 @@ local function placeUnit(player, base)
 	model.Parent = workspace
 	BrainrotModels.startSway(model)
 
+	-- Tint the pedestal with the unit's rarity and sparkle rare placements.
+	local rarityColor = Config.rarity(carried.entry.rarity).color
+	pedestal.Color = rarityColor
+	pedestal.Material = Enum.Material.SmoothPlastic
+	if rarityIndex(carried.entry.rarity) >= 3 then
+		BrainrotModels.sparkleAt(pedestal.Position + Vector3.new(0, 2, 0), rarityColor, true)
+	end
+
 	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, model = model }
 	BrainrotModels.retire(state.carriedModel)
 	state.carriedModel:Destroy()
@@ -305,7 +381,7 @@ local function claimBase(player, base)
 	base:SetAttribute("OwnerUserId", player.UserId)
 	state.baseIndex = index
 	state.baseModel = base
-	WorldBuilder.setBaseSign(base, player.DisplayName .. "'s VAULT", "place your brainrots here", Color3.fromRGB(120, 200, 255))
+	WorldBuilder.setBaseSign(base, player.DisplayName .. "'s VAULT", "SAFE ZONE · place your brainrots here", Color3.fromRGB(120, 210, 255))
 	showToast(player, "Base claimed! Now catch a capsule")
 	setHint(player, state.carried and "Step onto your island to place your catch" or "Touch a glowing capsule to catch a brainrot")
 	updateStats(player)
@@ -339,7 +415,25 @@ local function onShopAction(player, action)
 		return
 	end
 
-	if action == "slots" then
+	-- The HUD's UPGRADE button sends "upgrade"; it buys the income boost.
+	if action == "upgrade" then
+		action = "multiplier"
+	end
+
+	if action == "collect" then
+		-- The HUD COLLECT button: place the carried catch from anywhere on
+		-- your own base's economy (server still validates slots and ownership).
+		if state.carried == nil then
+			showToast(player, "Nothing to collect — touch a glowing capsule!")
+			return
+		end
+		if state.baseIndex == nil or state.baseModel == nil then
+			showToast(player, "Claim an open base first!")
+			return
+		end
+		placeUnit(player, state.baseModel)
+
+	elseif action == "slots" then
 		if state.slots >= Config.Economy.maxSlots then
 			showToast(player, "All pedestal slots unlocked!")
 			return
@@ -396,9 +490,12 @@ local function onShopAction(player, action)
 			return
 		end
 		-- Rebirth: wipe placed units and cash, keep upgrades, gain a permanent boost.
-		for _, unit in pairs(state.pedestals) do
+		for slot, unit in pairs(state.pedestals) do
 			BrainrotModels.retire(unit.model)
 			unit.model:Destroy()
+			if state.baseModel then
+				resetPedestalVisual(state.baseModel, slot, state.slots)
+			end
 		end
 		state.pedestals = {}
 		state.cash = 0
@@ -480,6 +577,8 @@ local function onPlayerAdded(player)
 		carried = nil,
 		carriedModel = nil,
 		pedestals = {},
+		collectedIds = {},
+		rarityCounts = {},
 	}
 	states[player] = state
 
@@ -502,6 +601,10 @@ local function onPlayerAdded(player)
 	player:SetAttribute("UnitsPlaced", 0)
 	player:SetAttribute("UnitList", "")
 	player:SetAttribute("CarryInfo", "")
+	player:SetAttribute("CollectionCount", 0)
+	player:SetAttribute("CollectionMax", #Config.Brainrots)
+	player:SetAttribute("RarityProgress", "")
+	publishCollection(player, state)
 	setHint(player, "1) Claim an open base  2) Catch a capsule  3) Bring it home")
 
 	player.CharacterAdded:Connect(function(character)
@@ -519,9 +622,12 @@ local function onPlayerRemoving(player)
 			BrainrotModels.retire(state.carriedModel)
 			state.carriedModel:Destroy()
 		end
-		for _, unit in pairs(state.pedestals) do
+		for slot, unit in pairs(state.pedestals) do
 			BrainrotModels.retire(unit.model)
 			unit.model:Destroy()
+			if state.baseModel then
+				resetPedestalVisual(state.baseModel, slot, state.slots)
+			end
 		end
 		if state.baseModel then
 			state.baseModel:SetAttribute("OwnerUserId", nil)

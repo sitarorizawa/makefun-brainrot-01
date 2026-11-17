@@ -40,10 +40,10 @@ local function addLabel(model, title, subtitle, titleColor)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Label"
-	gui.Size = UDim2.fromOffset(170, 44)
-	gui.StudsOffset = Vector3.new(0, 3.4, 0)
-	gui.AlwaysOnTop = false
-	gui.MaxDistance = 90
+	gui.Size = UDim2.fromOffset(220, 54)
+	gui.StudsOffset = Vector3.new(0, 4.0, 0)
+	gui.AlwaysOnTop = true -- names must stay readable in screenshots, even across the map
+	gui.MaxDistance = 220
 	gui.Parent = anchor
 
 	local main = Instance.new("TextLabel")
@@ -54,7 +54,8 @@ local function addLabel(model, title, subtitle, titleColor)
 	main.TextScaled = true
 	main.Text = title
 	main.TextColor3 = titleColor or Color3.new(1, 1, 1)
-	main.TextStrokeTransparency = 0.4
+	main.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	main.TextStrokeTransparency = 0.25
 	main.Parent = gui
 
 	local sub = Instance.new("TextLabel")
@@ -62,17 +63,19 @@ local function addLabel(model, title, subtitle, titleColor)
 	sub.Position = UDim2.fromScale(0, 0.55)
 	sub.Size = UDim2.fromScale(1, 0.45)
 	sub.BackgroundTransparency = 1
-	sub.Font = Enum.Font.Gotham
+	sub.Font = Enum.Font.GothamBold
 	sub.TextScaled = true
 	sub.Text = subtitle or ""
-	sub.TextColor3 = Color3.fromRGB(235, 235, 235)
-	sub.TextStrokeTransparency = 0.5
+	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
+	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	sub.TextStrokeTransparency = 0.3
 	sub.Parent = gui
 
 	return gui
 end
 
--- Face: two eyes and a mouth, so every blob reads as a character.
+-- Face: two big eyes and a mouth, so every blob reads as a character even
+-- from across the arena.
 local function addFace(model, bodyColor, halfWidth, frontOffset, eyeY)
 	local white = Color3.new(1, 1, 1)
 	local black = Color3.fromRGB(20, 20, 20)
@@ -80,29 +83,29 @@ local function addFace(model, bodyColor, halfWidth, frontOffset, eyeY)
 		local eye = makePart({
 			Name = "Eye",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.5, 0.5, 0.3),
+			Size = Vector3.new(0.68, 0.68, 0.36),
 			Color = white,
 			Material = Enum.Material.SmoothPlastic,
 		})
-		eye.CFrame = model:GetPivot() * CFrame.new(side * halfWidth * 0.45, eyeY, frontOffset)
+		eye.CFrame = model:GetPivot() * CFrame.new(side * halfWidth * 0.42, eyeY, frontOffset)
 		eye.Parent = model
 		local pupil = makePart({
 			Name = "Pupil",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.24, 0.24, 0.18),
+			Size = Vector3.new(0.34, 0.34, 0.2),
 			Color = black,
 			Material = Enum.Material.SmoothPlastic,
 		})
-		pupil.CFrame = eye.CFrame * CFrame.new(0, 0, -0.14)
+		pupil.CFrame = eye.CFrame * CFrame.new(0, 0, -0.18)
 		pupil.Parent = model
 	end
 	local mouth = makePart({
 		Name = "Mouth",
-		Size = Vector3.new(halfWidth * 0.9, 0.16, 0.12),
+		Size = Vector3.new(halfWidth * 0.9, 0.2, 0.14),
 		Color = black,
 		Material = Enum.Material.SmoothPlastic,
 	})
-	mouth.CFrame = model:GetPivot() * CFrame.new(0, eyeY - 0.75, frontOffset)
+	mouth.CFrame = model:GetPivot() * CFrame.new(0, eyeY - 0.8, frontOffset)
 	mouth.Parent = model
 end
 
@@ -252,7 +255,7 @@ function BrainrotModels.build(entry, mutation, scale)
 	body.Parent = model
 	model.PrimaryPart = body
 
-	-- Stubby feet so the blob looks like it could waddle.
+	-- Stubby feet and arms so the blob reads as a little creature, not a block.
 	for _, side in ipairs({ -1, 1 }) do
 		local foot = makePart({
 			Name = "Foot",
@@ -262,6 +265,16 @@ function BrainrotModels.build(entry, mutation, scale)
 		})
 		foot.CFrame = CFrame.new(side * 0.8 * scale, -1.7 * scale, 0.3 * scale)
 		foot.Parent = model
+
+		local arm = makePart({
+			Name = "Arm",
+			Size = Vector3.new(0.55, 1.3, 0.55) * scale,
+			Color = bodyColor:Lerp(Color3.new(0, 0, 0), 0.15),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		arm.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.28 * scale), 0.1 * scale, 0)
+			* CFrame.Angles(0, 0, math.rad(-14 * side))
+		arm.Parent = model
 	end
 
 	addFace(model, bodyColor, body.Size.X, -body.Size.Z / 2 - 0.05, 0.5 * scale)
@@ -348,6 +361,46 @@ end
 -- the animation pivots around the pose it has right now.
 function BrainrotModels.startSway(model)
 	table.insert(animated, { model = model, kind = "sway", base = model:GetPivot() })
+end
+
+-- A one-shot sparkle burst at a world position. Used when a capsule is caught
+-- (bigger for Rare and above) and when a rare unit is placed on a pedestal.
+function BrainrotModels.sparkleAt(position, color, big)
+	local anchor = makePart({
+		Name = "SparkleBurst",
+		Size = Vector3.new(1, 1, 1),
+		Transparency = 1,
+		Position = position,
+	})
+	anchor.Parent = workspace
+
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	emitter.Lifetime = NumberRange.new(0.5, 1.1)
+	emitter.Rate = 0
+	emitter.Speed = NumberRange.new(big and 8 or 5, big and 16 or 10)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size = NumberSequence.new(big and 2.4 or 1.5)
+	emitter.Acceleration = Vector3.new(0, big and 8 or 4, 0)
+	emitter.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	emitter.Parent = anchor
+	emitter:Emit(big and 60 or 20)
+
+	if big then
+		local flash = Instance.new("PointLight")
+		flash.Color = color
+		flash.Range = 18
+		flash.Brightness = 3
+		flash.Parent = anchor
+	end
+
+	task.delay(1.6, function()
+		anchor:Destroy()
+	end)
 end
 
 -- Remove a model from the animation registries (called on destroy/drop).
