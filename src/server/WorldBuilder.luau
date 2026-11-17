@@ -490,9 +490,9 @@ local function buildPlaza()
 	})
 	buildSign(Vector3.new(26, 7, -26), -45, "THE VAULT", {
 		"12 brainrots from Common to Mythic",
-		"Mutations multiply a unit's rate up to 5x",
-		"Buy slots, multipliers and speed in the SHOP",
-		"REBIRTH resets cash for a permanent boost",
+		"Mutations + traits multiply a rate up to 9x",
+		"Guard your base — the robbery lock is 60s+",
+		"REBIRTH: more income, +2 base slots each",
 	})
 end
 

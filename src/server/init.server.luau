@@ -94,10 +94,11 @@ local function publishCollection(player, state)
 end
 
 -- Total placed income per second, before the shop/rebirth multiplier.
+-- Per unit: TotalIncome = BaseIncome * (MutationModifier + sum(TraitModifiers)).
 local function placedIncome(state)
 	local total = 0
 	for _, unit in pairs(state.pedestals) do
-		total += math.floor(unit.entry.rate * unit.mutation.multiplier + 0.5)
+		total += Config.unitIncome(unit.entry, unit.mutation, unit.traits)
 	end
 	return total
 end
@@ -130,13 +131,11 @@ local function updateStats(player)
 
 	if state.carried then
 		local carried = state.carried
-		local rate = math.floor(carried.entry.rate * carried.mutation.multiplier + 0.5)
 		player:SetAttribute("CarryInfo", string.format(
-			"%s%s · %s · $%d/s",
-			carried.mutation.name ~= "" and (carried.mutation.name .. " ") or "",
-			carried.entry.name,
+			"%s · %s · $%d/s",
+			Config.unitTitle(carried.entry, carried.mutation, carried.traits),
 			carried.entry.rarity,
-			rate
+			Config.unitIncome(carried.entry, carried.mutation, carried.traits)
 		))
 		player:SetAttribute("CarryColor", Config.rarity(carried.entry.rarity).color)
 	else
@@ -165,7 +164,60 @@ local function rollUnit()
 	end
 	local entry = pool[rng:NextInteger(1, #pool)]
 	local mutation = Config.rollMutation(rng)
-	return entry, mutation
+	local traits = Config.rollTraits(rng)
+	return entry, mutation, traits
+end
+
+-- ---------------------------------------------------------------------------
+-- Rare spawn announcements: Roblox chat + a server-wide HUD banner
+-- ---------------------------------------------------------------------------
+
+local lastRareAnnounce = 0
+
+-- System chat line: TextChatService on a modern place, the legacy ChatService
+-- otherwise. A failure here is harmless — the HUD banner still fires.
+local function announceChat(text)
+	local ok = pcall(function()
+		local channels = game:GetService("TextChatService").TextChannels
+		local system = channels and channels:FindFirstChild("RBXSystem")
+		if system == nil then
+			error("no system chat channel")
+		end
+		system:SendAsync(text)
+	end)
+	if ok then
+		return
+	end
+	pcall(function()
+		local chatService = game:GetService("Chat"):LoadLibrary("ChatService")
+		local speaker = chatService:GetSpeaker("VaultSystem")
+		if speaker == nil then
+			speaker = chatService:AddSpeaker("VaultSystem")
+			speaker:JoinChannel("All")
+		end
+		speaker:Say(text)
+	end)
+end
+
+-- Rare and above announce themselves the moment they spawn. Announcements are
+-- rate-limited so a busy plaza cannot flood chat; a Mythic always gets through.
+local function announceRareSpawn(entry, mutation, traits)
+	if rarityIndex(entry.rarity) < 3 then
+		return
+	end
+	local now = tick()
+	if entry.rarity ~= "Mythic" and now - lastRareAnnounce < Config.RareAnnounce.minInterval then
+		return
+	end
+	lastRareAnnounce = now
+
+	local title = Config.unitTitle(entry, mutation, traits)
+	local text = string.format("★ %s SPAWN! %s has appeared in the plaza! ★",
+		string.upper(entry.rarity), title)
+	announceChat(text)
+	ReplicatedStorage:SetAttribute("RareBanner", text)
+	ReplicatedStorage:SetAttribute("RareBannerRarity", entry.rarity)
+	ReplicatedStorage:SetAttribute("RareBannerAt", os.clock())
 end
 
 local spawnCapsule -- forward declaration so the catch handler can respawn later
@@ -176,8 +228,8 @@ local function catchCapsule(player, record)
 		return
 	end
 
-	state.carried = { entry = record.entry, mutation = record.mutation }
-	local model = BrainrotModels.buildCarried(record.entry, record.mutation)
+	state.carried = { entry = record.entry, mutation = record.mutation, traits = record.traits }
+	local model = BrainrotModels.buildCarried(record.entry, record.mutation, record.traits)
 	model.Name = "Carried"
 	state.carriedModel = model
 	model.Parent = workspace
@@ -213,11 +265,12 @@ local function catchCapsule(player, record)
 		for _ in pairs(state.collectedIds) do
 			found += 1
 		end
-		showToast(player, string.format("NEW DISCOVERY! %s (%d/%d)", record.entry.name, found, #Config.Brainrots))
+		showToast(player, string.format("NEW DISCOVERY! %s (%d/%d)",
+			Config.unitTitle(record.entry, record.mutation, record.traits), found, #Config.Brainrots))
 	else
 		showToast(player, string.format(
 			"Caught %s! %s",
-			record.entry.name,
+			Config.unitTitle(record.entry, record.mutation, record.traits),
 			state.baseIndex and "Bring it to your base!" or "Claim an open base first!"
 		))
 	end
@@ -232,12 +285,13 @@ spawnCapsule = function(padIndex)
 	if capsules[padIndex] ~= nil then
 		return -- a capsule is already on this pad
 	end
-	local entry, mutation = rollUnit()
-	local model = BrainrotModels.buildCapsule(entry, mutation, pad.Position + Vector3.new(0, 0.2, 0))
+	local entry, mutation, traits = rollUnit()
+	local model = BrainrotModels.buildCapsule(entry, mutation, pad.Position + Vector3.new(0, 0.2, 0), traits)
 	model.Parent = workspace
 
-	local record = { model = model, entry = entry, mutation = mutation, padIndex = padIndex, dead = false }
+	local record = { model = model, entry = entry, mutation = mutation, traits = traits, padIndex = padIndex, dead = false }
 	capsules[padIndex] = record
+	announceRareSpawn(entry, mutation, traits)
 
 	local orb = model.PrimaryPart
 	orb.Touched:Connect(function(hit)
@@ -339,7 +393,7 @@ local function placeUnit(player, base)
 	end
 
 	local carried = state.carried
-	local model = BrainrotModels.buildPlaced(carried.entry, carried.mutation)
+	local model = BrainrotModels.buildPlaced(carried.entry, carried.mutation, carried.traits)
 	-- Pedestal top sits 0.9 above its center; lift the unit so its feet land there.
 	model:PivotTo(CFrame.new(pedestal.Position + Vector3.new(0, 3.0, 0)))
 	model.Parent = workspace
@@ -353,14 +407,15 @@ local function placeUnit(player, base)
 		BrainrotModels.sparkleAt(pedestal.Position + Vector3.new(0, 2, 0), rarityColor, true)
 	end
 
-	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, model = model }
+	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, traits = carried.traits, model = model }
 	BrainrotModels.retire(state.carriedModel)
 	state.carriedModel:Destroy()
 	state.carried = nil
 
 	updateStats(player)
-	local rate = math.floor(carried.entry.rate * carried.mutation.multiplier + 0.5)
-	showToast(player, string.format("Placed %s — earning $%d/s", carried.entry.name, rate))
+	local rate = Config.unitIncome(carried.entry, carried.mutation, carried.traits)
+	showToast(player, string.format("Placed %s — earning $%d/s",
+		Config.unitTitle(carried.entry, carried.mutation, carried.traits), rate))
 	setHint(player, "Catch another capsule, or open the shop with your cash")
 end
 
@@ -387,6 +442,97 @@ local function claimBase(player, base)
 	updateStats(player)
 end
 
+-- ---------------------------------------------------------------------------
+-- Base lock: the robbery alarm
+-- ---------------------------------------------------------------------------
+
+local LOCK_RED = Color3.fromRGB(255, 82, 82)
+local SAFE_BLUE = Color3.fromRGB(120, 210, 255)
+
+-- The lock runs Config.Lock.duration, +10 s for every rebirth already earned.
+local function lockSeconds(state)
+	return Config.Lock.duration + state.rebirths * Config.Lock.perRebirth
+end
+
+-- Sound the alarm on the owner's base: red locked sign with a live countdown,
+-- plus the HUD attributes the client draws "YOUR BASE IS BEING ROBBED" from.
+local function startLock(owner, state, robber)
+	if state.baseIndex == nil or state.baseModel == nil then
+		return
+	end
+	if state.lockEndsAt then
+		-- Already sounding: never stretch the timer, but remember a real
+		-- thief if the lock was started by the wave and nobody is named yet.
+		if state.lockRobber == nil and robber ~= nil then
+			state.lockRobber = robber
+		end
+		return
+	end
+	local seconds = lockSeconds(state)
+	state.lockEndsAt = tick() + seconds
+	state.lockRobber = robber
+	WorldBuilder.setBaseSign(state.baseModel, "BASE LOCKED!", string.format("ROBBERY IN %ds", seconds), LOCK_RED)
+	owner:SetAttribute("Robbed", true)
+	owner:SetAttribute("RobbedSeconds", seconds)
+	showToast(owner, robber and (robber.DisplayName .. " is on your base!") or "Your vault is exposed — lock engaged!")
+	setHint(owner, "Get back to your base — defend your brainrots!")
+end
+
+-- Countdown tick: repaint the locked sign, and when time runs out resolve the
+-- robbery — the thief takes a character, or a cut of cash if their hands are full.
+local function finishLock(owner, state)
+	local robber = state.lockRobber
+	state.lockEndsAt = nil
+	state.lockRobber = nil
+	WorldBuilder.setBaseSign(state.baseModel, owner.DisplayName .. "'s VAULT", "SAFE ZONE · place your brainrots here", SAFE_BLUE)
+	owner:SetAttribute("Robbed", false)
+	owner:SetAttribute("RobbedSeconds", 0)
+
+	local thiefState = robber and states[robber]
+	if thiefState == nil then
+		showToast(owner, "Lock held — nobody got into your vault")
+		return
+	end
+
+	local occupied = {}
+	for slot in pairs(state.pedestals) do
+		table.insert(occupied, slot)
+	end
+	if #occupied > 0 and thiefState.carried == nil and robber.Character then
+		-- Hands free: the thief carries one of the owner's characters away.
+		local slot = occupied[rng:NextInteger(1, #occupied)]
+		local unit = state.pedestals[slot]
+		state.pedestals[slot] = nil
+		BrainrotModels.retire(unit.model)
+		unit.model:Destroy()
+		resetPedestalVisual(state.baseModel, slot, state.slots)
+
+		thiefState.carried = { entry = unit.entry, mutation = unit.mutation, traits = unit.traits }
+		local stolen = BrainrotModels.buildCarried(unit.entry, unit.mutation, unit.traits)
+		stolen.Name = "Carried"
+		stolen.Parent = workspace
+		thiefState.carriedModel = stolen
+
+		showToast(owner, string.format("ROBBED! %s stole your %s", robber.DisplayName, unit.entry.name))
+		showToast(robber, string.format("You stole %s from %s!",
+			Config.unitTitle(unit.entry, unit.mutation, unit.traits), owner.DisplayName))
+		setHint(robber, "Bring it to YOUR base to keep it")
+	else
+		-- Hands full (or nothing placed): a cash cut instead of a character.
+		local taken = math.floor(state.cash * Config.Lock.stealCashFraction + 0.5)
+		if taken > 0 then
+			state.cash -= taken
+			thiefState.cash += taken
+			showToast(owner, string.format("ROBBED! %s got away with $%s", robber.DisplayName, fmt(taken)))
+			showToast(robber, string.format("You got $%s from %s!", fmt(taken), owner.DisplayName))
+		else
+			showToast(owner, "Lock held — nobody got into your vault")
+		end
+	end
+	updateStats(owner)
+	updateStats(robber)
+end
+
 local function onBaseTouched(base, hit)
 	local player = playerFromHit(hit)
 	if player == nil or states[player] == nil then
@@ -395,6 +541,16 @@ local function onBaseTouched(base, hit)
 	local state = states[player]
 	local index = base:GetAttribute("Index")
 	local owner = base:GetAttribute("OwnerUserId")
+
+	-- Someone else steps on a claimed island: their base is being robbed now.
+	if owner ~= nil and owner ~= player.UserId then
+		local ownerPlayer = Players:GetPlayerByUserId(owner)
+		local ownerState = ownerPlayer and states[ownerPlayer]
+		if ownerState and ownerState.baseIndex == index then
+			startLock(ownerPlayer, ownerState, player)
+		end
+		return
+	end
 
 	if state.baseIndex == nil and (owner == nil or owner == player.UserId) then
 		claimBase(player, base)
@@ -485,11 +641,21 @@ local function onShopAction(player, action)
 
 	elseif action == "rebirth" then
 		local requirement = Config.rebirthRequirement(state.rebirths)
+		local unitNeed = Config.rebirthUnitRequirement(state.rebirths)
+		local placed = 0
+		for _ in pairs(state.pedestals) do
+			placed += 1
+		end
 		if state.lifetime < requirement then
 			showToast(player, string.format("Need $%s lifetime cash to rebirth", fmt(requirement)))
 			return
 		end
-		-- Rebirth: wipe placed units and cash, keep upgrades, gain a permanent boost.
+		if placed < unitNeed then
+			showToast(player, string.format("Rebirth needs %d characters placed — you have %d", unitNeed, placed))
+			return
+		end
+		-- Rebirth: wipe placed units and cash, keep upgrades, gain a permanent
+		-- boost plus extra base slots (the new pedestals light up right away).
 		for slot, unit in pairs(state.pedestals) do
 			BrainrotModels.retire(unit.model)
 			unit.model:Destroy()
@@ -500,7 +666,17 @@ local function onShopAction(player, action)
 		state.pedestals = {}
 		state.cash = 0
 		state.rebirths += 1
-		showToast(player, string.format("REBIRTH %d! Income permanently boosted", state.rebirths))
+		local slotsBefore = state.slots
+		state.slots = math.min(Config.Economy.maxSlots, state.slots + Config.Economy.rebirthSlotsBonus)
+		if state.baseModel then
+			for slot = slotsBefore + 1, state.slots do
+				unlockPedestalVisual(state.baseModel, slot)
+			end
+		end
+		local gained = state.slots - slotsBefore
+		showToast(player, gained > 0
+			and string.format("REBIRTH %d! Income boosted · +%d base slots", state.rebirths, gained)
+			or string.format("REBIRTH %d! Income permanently boosted", state.rebirths))
 		setHint(player, "Your vault reset — rebuild it stronger!")
 	end
 
@@ -536,6 +712,9 @@ Wave.start({
 		root.CFrame = target
 		if state then
 			setHint(player, "The wave swept you home — your catch got away")
+			-- The wave leaves an unattended vault exposed: the robbery lock
+			-- starts (no thief named — it holds unless someone steps aboard).
+			startLock(player, state, nil)
 		end
 	end,
 
@@ -574,6 +753,8 @@ local function onPlayerAdded(player)
 		rebirths = 0,
 		baseIndex = nil,
 		baseModel = nil,
+		lockEndsAt = nil,
+		lockRobber = nil,
 		carried = nil,
 		carriedModel = nil,
 		pedestals = {},
@@ -598,6 +779,8 @@ local function onPlayerAdded(player)
 	player:SetAttribute("SpeedLevel", 0)
 	player:SetAttribute("Rebirths", 0)
 	player:SetAttribute("Lifetime", 0)
+	player:SetAttribute("Robbed", false)
+	player:SetAttribute("RobbedSeconds", 0)
 	player:SetAttribute("UnitsPlaced", 0)
 	player:SetAttribute("UnitList", "")
 	player:SetAttribute("CarryInfo", "")
@@ -656,6 +839,19 @@ task.spawn(function()
 				state.cash += income
 				state.lifetime += income
 				updateStats(player)
+			end
+
+			-- Robbery lock countdown: repaint the sign every second, resolve
+			-- the robbery when it hits zero.
+			if state.lockEndsAt then
+				local remaining = math.ceil(state.lockEndsAt - tick())
+				if remaining <= 0 then
+					finishLock(player, state)
+				else
+					player:SetAttribute("RobbedSeconds", remaining)
+					WorldBuilder.setBaseSign(state.baseModel, "BASE LOCKED!",
+						string.format("ROBBERY IN %ds", remaining), LOCK_RED)
+				end
 			end
 		end
 	end

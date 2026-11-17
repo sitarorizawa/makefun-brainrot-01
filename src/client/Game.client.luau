@@ -1,12 +1,15 @@
 -- Brainrot Vault Tycoon — client HUD.
 -- A ScreenGui over the 3D world: cash and income up top (clear of Roblox's
--- own top-left menu), the collection panel top-right, an always-on tsunami
--- banner with countdown, the catch pill and toasts in the middle, the owned-
--- units panel bottom-left, big COLLECT / UPGRADE / REBIRTH buttons along the
--- bottom, and the shop bottom-right. Floating +$ texts rise from the cash
--- counter every time income lands, and a bright flash fires when a tsunami
--- warning starts. Everything numeric comes from player/ReplicatedStorage
--- attributes the server owns; this script only draws and fires ShopAction.
+-- own top-left menu), the collection panel and a permanent rebirth progress
+-- bar (cash bar + characters required) top-right, an always-on tsunami
+-- banner with countdown, a rare-spawn banner that drops over it, a red
+-- YOUR BASE IS BEING ROBBED alert with the lock countdown below that, the
+-- catch pill and toasts in the middle, the owned-units panel bottom-left,
+-- big COLLECT / UPGRADE / REBIRTH buttons along the bottom, and the shop
+-- bottom-right. Floating +$ texts rise from the cash counter every time
+-- income lands, and a bright flash fires when a tsunami warning starts.
+-- Everything numeric comes from player/ReplicatedStorage attributes the
+-- server owns; this script only draws and fires ShopAction.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -209,6 +212,75 @@ local collectionStats = label({
 collectionStats.Parent = collection
 
 -- ---------------------------------------------------------------------------
+-- Top right: permanent rebirth progress — cash bar, cash cost, characters
+-- ---------------------------------------------------------------------------
+
+local rebirthPanel = panel({
+	Name = "RebirthPanel",
+	Size = UDim2.fromOffset(340, 104),
+	Position = UDim2.new(1, -352, 0, 174),
+	ZIndex = 3,
+})
+rebirthPanel.Parent = gui
+
+local rebirthTitle = label({
+	Name = "RebirthTitle",
+	Text = "NEXT REBIRTH",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = Color3.fromRGB(216, 148, 255),
+	Size = UDim2.new(1, -16, 0, 22),
+	Position = UDim2.fromOffset(8, 4),
+	ZIndex = 4,
+})
+rebirthTitle.Parent = rebirthPanel
+
+-- Track + fill: the bar is lifetime cash climbing toward the rebirth cost.
+local rebirthTrack = Instance.new("Frame")
+rebirthTrack.Name = "Track"
+rebirthTrack.BackgroundColor3 = Color3.fromRGB(46, 42, 64)
+rebirthTrack.BorderSizePixel = 0
+rebirthTrack.Size = UDim2.new(1, -16, 0, 16)
+rebirthTrack.Position = UDim2.fromOffset(8, 28)
+rebirthTrack.ZIndex = 4
+rebirthTrack.Parent = rebirthPanel
+local rebirthTrackCorner = Instance.new("UICorner")
+rebirthTrackCorner.CornerRadius = UDim.new(0, 8)
+rebirthTrackCorner.Parent = rebirthTrack
+
+local rebirthFill = Instance.new("Frame")
+rebirthFill.Name = "Fill"
+rebirthFill.BackgroundColor3 = Color3.fromRGB(190, 110, 255)
+rebirthFill.BorderSizePixel = 0
+rebirthFill.Size = UDim2.fromScale(0, 1)
+rebirthFill.ZIndex = 5
+rebirthFill.Parent = rebirthTrack
+local rebirthFillCorner = Instance.new("UICorner")
+rebirthFillCorner.CornerRadius = UDim.new(0, 8)
+rebirthFillCorner.Parent = rebirthFill
+
+local rebirthCashText = label({
+	Name = "RebirthCash",
+	Text = "LIFETIME CASH  $0 / $25.0K",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = GREEN,
+	Size = UDim2.new(1, -16, 0, 22),
+	Position = UDim2.fromOffset(8, 50),
+	ZIndex = 4,
+})
+rebirthCashText.Parent = rebirthPanel
+
+local rebirthUnitsText = label({
+	Name = "RebirthUnits",
+	Text = "CHARACTERS  0 / 4 PLACED",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = YELLOW,
+	Size = UDim2.new(1, -16, 0, 22),
+	Position = UDim2.fromOffset(8, 76),
+	ZIndex = 4,
+})
+rebirthUnitsText.Parent = rebirthPanel
+
+-- ---------------------------------------------------------------------------
 -- Tsunami banner (always visible) + screen tint
 -- ---------------------------------------------------------------------------
 
@@ -224,6 +296,60 @@ local waveBanner = label({
 	ZIndex = 4,
 })
 waveBanner.Parent = gui
+
+-- Rare-spawn announcement: drops over the wave banner in the rarity's colour
+-- for a few seconds so a rare pull reads in any screenshot, chat line or not.
+local rareBanner = label({
+	Name = "RareBanner",
+	Text = "",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = GOLD,
+	TextStrokeColor3 = Color3.fromRGB(20, 14, 0),
+	TextStrokeTransparency = 0.2,
+	Size = UDim2.fromOffset(760, 46),
+	Position = UDim2.new(0.5, -380, 0, 126),
+	ZIndex = 6,
+	Visible = false,
+})
+rareBanner.Parent = gui
+
+-- Robbery alert: persistent red banner with the lock countdown while someone
+-- (or the wave) is on the owner's base. 560 wide keeps it clear of the
+-- right-hand panels on any screenshot-sized screen (>= 1264 px wide).
+local robbedAlert = panel({
+	Name = "RobbedAlert",
+	Size = UDim2.fromOffset(560, 58),
+	Position = UDim2.new(0.5, -280, 0, 178),
+	BackgroundColor3 = Color3.fromRGB(152, 24, 24),
+	BackgroundTransparency = 0.05,
+	ZIndex = 9,
+	Visible = false,
+})
+robbedAlert.Parent = gui
+
+local robbedTitle = label({
+	Name = "RobbedTitle",
+	Text = "YOUR BASE IS BEING ROBBED",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = Color3.new(1, 1, 1),
+	TextStrokeColor3 = Color3.fromRGB(40, 0, 0),
+	Size = UDim2.new(1, -20, 0, 30),
+	Position = UDim2.fromOffset(10, 4),
+	ZIndex = 10,
+})
+robbedTitle.Parent = robbedAlert
+
+local robbedTime = label({
+	Name = "RobbedTime",
+	Text = "",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = Color3.fromRGB(255, 214, 96),
+	TextStrokeColor3 = Color3.fromRGB(40, 0, 0),
+	Size = UDim2.new(1, -20, 0, 22),
+	Position = UDim2.fromOffset(10, 32),
+	ZIndex = 10,
+})
+robbedTime.Parent = robbedAlert
 
 -- ---------------------------------------------------------------------------
 -- Center: toast and catch pill
@@ -486,6 +612,34 @@ player:GetAttributeChangedSignal("ToastAt"):Connect(function()
 end)
 
 -- ---------------------------------------------------------------------------
+-- Rare-spawn banner: server-wide attribute, shown for a few seconds
+-- ---------------------------------------------------------------------------
+
+local rareBannerToken = 0
+local function showRareBanner(text, rarityName)
+	if text == "" then
+		return
+	end
+	rareBannerToken += 1
+	local token = rareBannerToken
+	rareBanner.TextColor3 = Config.rarity(rarityName).color
+	rareBanner.Text = text
+	rareBanner.Visible = true
+	task.delay(5.5, function()
+		if token == rareBannerToken then
+			rareBanner.Visible = false
+		end
+	end)
+end
+
+ReplicatedStorage:GetAttributeChangedSignal("RareBannerAt"):Connect(function()
+	showRareBanner(
+		ReplicatedStorage:GetAttribute("RareBanner") or "",
+		ReplicatedStorage:GetAttribute("RareBannerRarity") or "Rare"
+	)
+end)
+
+-- ---------------------------------------------------------------------------
 -- Floating +$ gain texts rising from the cash counter
 -- ---------------------------------------------------------------------------
 
@@ -545,14 +699,17 @@ local function refreshShop()
 		rebirths = player:GetAttribute("Rebirths") or 0,
 	}
 	local cash = player:GetAttribute("Cash") or 0
+	local lifetime = player:GetAttribute("Lifetime") or 0
 
 	for index, row in ipairs(rows) do
 		local spec = row.spec
 		local cost = spec.getCost(state)
+		-- Rebirth is paid from lifetime earnings; everything else from cash.
+		local available = spec.key == "rebirth" and lifetime or cash
 		if cost == nil then
 			row.button.Text = spec.getMax(state)
 			row.button.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
-		elseif cash >= cost then
+		elseif available >= cost then
 			row.button.Text = "$" .. fmt(cost)
 			row.button.BackgroundColor3 = Color3.fromRGB(70, 160, 90)
 		else
@@ -590,6 +747,46 @@ local function refreshCollection()
 	local slots = player:GetAttribute("Slots") or Config.Economy.startSlots
 	collectionStats.Text = string.format("REBIRTHS x%d · INCOME x%.1f · SLOTS %d/%d",
 		rebirths, multiplier, slots, Config.Economy.maxSlots)
+end
+
+local function refreshRebirth()
+	local rebirths = player:GetAttribute("Rebirths") or 0
+	local lifetime = player:GetAttribute("Lifetime") or 0
+	local placed = player:GetAttribute("UnitsPlaced") or 0
+	local cashNeed = Config.rebirthRequirement(rebirths)
+	local unitNeed = Config.rebirthUnitRequirement(rebirths)
+
+	rebirthFill.Size = UDim2.fromScale(math.clamp(lifetime / cashNeed, 0, 1), 1)
+	rebirthCashText.Text = string.format("LIFETIME CASH  $%s / $%s", fmt(lifetime), fmt(cashNeed))
+	rebirthUnitsText.Text = string.format("CHARACTERS  %d / %d PLACED", placed, unitNeed)
+
+	local cashReady = lifetime >= cashNeed
+	rebirthCashText.TextColor3 = cashReady and Color3.fromRGB(130, 255, 165) or GREEN
+	rebirthUnitsText.TextColor3 = placed >= unitNeed and Color3.fromRGB(130, 255, 165) or YELLOW
+	if cashReady and placed >= unitNeed then
+		rebirthTitle.Text = "★ REBIRTH READY — HIT REBIRTH ★"
+		rebirthTitle.TextColor3 = Color3.fromRGB(140, 255, 175)
+		rebirthFill.BackgroundColor3 = Color3.fromRGB(140, 255, 175)
+	elseif cashReady then
+		rebirthTitle.Text = "NEXT REBIRTH — PLACE MORE CHARACTERS"
+		rebirthTitle.TextColor3 = Color3.fromRGB(255, 214, 96)
+		rebirthFill.BackgroundColor3 = Color3.fromRGB(255, 170, 40)
+	else
+		rebirthTitle.Text = "NEXT REBIRTH"
+		rebirthTitle.TextColor3 = Color3.fromRGB(216, 148, 255)
+		rebirthFill.BackgroundColor3 = Color3.fromRGB(190, 110, 255)
+	end
+end
+
+local function refreshRobbed()
+	local robbed = player:GetAttribute("Robbed") == true
+	robbedAlert.Visible = robbed
+	if robbed then
+		local seconds = math.max(0, math.ceil(player:GetAttribute("RobbedSeconds") or 0))
+		robbedTime.Text = string.format("%d SECONDS REMAINING — DEFEND YOUR VAULT", seconds)
+		-- Slow red pulse so the alert is impossible to miss on a screenshot.
+		robbedAlert.BackgroundTransparency = 0.05 + math.sin(tick() * 6) * 0.15
+	end
 end
 
 local function refreshWave()
@@ -646,12 +843,17 @@ local function refreshButtons()
 			end
 		elseif spec.key == "rebirth" then
 			local requirement = Config.rebirthRequirement(rebirths)
-			if lifetime >= requirement then
-				button.Text = "REBIRTH NOW!"
-				button.BackgroundColor3 = Color3.fromRGB(220, 120, 255)
-			else
+			local unitNeed = Config.rebirthUnitRequirement(rebirths)
+			local placed = player:GetAttribute("UnitsPlaced") or 0
+			if lifetime < requirement then
 				button.Text = "NEED $" .. fmt(requirement)
 				button.BackgroundColor3 = Color3.fromRGB(105, 75, 140)
+			elseif placed < unitNeed then
+				button.Text = string.format("NEED %d UNITS", unitNeed - placed)
+				button.BackgroundColor3 = Color3.fromRGB(150, 110, 60)
+			else
+				button.Text = "REBIRTH NOW!"
+				button.BackgroundColor3 = Color3.fromRGB(220, 120, 255)
 			end
 		end
 	end
@@ -693,6 +895,8 @@ RunService.RenderStepped:Connect(function()
 	refreshShop()
 	refreshOwned()
 	refreshCollection()
+	refreshRebirth()
+	refreshRobbed()
 	refreshWave()
 	refreshButtons()
 end)

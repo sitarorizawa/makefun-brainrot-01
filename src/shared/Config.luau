@@ -40,6 +40,25 @@ Config.Mutations = {
 	{ id = "rainbow", name = "Rainbow", multiplier = 5, weight = 4, material = Enum.Material.Neon },
 }
 
+-- Traits stack on top of a mutation: 0-2 per character, each one visible on
+-- the model (colour shift, sparkles, glow) and each one adding to that
+-- character's income. Income rule, shared by server and HUD:
+-- TotalIncome = BaseIncome * (MutationModifier + sum(TraitModifiers)).
+Config.Traits = {
+	{ id = "golden", name = "Golden", modifier = 0.5, weight = 34, color = Color3.fromRGB(255, 215, 60) },
+	{ id = "glitched", name = "Glitched", modifier = 1.0, weight = 28, color = Color3.fromRGB(175, 95, 255) },
+	{ id = "rainbow", name = "Rainbow", modifier = 1.5, weight = 22, color = Color3.fromRGB(120, 255, 245) },
+	{ id = "halo", name = "Halo", modifier = 2.5, weight = 16, color = Color3.fromRGB(255, 245, 160) },
+}
+
+-- How many traits a fresh roll carries — most characters carry none, so a
+-- traited pull stays a screenshot moment.
+Config.TraitRoll = {
+	{ count = 0, weight = 70 },
+	{ count = 1, weight = 22 },
+	{ count = 2, weight = 8 },
+}
+
 Config.Economy = {
 	startCash = 0,
 	startSlots = 4, -- pedestals that accept a unit from the start
@@ -56,6 +75,9 @@ Config.Economy = {
 	baseWalkSpeed = 16,
 	rebirthBaseRequirement = 25000, -- lifetime cash needed for the first rebirth, x4 each after
 	rebirthMultiplierBonus = 1.0, -- permanent income multiplier added per rebirth
+	rebirthBaseUnits = 4, -- placed brainrots the first rebirth demands
+	rebirthUnitsPerRebirth = 2, -- +2 characters required per rebirth, capped at maxSlots
+	rebirthSlotsBonus = 2, -- extra pedestal slots every rebirth unlocks, capped at maxSlots
 }
 
 Config.Wave = {
@@ -70,6 +92,24 @@ Config.Capsule = {
 	respawnTime = 6, -- seconds until a caught capsule's pad spawns another
 	padCount = 8,
 	carryHeight = 5.2, -- how far above the character's head a carried unit floats
+}
+
+-- Base lock: the robbery alarm. It starts when another player steps on your
+-- island (or the tsunami finds your base unattended) and runs a countdown with
+-- a locked state on the base and a HUD alert on the owner. The lock starts at
+-- 60 s and grows +10 s per rebirth; if it reaches zero the thief takes a
+-- character (or cash, if their hands are full).
+Config.Lock = {
+	duration = 60,
+	perRebirth = 10,
+	stealCashFraction = 0.15, -- cash fallback when no character can be taken
+}
+
+-- Rare spawns (Rare and above) are announced in Roblox chat and with a HUD
+-- banner. Announcements are rate-limited so a busy plaza does not spam chat;
+-- a Mythic always announces.
+Config.RareAnnounce = {
+	minInterval = 12, -- seconds between announcements
 }
 
 -- Rarity lookup by name, for rolls and labels.
@@ -114,6 +154,91 @@ function Config.rollMutation(rng)
 	return Config.Mutations[1]
 end
 
+-- Roll 0-2 distinct traits for a fresh character.
+function Config.rollTraits(rng)
+	local total = 0
+	for _, entry in ipairs(Config.TraitRoll) do
+		total += entry.weight
+	end
+	local pick = rng:NextNumber() * total
+	local count = 0
+	for _, entry in ipairs(Config.TraitRoll) do
+		pick -= entry.weight
+		if pick <= 0 then
+			count = entry.count
+			break
+		end
+	end
+
+	local pool = {}
+	for _, trait in ipairs(Config.Traits) do
+		table.insert(pool, trait)
+	end
+	local traits = {}
+	for _ = 1, count do
+		if #pool == 0 then
+			break
+		end
+		local weightTotal = 0
+		for _, trait in ipairs(pool) do
+			weightTotal += trait.weight
+		end
+		local traitPick = rng:NextNumber() * weightTotal
+		for index, trait in ipairs(pool) do
+			traitPick -= trait.weight
+			if traitPick <= 0 then
+				table.insert(traits, trait)
+				table.remove(pool, index)
+				break
+			end
+		end
+	end
+	return traits
+end
+
+-- Sum of every trait's income modifier.
+function Config.traitSum(traits)
+	local sum = 0
+	if traits then
+		for _, trait in ipairs(traits) do
+			sum += trait.modifier
+		end
+	end
+	return sum
+end
+
+-- "Golden · Halo", or "" when the character carries no traits.
+function Config.traitLabel(traits)
+	local names = {}
+	if traits then
+		for _, trait in ipairs(traits) do
+			table.insert(names, trait.name)
+		end
+	end
+	return table.concat(names, " · ")
+end
+
+-- TotalIncome = BaseIncome * (MutationModifier + sum(TraitModifiers)).
+function Config.unitIncome(entry, mutation, traits)
+	local mutationModifier = mutation and mutation.multiplier or 1
+	return math.floor(entry.rate * (mutationModifier + Config.traitSum(traits)) + 0.5)
+end
+
+-- The name shown on the 3D label and in the carry pill:
+-- "Golden · Halo · Zonko the Zesty" (mutation first, then traits, then name).
+function Config.unitTitle(entry, mutation, traits)
+	local parts = {}
+	if mutation and mutation.name ~= "" then
+		table.insert(parts, mutation.name)
+	end
+	local traitText = Config.traitLabel(traits)
+	if traitText ~= "" then
+		table.insert(parts, traitText)
+	end
+	table.insert(parts, entry.name)
+	return table.concat(parts, " · ")
+end
+
 -- Prices, so the server charges and the HUD labels the same number.
 function Config.slotCost(currentSlots)
 	return Config.Economy.slotBaseCost * 2 ^ (currentSlots - Config.Economy.startSlots)
@@ -129,6 +254,15 @@ end
 
 function Config.rebirthRequirement(currentRebirths)
 	return Config.Economy.rebirthBaseRequirement * 4 ^ currentRebirths
+end
+
+-- Characters that must stand on your pedestals before the rebirth unlocks.
+-- Placed units are wiped by every rebirth, so this is a fresh goal each time.
+function Config.rebirthUnitRequirement(currentRebirths)
+	return math.min(
+		Config.Economy.maxSlots,
+		Config.Economy.rebirthBaseUnits + currentRebirths * Config.Economy.rebirthUnitsPerRebirth
+	)
 end
 
 -- Total income multiplier: shop levels, then rebirths on top.

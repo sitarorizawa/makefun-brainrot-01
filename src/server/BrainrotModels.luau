@@ -215,12 +215,118 @@ local function applyMutation(model, mutation)
 	end
 end
 
+-- A continuous sparkle stream anchored to a model's body — the visible half
+-- of a trait. Every trait wears one, so a traited unit never hides in a number.
+local function addTraitSparkle(model, color, rate)
+	local anchorPart = model.PrimaryPart
+	if anchorPart == nil then
+		return
+	end
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "TraitSparkle"
+	attachment.Position = Vector3.new(0, anchorPart.Size.Y / 2, 0)
+	attachment.Parent = anchorPart
+
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	emitter.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	emitter.Lifetime = NumberRange.new(0.4, 1.0)
+	emitter.Rate = rate
+	emitter.Speed = NumberRange.new(1.2, 3)
+	emitter.SpreadAngle = Vector2.new(45, 45)
+	emitter.Size = NumberSequence.new(1.0)
+	emitter.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.15),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	emitter.Parent = attachment
+end
+
+-- Apply a character's traits to its freshly built body: colour shifts, neon,
+-- a hue cycle, a floating halo — always visible on the 3D model itself.
+local function applyTraits(model, traits, mutation)
+	if traits == nil or #traits == 0 then
+		return
+	end
+
+	local bodyParts = {}
+	for _, part in ipairs(model:GetDescendants()) do
+		if part:IsA("BasePart")
+			and part.Name ~= "LabelAnchor"
+			and part.Name ~= "Eye"
+			and part.Name ~= "Pupil"
+			and part.Name ~= "Mouth"
+			and part.Name ~= "Halo" then
+			table.insert(bodyParts, part)
+		end
+	end
+
+	-- A rainbow mutation already hue-cycles the body; traits add sparkle on top.
+	local hueCycling = mutation ~= nil and mutation.id == "rainbow"
+
+	for _, trait in ipairs(traits) do
+		if trait.id == "golden" then
+			if not hueCycling then
+				for _, part in ipairs(bodyParts) do
+					part.Color = part.Color:Lerp(Color3.fromRGB(255, 215, 60), 0.55)
+				end
+			end
+			addTraitSparkle(model, trait.color, 6)
+		elseif trait.id == "glitched" then
+			if not hueCycling then
+				for _, part in ipairs(bodyParts) do
+					part.Color = part.Color:Lerp(Color3.fromRGB(175, 95, 255), 0.5)
+					part.Material = Enum.Material.Neon
+				end
+			end
+			addTraitSparkle(model, trait.color, 8)
+			local light = Instance.new("PointLight")
+			light.Color = trait.color
+			light.Range = 8
+			light.Brightness = 1.2
+			light.Parent = model.PrimaryPart
+		elseif trait.id == "rainbow" then
+			if not hueCycling then
+				for _, part in ipairs(bodyParts) do
+					part.Material = Enum.Material.Neon
+					table.insert(rainbowParts, part)
+				end
+				hueCycling = true
+			end
+			addTraitSparkle(model, trait.color, 10)
+		elseif trait.id == "halo" then
+			-- A glowing ring floating clear of the hat, plus a soft light.
+			local body = model.PrimaryPart
+			local halo = makePart({
+				Name = "Halo",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(3.4, 0.5, 3.4),
+				Color = trait.color,
+				Material = Enum.Material.Neon,
+				Transparency = 0.25,
+			})
+			halo.CFrame = model:GetPivot() * CFrame.new(0, (body and body.Size.Y or 3) / 2 + 1.6, 0)
+			halo.CanCollide = false
+			halo.Parent = model
+			local light = Instance.new("PointLight")
+			light.Color = trait.color
+			light.Range = 8
+			light.Brightness = 1.3
+			light.Parent = halo
+			addTraitSparkle(model, trait.color, 4)
+		end
+	end
+end
+
 -- Build one brainrot character as an anchored Model whose PrimaryPart is the body.
 -- `scale` grows it (the plaza statue uses a big one).
-function BrainrotModels.build(entry, mutation, scale)
+function BrainrotModels.build(entry, mutation, scale, traits)
 	scale = scale or 1
 	local model = Instance.new("Model")
 	model.Name = mutation and mutation.id ~= "none" and (mutation.name .. " " .. entry.name) or entry.name
+	if traits and #traits > 0 then
+		model.Name = Config.unitTitle(entry, mutation, traits)
+	end
 
 	local bodyColor = entry.color
 	if mutation and mutation.color then
@@ -281,12 +387,13 @@ function BrainrotModels.build(entry, mutation, scale)
 	addHat(model, entry.hat, bodyColor, body.Size.Y / 2)
 
 	applyMutation(model, mutation)
+	applyTraits(model, traits, mutation)
 	return model
 end
 
 -- A floating capsule: a glowing rarity-colored orb with the brainrot itself
 -- spinning inside a glass shell, plus a name/rate billboard. Touch to catch it.
-function BrainrotModels.buildCapsule(entry, mutation, position)
+function BrainrotModels.buildCapsule(entry, mutation, position, traits)
 	local rarity = Config.rarity(entry.rarity)
 	local model = Instance.new("Model")
 	model.Name = "Capsule"
@@ -323,13 +430,12 @@ function BrainrotModels.buildCapsule(entry, mutation, position)
 	light.Parent = orb
 
 	-- The brainrot preview inside the ball.
-	local unit = BrainrotModels.build(entry, mutation, 0.55)
+	local unit = BrainrotModels.build(entry, mutation, 0.55, traits)
 	unit:PivotTo(CFrame.new(orb.Position) * CFrame.Angles(0, math.rad(180), 0))
 	unit.Parent = model
 
-	local rate = math.floor(entry.rate * (mutation and mutation.multiplier or 1) + 0.5)
-	local mutationText = mutation and mutation.name ~= "" and (mutation.name .. " · ") or ""
-	local gui = addLabel(model, mutationText .. entry.name, string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
+	local rate = Config.unitIncome(entry, mutation, traits)
+	local gui = addLabel(model, Config.unitTitle(entry, mutation, traits), string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
 	gui.StudsOffset = Vector3.new(0, 4.2, 0)
 
 	table.insert(animated, { model = model, kind = "spin", base = orb.Position })
@@ -338,22 +444,20 @@ end
 
 -- The unit a player is carrying: the game script positions it above the
 -- character each frame, so it is not registered for idle animation here.
-function BrainrotModels.buildCarried(entry, mutation)
-	local model = BrainrotModels.build(entry, mutation)
+function BrainrotModels.buildCarried(entry, mutation, traits)
+	local model = BrainrotModels.build(entry, mutation, nil, traits)
 	local rarity = Config.rarity(entry.rarity)
-	local rateText = string.format("$%d/s", entry.rate * (mutation and mutation.multiplier or 1))
-	local mutationText = mutation and mutation.name ~= "" and (mutation.name .. " ") or ""
-	addLabel(model, mutationText .. entry.name, rateText, rarity.color)
+	local rateText = string.format("$%d/s", Config.unitIncome(entry, mutation, traits))
+	addLabel(model, Config.unitTitle(entry, mutation, traits), rateText, rarity.color)
 	return model
 end
 
--- The unit resting on a pedestal: label shows name, mutation and rate.
-function BrainrotModels.buildPlaced(entry, mutation)
-	local model = BrainrotModels.build(entry, mutation)
+-- The unit resting on a pedestal: label shows mutation, traits, name and rate.
+function BrainrotModels.buildPlaced(entry, mutation, traits)
+	local model = BrainrotModels.build(entry, mutation, nil, traits)
 	local rarity = Config.rarity(entry.rarity)
-	local rate = math.floor(entry.rate * (mutation and mutation.multiplier or 1) + 0.5)
-	local mutationText = mutation and mutation.name ~= "" and (mutation.name .. " · ") or ""
-	addLabel(model, mutationText .. entry.name, string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
+	local rate = Config.unitIncome(entry, mutation, traits)
+	addLabel(model, Config.unitTitle(entry, mutation, traits), string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
 	return model
 end
 
