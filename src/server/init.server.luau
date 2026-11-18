@@ -417,11 +417,12 @@ local function catchCapsule(player, record)
 	BrainrotModels.retire(record.model)
 	record.model:Destroy()
 	capsules[record.padIndex] = nil
-	task.delay(Config.Capsule.respawnTime, function()
-		if capsules[record.padIndex] == nil then
-			spawnCapsule(record.padIndex)
-		end
-	end)
+	-- Capsule spawning disabled — no respawn after a catch.
+	-- task.delay(Config.Capsule.respawnTime, function()
+	-- 	if capsules[record.padIndex] == nil then
+	-- 		spawnCapsule(record.padIndex)
+	-- 	end
+	-- end)
 
 	if isNew then
 		local found = 0
@@ -489,15 +490,15 @@ local function dropCarried(player, reason)
 	state.carried = nil
 	updateStats(player)
 
-	-- Put a fresh capsule on a free pad so nothing is lost.
-	task.delay(3, function()
-		for index = 1, Config.Capsule.padCount do
-			if capsules[index] == nil then
-				spawnCapsule(index)
-				break
-			end
-		end
-	end)
+	-- Capsule spawning disabled — no capsule seeded after a drop.
+	-- task.delay(3, function()
+	-- 	for index = 1, Config.Capsule.padCount do
+	-- 		if capsules[index] == nil then
+	-- 			spawnCapsule(index)
+	-- 			break
+	-- 		end
+	-- 	end
+	-- end)
 
 	if reason == "swept" then
 		showToast(player, "SWEPT AWAY! You dropped your catch!")
@@ -1062,9 +1063,10 @@ for i = 1, Config.Walkers.minAlive do
 	spawnWalker(z)
 end
 
-for index = 1, Config.Capsule.padCount do
-	spawnCapsule(index)
-end
+-- Capsule spawning disabled — no characters appear on the map.
+-- for index = 1, Config.Capsule.padCount do
+-- 	spawnCapsule(index)
+-- end
 
 for _, base in ipairs(world.bases) do
 	local island = base:FindFirstChild("Island")
