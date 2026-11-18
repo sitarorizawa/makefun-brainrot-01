@@ -129,7 +129,6 @@ local function setupLighting()
 	-- Shadows: the project.json sets GlobalShadows and ShadowMap, but we
 	-- also force them here in case the template baseplate overwrote them.
 	Lighting.GlobalShadows = true
-	Lighting.Technology = Enum.Technology.ShadowMap
 	Lighting.ShadowSoftness = 0.25
 
 	-- Remove any existing Sky so we always create a fresh one.
