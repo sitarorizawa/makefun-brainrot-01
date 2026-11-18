@@ -50,7 +50,7 @@ end
 -- units lower, carried units between), the text is a single short line, and a
 -- running cap keeps the total visible labels bounded so a busy plaza never
 -- stacks a wall of text.
-local LABEL_MAX_VISIBLE = 24
+local LABEL_MAX_VISIBLE = 8
 local labelsCreated = 0
 
 -- A simple billboard above a model: one short title line. `vOffset` is the
@@ -66,10 +66,10 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Label"
-	gui.Size = UDim2.fromOffset(320, 44)
+	gui.Size = UDim2.fromOffset(220, 36)
 	gui.StudsOffset = Vector3.new(0, vOffset or 4.0, 0)
-	gui.AlwaysOnTop = true -- names must stay readable in screenshots, even across the map
-	gui.MaxDistance = 120
+	gui.AlwaysOnTop = true -- readable up close; MaxDistance keeps far labels off-screen
+	gui.MaxDistance = 60
 	gui.LightInfluence = 0
 	gui.Parent = anchor
 
@@ -95,7 +95,7 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
 	main.TextScaled = false
-	main.TextSize = 14
+	main.TextSize = 12
 	main.TextWrapped = false
 	main.Text = visible and line or ""
 	main.TextColor3 = titleColor or Color3.new(1, 1, 1)

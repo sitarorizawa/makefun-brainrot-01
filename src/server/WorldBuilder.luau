@@ -29,10 +29,10 @@ local PEDESTAL_SPACING = 5.2
 local PLAZA_HALF = 20
 
 -- Base district: 2×2 grid north of spawn.
-local BASE_ROW1_Z = 55 -- front row
-local BASE_ROW2_Z = 85 -- back row
-local BASE_COL1_X = -15 -- left column
-local BASE_COL2_X = 15 -- right column
+local BASE_ROW1_Z = 50 -- front row
+local BASE_ROW2_Z = 90 -- back row
+local BASE_COL1_X = -28 -- left column
+local BASE_COL2_X = 28 -- right column
 
 -- ---------------------------------------------------------------------------
 -- Colour palette
@@ -90,7 +90,7 @@ local function buildBaseNameplate(parent, title, color)
 	gui.Size = UDim2.fromOffset(240, 68)
 	gui.StudsOffset = Vector3.new(0, 0.5, 0)
 	gui.AlwaysOnTop = true
-	gui.MaxDistance = 220
+	gui.MaxDistance = 80
 	gui.Parent = parent
 
 	local bg = Instance.new("Frame")
@@ -109,7 +109,8 @@ local function buildBaseNameplate(parent, title, color)
 	main.Size = UDim2.fromScale(1, 0.58)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
-	main.TextScaled = true
+	main.TextScaled = false
+	main.TextSize = 14
 	main.Text = title
 	main.TextColor3 = color or Color3.new(1, 1, 1)
 	main.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -123,7 +124,8 @@ local function buildBaseNameplate(parent, title, color)
 	sub.Size = UDim2.fromScale(1, 0.42)
 	sub.BackgroundTransparency = 1
 	sub.Font = Enum.Font.GothamBold
-	sub.TextScaled = true
+	sub.TextScaled = false
+	sub.TextSize = 12
 	sub.Text = ""
 	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
 	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -143,11 +145,11 @@ local function setupLighting()
 	-- failure never breaks the rest of the world build. NEVER assign
 	-- Lighting.Technology here.
 	pcall(function()
-		Lighting.Brightness = 3
+		Lighting.Brightness = 2
 		Lighting.ClockTime = 14
 		Lighting.GeographicLatitude = 15
-		Lighting.Ambient = Color3.fromRGB(135, 135, 140)
-		Lighting.OutdoorAmbient = Color3.fromRGB(185, 190, 195)
+		Lighting.Ambient = Color3.fromRGB(100, 100, 105)
+		Lighting.OutdoorAmbient = Color3.fromRGB(120, 125, 130)
 		Lighting.EnvironmentDiffuseScale = 1
 		Lighting.EnvironmentSpecularScale = 1
 		Lighting.ExposureCompensation = 0.25
@@ -172,7 +174,7 @@ local function setupLighting()
 		local ok, sunResult = pcall(function()
 			local s = Instance.new("DirectionalLight")
 			s.Name = "MainSun"
-			s.Brightness = 3
+			s.Brightness = 1.5
 			s.Shadows = true
 			s.CFrame = CFrame.new(Vector3.new(80, 60, -30), Vector3.new(0, 0, 0))
 			s.Parent = Lighting
@@ -210,7 +212,7 @@ local function setupLighting()
 		if oldAtmo then oldAtmo:Destroy() end
 		local atmosphere = Instance.new("Atmosphere")
 		atmosphere.Name = "VaultAtmosphere"
-		atmosphere.Density = 0.3
+		atmosphere.Density = 0.2
 		atmosphere.Offset = 0.25
 		atmosphere.Color = Color3.fromRGB(200, 220, 255)
 		atmosphere.Decay = Color3.fromRGB(120, 150, 180)
@@ -627,14 +629,15 @@ local function buildSpawnPlaza()
 	local symbolGui = Instance.new("BillboardGui")
 	symbolGui.Size = UDim2.fromOffset(200, 80)
 	symbolGui.AlwaysOnTop = true
-	symbolGui.MaxDistance = 200
+	symbolGui.MaxDistance = 80
 	symbolGui.Parent = bitcoinSymbol
 
 	local symbolLabel = Instance.new("TextLabel")
 	symbolLabel.Size = UDim2.fromScale(1, 1)
 	symbolLabel.BackgroundTransparency = 1
 	symbolLabel.Font = Enum.Font.GothamBold
-	symbolLabel.TextScaled = true
+	symbolLabel.TextScaled = false
+	symbolLabel.TextSize = 14
 	symbolLabel.Text = "₿"
 	symbolLabel.TextColor3 = BITCOIN_GOLD
 	symbolLabel.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -674,7 +677,8 @@ local function buildSpawnPlaza()
 	leaderTitle.Size = UDim2.fromScale(1, 0.65)
 	leaderTitle.BackgroundTransparency = 1
 	leaderTitle.Font = Enum.Font.GothamBold
-	leaderTitle.TextScaled = true
+	leaderTitle.TextScaled = false
+	leaderTitle.TextSize = 14
 	leaderTitle.Text = "🏆 LEADERBOARD"
 	leaderTitle.TextColor3 = BITCOIN_GOLD
 	leaderTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -702,7 +706,8 @@ local function buildSpawnPlaza()
 	infoTitle.Size = UDim2.fromScale(1, 1)
 	infoTitle.BackgroundTransparency = 1
 	infoTitle.Font = Enum.Font.GothamBold
-	infoTitle.TextScaled = true
+	infoTitle.TextScaled = false
+	infoTitle.TextSize = 14
 	infoTitle.Text = "📦 COLLECT · 💰 EARN · 🏗️ BUILD"
 	infoTitle.TextColor3 = Color3.fromRGB(200, 220, 255)
 	infoTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -800,27 +805,46 @@ local function buildSingleBase(cx, cz, index)
 	segR.CFrame = CFrame.new(cx + (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
 	segR.Parent = model
 
-	-- Doorframe: gold pillars on each side of the opening and a threshold.
+	-- Doorframe: tall neon-gold pillars on each side of the opening, a lintel
+	-- above, a threshold step below, and warm point lights flanking the entry.
 	local doorZ = cz + halfW
+	local frameH = wallH + 1.0
 	for _, dx in ipairs({ -doorHalf, doorHalf }) do
 		local framePost = part({
 			Name = "DoorFrame",
-			Size = Vector3.new(0.8, wallH, 0.8),
+			Size = Vector3.new(0.8, frameH, 0.8),
 			Color = DOOR_FRAME,
-			Material = Enum.Material.Metal,
+			Material = Enum.Material.Neon,
 		})
-		framePost.CFrame = CFrame.new(cx + dx, wallH / 2 + 0.2, doorZ)
+		framePost.CFrame = CFrame.new(cx + dx, frameH / 2 + 0.2, doorZ)
 		framePost.Parent = model
+
+		-- Warm yellow light flanking the doorway so it reads from a distance.
+		local doorLight = Instance.new("PointLight")
+		doorLight.Color = Color3.fromRGB(255, 220, 130)
+		doorLight.Range = 8
+		doorLight.Brightness = 0.5
+		doorLight.Parent = framePost
 	end
 
-	-- Threshold: low gold block across the doorway bottom.
+	-- Lintel: neon-gold bar across the top of the doorway.
+	local lintel = part({
+		Name = "DoorLintel",
+		Size = Vector3.new(6.5, 0.4, 0.4),
+		Color = DOOR_FRAME,
+		Material = Enum.Material.Neon,
+	})
+	lintel.CFrame = CFrame.new(cx, frameH + 0.4, doorZ)
+	lintel.Parent = model
+
+	-- Threshold step: low gold block across the doorway bottom.
 	local threshold = part({
 		Name = "Threshold",
-		Size = Vector3.new(doorHalf * 2 + 0.8, 0.4, 1.0),
+		Size = Vector3.new(6, 0.3, 1.0),
 		Color = DOOR_FRAME,
 		Material = Enum.Material.Metal,
 	})
-	threshold.CFrame = CFrame.new(cx, 0.4, doorZ)
+	threshold.CFrame = CFrame.new(cx, 0.35, doorZ)
 	threshold.Parent = model
 
 	-- Solid walls: west, east, north.
@@ -1022,18 +1046,19 @@ local FENCE_GREY = Color3.fromRGB(60, 62, 70)
 local ROCK_GREY = Color3.fromRGB(110, 112, 118)
 
 -- Small BillboardGui text label attached to a part (for zone signs).
-local function makeBillboard(parent, text, color, width, height)
+local function makeBillboard(parent, text, color, width, height, maxDist)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "ZoneLabel"
 	gui.Size = UDim2.fromOffset(width or 200, height or 50)
 	gui.AlwaysOnTop = true
-	gui.MaxDistance = 240
+	gui.MaxDistance = maxDist or 80
 	gui.Parent = parent
 	local lbl = Instance.new("TextLabel")
 	lbl.Size = UDim2.fromScale(1, 1)
 	lbl.BackgroundTransparency = 1
 	lbl.Font = Enum.Font.GothamBold
-	lbl.TextScaled = true
+	lbl.TextScaled = false
+	lbl.TextSize = 14
 	lbl.Text = text
 	lbl.TextColor3 = color
 	lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -1240,7 +1265,7 @@ local function buildProductionZone()
 	end
 	box("DoorLintel", Vector3.new(0.6, 0.6, doorHalf * 2 + 0.6), CFrame.new(frontX, cy + H / 2 - 0.4, fz), NEON_ORANGE, Enum.Material.Neon)
 	local sign = box("FactorySign", Vector3.new(0.5, 2.0, W), CFrame.new(frontX + 0.4, cy + H / 2 + 1.4, fz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-	makeBillboard(sign, "BRAINROT FACTORY", NEON_ORANGE, 220, 50)
+	makeBillboard(sign, "BRAINROT FACTORY", NEON_ORANGE, 220, 50, 80)
 
 	-- Roof slab.
 	box("Roof", Vector3.new(W + 0.8, 0.6, D + 0.8), CFrame.new(fx, baseY + H + 0.3, fz), ROOF_DARK, Enum.Material.Concrete)
@@ -1343,7 +1368,7 @@ local function buildSecretZone()
 		seg.Parent = model
 	end
 	local psign = box("PortalSign", Vector3.new(6, 1.6, 0.3), CFrame.new(0, ringCY + ringR + 1.5, portalZ), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-	makeBillboard(psign, "SECRET ZONE", NEON_CYAN, 200, 48)
+	makeBillboard(psign, "SECRET ZONE", NEON_CYAN, 200, 48, 80)
 
 	-- Hidden clearing behind the portal (further south).
 	local clearZ = areaZ + 4 -- -91
@@ -1611,13 +1636,14 @@ local function buildDecorations()
 			gui.Name = "SignLabel"
 			gui.Size = UDim2.fromOffset(160, 44)
 			gui.AlwaysOnTop = true
-			gui.MaxDistance = 200
+			gui.MaxDistance = 80
 			gui.Parent = arrow
 			local lbl = Instance.new("TextLabel")
 			lbl.Size = UDim2.fromScale(1, 1)
 			lbl.BackgroundTransparency = 1
 			lbl.Font = Enum.Font.GothamBold
-			lbl.TextScaled = true
+			lbl.TextScaled = false
+			lbl.TextSize = 14
 			lbl.Text = sp.label
 			lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
 			lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -1670,13 +1696,14 @@ local function buildDecorations()
 		gui.Name = "BillboardText"
 		gui.Size = UDim2.fromOffset(280, 120)
 		gui.AlwaysOnTop = true
-		gui.MaxDistance = 260
+		gui.MaxDistance = 100
 		gui.Parent = panel
 		local lbl = Instance.new("TextLabel")
 		lbl.Size = UDim2.fromScale(1, 1)
 		lbl.BackgroundTransparency = 1
 		lbl.Font = Enum.Font.GothamBold
-		lbl.TextScaled = true
+		lbl.TextScaled = false
+		lbl.TextSize = 14
 		lbl.Text = bb.text
 		lbl.TextColor3 = BITCOIN_GOLD
 		lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
