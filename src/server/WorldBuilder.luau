@@ -1,12 +1,12 @@
--- WorldBuilder: Crypto Island — a futuristic island combining cryptocurrency
--- aesthetics with Roblox Brainrot style. Colorful, bright, blocky/geometric
--- architecture. NOT realistic, NOT dark, NOT a plain modern city.
+-- WorldBuilder: Phase 12 — COMPLETE WORLD REMAKE.
+-- Flat vibrant island, symmetrical 2x2 base grid, detailed pastel buildings with
+-- pillars/windows/awnings, orange center path, white border path, tree ring,
+-- flower dots, street lamps, perimeter fence. Clean front-page-simulator style.
 --
--- Phase 11a: terrain, ocean, roads, central spawn plaza, base district.
---
--- Keep the interface init.server.luau depends on:
---   build() → { pads = array<Part>, bases = array<Model> }
+-- Interface init.server.luau depends on:
+--   build() -> { pads = array<Part>, bases = array<Model> }
 --   setBaseSign(model, title, subtitle, color)
+--   buildSpawnPad(index) -> Part
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
@@ -19,53 +19,78 @@ local WorldBuilder = {}
 -- Layout constants
 -- ---------------------------------------------------------------------------
 
-local ISLAND_HALF = 150
-local ROAD_WIDTH = 12
-local SIDEWALK_WIDTH = 3
-local SECONDARY_ROAD_WIDTH = 8
-local BASE_SIZE = 26
-local BASE_HALF = 13
-local PEDESTAL_SPACING = 5.2
-local PLAZA_HALF = 20
+local ISLAND_SIZE = 250
+local OCEAN_SIZE = 500
 
--- Base district: 2×2 grid north of spawn.
-local BASE_ROW1_Z = 50 -- front row
-local BASE_ROW2_Z = 90 -- back row
-local BASE_COL1_X = -28 -- left column
-local BASE_COL2_X = 28 -- right column
+-- Base district: 2x2 grid, generous spacing.
+local BASE_HALF = 10 -- 20x20 footprint
+local BASE_WALL_H = 8
+local BASE_POSITIONS = { { -25, -35, 1 }, { 25, -35, 2 }, { -25, 35, 3 }, { 25, 35, 4 } }
+
+-- Compound outline (white border path + fence).
+local COMPOUND_X = 40
+local COMPOUND_Z = 50
+
+-- Orange center path runs east-west at z=0.
+local PATH_X_MIN = -80
+local PATH_X_MAX = 80
+local PATH_WIDTH = 8
+
+-- Spawn plaza at west end.
+local SPAWN_X = -80
+local PLAZA_HALF = 10
+
+-- Shops at east end.
+local SHOP_X = 80
+
+-- Tree border ring.
+local TREE_RADIUS = 110
+local TREE_COUNT = 24
 
 -- ---------------------------------------------------------------------------
 -- Colour palette
 -- ---------------------------------------------------------------------------
 
-local GRASS_GREEN = Color3.fromRGB(98, 178, 72)
-local GRASS_DARK = Color3.fromRGB(74, 142, 52)
-local BITCOIN_GOLD = Color3.fromRGB(255, 200, 40)
-local STATUE_GOLD = Color3.fromRGB(255, 210, 48)
-local CYAN_BLUE = Color3.fromRGB(80, 200, 255)
-local OCEAN_CYAN = Color3.fromRGB(60, 160, 220)
-local WHITE = Color3.fromRGB(245, 245, 250)
-local DARK_GREY = Color3.fromRGB(50, 52, 60)
-local ROAD_GREY = Color3.fromRGB(55, 55, 65)
-local SIDEWALK_GREY = Color3.fromRGB(120, 120, 130)
-local YELLOW_LINE = Color3.fromRGB(255, 210, 40)
-local BEACH_SAND = Color3.fromRGB(230, 210, 160)
-local WALL_GREY = Color3.fromRGB(160, 165, 175)
-local WINDOW_WHITE = Color3.fromRGB(245, 245, 250)
-local INTERIOR_RED = Color3.fromRGB(188, 52, 52)
+local GRASS = Color3.fromRGB(80, 180, 70)
+local OCEAN = Color3.fromRGB(60, 160, 220)
+local WALL_PASTEL = Color3.fromRGB(240, 235, 240)
+local PILLAR = Color3.fromRGB(210, 205, 212)
+local ROOF_LIME = Color3.fromRGB(120, 200, 80)
+local WINDOW_BLUE = Color3.fromRGB(150, 200, 230)
+local STEP_GREY = Color3.fromRGB(60, 60, 65)
+local AWNING_RED = Color3.fromRGB(200, 50, 50)
+local INTERIOR_RED = Color3.fromRGB(180, 50, 50)
+local DOOR_GOLD = Color3.fromRGB(255, 200, 40)
+local ORANGE_PATH = Color3.fromRGB(255, 140, 30)
+local YELLOW_LINE = Color3.fromRGB(255, 220, 40)
+local BORDER_PATH = Color3.fromRGB(200, 200, 205)
+local CRYPTO_WALL = Color3.fromRGB(230, 240, 255)
+local CRYPTO_ROOF = Color3.fromRGB(80, 180, 255)
+local UPGRADE_WALL = Color3.fromRGB(240, 230, 255)
+local UPGRADE_ROOF = Color3.fromRGB(180, 80, 255)
+local TRUNK_BROWN = Color3.fromRGB(100, 70, 40)
+local FOLIAGE = Color3.fromRGB(80, 180, 70)
+local FENCE_BROWN = Color3.fromRGB(80, 60, 40)
+local LAMP_POLE = Color3.fromRGB(50, 50, 55)
+local LAMP_GLOW = Color3.fromRGB(255, 220, 100)
+local STATUE_GOLD = Color3.fromRGB(255, 200, 40)
+local PLAZA_TILE_A = Color3.fromRGB(240, 240, 245)
+local PLAZA_TILE_B = Color3.fromRGB(200, 200, 210)
 local SIGN_DARK = Color3.fromRGB(32, 36, 44)
-local ROOF_DARK = Color3.fromRGB(42, 44, 54)
-local ROOF_TRIM = Color3.fromRGB(255, 210, 48)
-local DOOR_FRAME = Color3.fromRGB(255, 210, 48)
-local CLIFF_GREY = Color3.fromRGB(120, 125, 130)
-local LAMP_POLE = Color3.fromRGB(38, 40, 48)
-local LAMP_GLOW = Color3.fromRGB(240, 215, 70)
-local COIN_ORNAMENT = Color3.fromRGB(255, 195, 40)
-local PLAZA_TILE_A = Color3.fromRGB(235, 235, 240)
-local PLAZA_TILE_B = Color3.fromRGB(210, 210, 220)
+local SIGN_GREEN = Color3.fromRGB(120, 255, 150)
+local PAD_CORE = Color3.fromRGB(120, 220, 255)
+local PAD_RING = Color3.fromRGB(80, 180, 230)
+
+local FLOWER_COLORS = {
+	Color3.fromRGB(255, 70, 70),
+	Color3.fromRGB(255, 220, 60),
+	Color3.fromRGB(255, 130, 200),
+	Color3.fromRGB(80, 230, 255),
+	Color3.fromRGB(255, 255, 255),
+}
 
 -- ---------------------------------------------------------------------------
--- Part helper
+-- Part helpers
 -- ---------------------------------------------------------------------------
 
 local function part(props)
@@ -79,38 +104,73 @@ local function part(props)
 	return p
 end
 
--- ---------------------------------------------------------------------------
--- BillboardGui for a base nameplate.  Kept separate from the old `label()`
--- so we never leak floating labels onto the map.
--- ---------------------------------------------------------------------------
+-- Box part already parented to a model.
+local function box(parent, name, size, cf, color, mat, collide)
+	local p = part({
+		Name = name,
+		Size = size,
+		Color = color,
+		Material = mat or Enum.Material.SmoothPlastic,
+	})
+	p.CFrame = cf
+	if collide == false then
+		p.CanCollide = false
+	end
+	p.Parent = parent
+	return p
+end
 
+-- BillboardGui text label. Always MaxDistance set, TextScaled false, TextSize 12.
+local function makeBillboard(parent, text, color, width, height, maxDist, textSize)
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "ZoneLabel"
+	gui.Size = UDim2.fromOffset(width or 200, height or 50)
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = maxDist or 80
+	gui.Parent = parent
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.fromScale(1, 1)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextScaled = false
+	lbl.TextSize = textSize or 12
+	lbl.Text = text
+	lbl.TextColor3 = color
+	lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	lbl.TextStrokeTransparency = 0.25
+	lbl.Parent = gui
+	return gui
+end
+
+-- Base nameplate: BaseSign part holds BaseSignGui with Title + Subtitle.
+-- setBaseSign() updates these by name.
 local function buildBaseNameplate(parent, title, color)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "BaseSignGui"
-	gui.Size = UDim2.fromOffset(240, 68)
+	gui.Size = UDim2.fromOffset(220, 60)
 	gui.StudsOffset = Vector3.new(0, 0.5, 0)
 	gui.AlwaysOnTop = true
-	gui.MaxDistance = 80
+	gui.MaxDistance = 50
 	gui.Parent = parent
 
 	local bg = Instance.new("Frame")
 	bg.Name = "Background"
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+	bg.BackgroundColor3 = SIGN_DARK
 	bg.BackgroundTransparency = 0.18
 	bg.BorderSizePixel = 0
 	bg.Parent = gui
-	local bgCorner = Instance.new("UICorner")
-	bgCorner.CornerRadius = UDim.new(0, 8)
-	bgCorner.Parent = bg
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = bg
 
 	local main = Instance.new("TextLabel")
 	main.Name = "Title"
-	main.Size = UDim2.fromScale(1, 0.58)
+	main.Size = UDim2.fromScale(1, 0.6)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
 	main.TextScaled = false
-	main.TextSize = 14
+	main.TextSize = 12
 	main.Text = title
 	main.TextColor3 = color or Color3.new(1, 1, 1)
 	main.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
@@ -120,8 +180,8 @@ local function buildBaseNameplate(parent, title, color)
 
 	local sub = Instance.new("TextLabel")
 	sub.Name = "Subtitle"
-	sub.Position = UDim2.fromScale(0, 0.58)
-	sub.Size = UDim2.fromScale(1, 0.42)
+	sub.Position = UDim2.fromScale(0, 0.6)
+	sub.Size = UDim2.fromScale(1, 0.4)
 	sub.BackgroundTransparency = 1
 	sub.Font = Enum.Font.GothamBold
 	sub.TextScaled = false
@@ -137,736 +197,196 @@ local function buildBaseNameplate(parent, title, color)
 end
 
 -- ---------------------------------------------------------------------------
--- Lighting: bright afternoon with shadows, sky and atmosphere. Safe.
+-- Lighting: empty of custom setup, just enforce shadows + brightness safely.
 -- ---------------------------------------------------------------------------
 
 local function setupLighting()
-	-- Default lighting: no overrides. Let Roblox Studio defaults handle it.
-	-- Intentionally empty — operator requested no custom lighting.
+	-- Operator requested no custom lighting. Only nudge the two safe globals.
+	pcall(function()
+		Lighting.GlobalShadows = true
+		Lighting.Brightness = 2
+	end)
 end
 
 -- ---------------------------------------------------------------------------
--- Terrain: multi-part island with grass, hills, beach, cliffs.
+-- Terrain: flat green plane, no hills/beach/cliffs.
 -- ---------------------------------------------------------------------------
 
 local function buildTerrain()
-	local terrainModel = Instance.new("Model")
-	terrainModel.Name = "Terrain"
+	local m = Instance.new("Model")
+	m.Name = "Terrain"
 
-	-- Main grass base: large flat slab at Y=0.
-	local grassBase = part({
+	local grass = part({
 		Name = "GrassBase",
-		Size = Vector3.new(ISLAND_HALF * 2, 0.4, ISLAND_HALF * 2),
-		Color = GRASS_GREEN,
+		Size = Vector3.new(ISLAND_SIZE, 0.4, ISLAND_SIZE),
+		Color = GRASS,
 		Material = Enum.Material.Grass,
 	})
-	grassBase.CFrame = CFrame.new(0, 0, 0)
-	grassBase.Parent = terrainModel
+	grass.CFrame = CFrame.new(0, 0, 0)
+	grass.Parent = m
 
-	-- Varied grass patches for visual interest.
-	for _, gx in ipairs({ -100, -50, 50, 100 }) do
-		local patch = part({
-			Name = "GrassPatch",
-			Size = Vector3.new(22, 0.15, ISLAND_HALF * 2 - 8),
-			Color = GRASS_DARK,
-			Material = Enum.Material.Grass,
-		})
-		patch.CFrame = CFrame.new(gx, 0.08, 0)
-		patch.Parent = terrainModel
-	end
-
-	-- Small hills: 3 elevated areas using rounded parts.
-	local hills = {
-		{ cx = -100, cz = -80, h = 6, r = 18 },
-		{ cx = 90, cz = 100, h = 8, r = 22 },
-		{ cx = -80, cz = 100, h = 4, r = 14 },
-	}
-	for _, hill in ipairs(hills) do
-		local mound = part({
-			Name = "Hill",
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(hill.r * 2, hill.h * 2, hill.r * 2),
-			Color = GRASS_GREEN,
-			Material = Enum.Material.Grass,
-		})
-		mound.CFrame = CFrame.new(hill.cx, hill.h * 0.5, hill.cz)
-		mound.Parent = terrainModel
-
-		-- Darker cap for visual depth.
-		local cap = part({
-			Name = "HillCap",
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(hill.r * 1.3, hill.h * 0.7, hill.r * 1.3),
-			Color = GRASS_DARK,
-			Material = Enum.Material.Grass,
-		})
-		cap.CFrame = CFrame.new(hill.cx, hill.h * 0.7, hill.cz)
-		cap.Parent = terrainModel
-	end
-
-	-- Beach edges: sandy parts around the island perimeter, slightly lower than grass.
-	local beachHalf = ISLAND_HALF - 4
-	for _, edge in ipairs({
-		{ name = "BeachN", cf = CFrame.new(0, -0.15, -beachHalf), size = Vector3.new(ISLAND_HALF * 2, 0.3, 10) },
-		{ name = "BeachS", cf = CFrame.new(0, -0.15, beachHalf), size = Vector3.new(ISLAND_HALF * 2, 0.3, 10) },
-		{ name = "BeachE", cf = CFrame.new(beachHalf, -0.15, 0), size = Vector3.new(10, 0.3, ISLAND_HALF * 2) },
-		{ name = "BeachW", cf = CFrame.new(-beachHalf, -0.15, 0), size = Vector3.new(10, 0.3, ISLAND_HALF * 2) },
-	}) do
-		local beach = part({
-			Name = edge.name,
-			Size = edge.size,
-			Color = BEACH_SAND,
-			Material = Enum.Material.Sand,
-		})
-		beach.CFrame = edge.cf
-		beach.Parent = terrainModel
-	end
-
-	-- Corner beach fills (rounded squares at the four corners).
-	for _, corner in ipairs({
-		{ x = -beachHalf, z = -beachHalf },
-		{ x = beachHalf, z = -beachHalf },
-		{ x = beachHalf, z = beachHalf },
-		{ x = -beachHalf, z = beachHalf },
-	}) do
-		local cb = part({
-			Name = "BeachCorner",
-			Size = Vector3.new(14, 0.25, 14),
-			Color = BEACH_SAND,
-			Material = Enum.Material.Sand,
-		})
-		cb.CFrame = CFrame.new(corner.x, -0.15, corner.z)
-		cb.Parent = terrainModel
-	end
-
-	-- Geometric cliffs: WedgePart slopes where island drops to ocean (N and E edges).
-	local cliffPositions = {
-		-- North cliff: wedge sloping down from z=-ISLAND_HALF toward z=-ISLAND_HALF-10
-		{ cf = CFrame.new(0, 3, -ISLAND_HALF + 1) * CFrame.Angles(0, math.rad(180), 0), size = Vector3.new(ISLAND_HALF * 2 - 20, 6, 10) },
-		-- East cliff: wedge sloping down from x=+ISLAND_HALF toward x=+ISLAND_HALF+10
-		{ cf = CFrame.new(ISLAND_HALF - 1, 3, 40) * CFrame.Angles(0, math.rad(-90), 0), size = Vector3.new(60, 6, 10) },
-	}
-	for _, cp in ipairs(cliffPositions) do
-		local cliff = part({
-			Name = "Cliff",
-			Shape = Enum.PartType.Wedge,
-			Size = cp.size,
-			Color = CLIFF_GREY,
-			Material = Enum.Material.Slate,
-		})
-		cliff.CFrame = cp.cf
-		cliff.Parent = terrainModel
-	end
-
-	-- Flat clearings: ensure the buildable zones (plaza, base district) are flat.
-	-- Plaza area: clear any terrain protrusions at origin.
-	local plazaClear = part({
-		Name = "PlazaClearing",
-		Size = Vector3.new(PLAZA_HALF * 2 + 10, 0.15, PLAZA_HALF * 2 + 10),
-		Color = GRASS_GREEN,
-		Material = Enum.Material.Grass,
-	})
-	plazaClear.CFrame = CFrame.new(0, 0.08, 0)
-	plazaClear.Parent = terrainModel
-
-	-- Base district clearing: flat area north of spawn for the 2×2 base grid.
-	local baseDistrictClear = part({
-		Name = "BaseDistrictClearing",
-		Size = Vector3.new(50, 0.15, 60),
-		Color = GRASS_GREEN,
-		Material = Enum.Material.Grass,
-	})
-	baseDistrictClear.CFrame = CFrame.new(0, 0.08, 70)
-	baseDistrictClear.Parent = terrainModel
-
-	terrainModel.Parent = workspace
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Ocean boundary: large blue plane surrounding the island at Y=-2.
+-- Ocean: translucent plane underneath.
 -- ---------------------------------------------------------------------------
 
 local function buildOcean()
-	local oceanModel = Instance.new("Model")
-	oceanModel.Name = "Ocean"
+	local m = Instance.new("Model")
+	m.Name = "Ocean"
 
 	local water = part({
 		Name = "OceanPlane",
-		Size = Vector3.new(600, 0.2, 600),
-		Color = OCEAN_CYAN,
+		Size = Vector3.new(OCEAN_SIZE, 0.2, OCEAN_SIZE),
+		Color = OCEAN,
 		Material = Enum.Material.SmoothPlastic,
 		Transparency = 0.3,
 	})
-	water.CFrame = CFrame.new(0, -2, 0)
+	water.CFrame = CFrame.new(0, -3, 0)
 	water.CanCollide = false
-	water.Parent = oceanModel
+	water.Parent = m
 
-	-- Subtle wave ripple: a second semi-transparent layer slightly higher.
-	local ripple = part({
-		Name = "OceanRipple",
-		Size = Vector3.new(580, 0.1, 580),
-		Color = Color3.fromRGB(100, 200, 240),
-		Material = Enum.Material.SmoothPlastic,
-		Transparency = 0.5,
-	})
-	ripple.CFrame = CFrame.new(0, -1.6, 0)
-	ripple.CanCollide = false
-	ripple.Parent = oceanModel
-
-	oceanModel.Parent = workspace
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Roads: main N-S road, secondary roads, sidewalks, markings, street lamps.
+-- Paths: orange center walkway + yellow line + white border ring.
 -- ---------------------------------------------------------------------------
 
-local function buildRoads()
-	local roadsModel = Instance.new("Model")
-	roadsModel.Name = "Roads"
+local function buildPaths()
+	local m = Instance.new("Model")
+	m.Name = "Paths"
 
-	-- Main N-S road: x=0, z from -120 to +120, 12 studs wide.
-	local mainRoad = part({
-		Name = "MainRoad",
-		Size = Vector3.new(ROAD_WIDTH, 0.22, 240),
-		Color = ROAD_GREY,
-		Material = Enum.Material.Asphalt,
-	})
-	mainRoad.CFrame = CFrame.new(0, 0.11, 0)
-	mainRoad.Parent = roadsModel
+	local pathLen = PATH_X_MAX - PATH_X_MIN
 
-	-- Main E-W road: z=0, x from -80 to +80, 12 studs wide.
-	local mainRoadEW = part({
-		Name = "MainRoadEW",
-		Size = Vector3.new(160, 0.22, ROAD_WIDTH),
-		Color = ROAD_GREY,
-		Material = Enum.Material.Asphalt,
-	})
-	mainRoadEW.CFrame = CFrame.new(0, 0.11, 0)
-	mainRoadEW.Parent = roadsModel
+	-- Orange center path (east-west, z=0).
+	local orange = box(m, "OrangePath", Vector3.new(pathLen, 0.2, PATH_WIDTH),
+		CFrame.new(0, 0.11, 0), ORANGE_PATH, Enum.Material.SmoothPlastic)
 
-	-- Sidewalks: lighter grey strips on each side of main N-S road.
-	for _, side in ipairs({ -ROAD_WIDTH / 2 - SIDEWALK_WIDTH / 2, ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2 }) do
-		local sw = part({
-			Name = "SidewalkNS",
-			Size = Vector3.new(SIDEWALK_WIDTH, 0.24, 240),
-			Color = SIDEWALK_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		sw.CFrame = CFrame.new(side, 0.12, 0)
-		sw.Parent = roadsModel
-	end
+	-- Yellow center line.
+	box(m, "YellowLine", Vector3.new(pathLen, 0.06, 0.3),
+		CFrame.new(0, 0.22, 0), YELLOW_LINE, Enum.Material.Neon, false)
 
-	-- Sidewalks on E-W road.
-	for _, side in ipairs({ -ROAD_WIDTH / 2 - SIDEWALK_WIDTH / 2, ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2 }) do
-		local sw = part({
-			Name = "SidewalkEW",
-			Size = Vector3.new(160, 0.24, SIDEWALK_WIDTH),
-			Color = SIDEWALK_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		sw.CFrame = CFrame.new(0, 0.12, side)
-		sw.Parent = roadsModel
-	end
+	-- White/grey border path around the compound (4-wide ring).
+	local bw = 4
+	box(m, "BorderN", Vector3.new(COMPOUND_X * 2 + bw * 2, 0.2, bw),
+		CFrame.new(0, 0.11, COMPOUND_Z + bw / 2), BORDER_PATH, Enum.Material.Concrete)
+	box(m, "BorderS", Vector3.new(COMPOUND_X * 2 + bw * 2, 0.2, bw),
+		CFrame.new(0, 0.11, -COMPOUND_Z - bw / 2), BORDER_PATH, Enum.Material.Concrete)
+	box(m, "BorderE", Vector3.new(bw, 0.2, COMPOUND_Z * 2),
+		CFrame.new(COMPOUND_X + bw / 2, 0.11, 0), BORDER_PATH, Enum.Material.Concrete)
+	box(m, "BorderW", Vector3.new(bw, 0.2, COMPOUND_Z * 2),
+		CFrame.new(-COMPOUND_X - bw / 2, 0.11, 0), BORDER_PATH, Enum.Material.Concrete)
 
-	-- Road markings: thin yellow centre line on main N-S road.
-	for _, segZ in ipairs({ -80, -40, 0, 40, 80 }) do
-		local line = part({
-			Name = "RoadLineNS",
-			Size = Vector3.new(0.4, 0.06, 30),
-			Color = YELLOW_LINE,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		line.CFrame = CFrame.new(0, 0.28, segZ)
-		line.CanCollide = false
-		line.Parent = roadsModel
-	end
-
-	-- Road markings on E-W road.
-	for _, segX in ipairs({ -60, -20, 20, 60 }) do
-		local line = part({
-			Name = "RoadLineEW",
-			Size = Vector3.new(30, 0.06, 0.4),
-			Color = YELLOW_LINE,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		line.CFrame = CFrame.new(segX, 0.28, 0)
-		line.CanCollide = false
-		line.Parent = roadsModel
-	end
-
-	-- Secondary E-W roads in the base district.
-	local secondaryRoads = {
-		{ z = BASE_ROW1_Z, name = "BaseRoadFront" },
-		{ z = BASE_ROW2_Z, name = "BaseRoadBack" },
-	}
-	for _, sr in ipairs(secondaryRoads) do
-		local secRoad = part({
-			Name = sr.name,
-			Size = Vector3.new(50, 0.2, SECONDARY_ROAD_WIDTH),
-			Color = ROAD_GREY,
-			Material = Enum.Material.Asphalt,
-		})
-		secRoad.CFrame = CFrame.new(0, 0.1, sr.z)
-		secRoad.Parent = roadsModel
-	end
-
-	-- Secondary N-S roads connecting front and back base rows.
-	local secNS = part({
-		Name = "BaseRoadNS",
-		Size = Vector3.new(SECONDARY_ROAD_WIDTH, 0.2, BASE_ROW2_Z - BASE_ROW1_Z + SECONDARY_ROAD_WIDTH),
-		Color = ROAD_GREY,
-		Material = Enum.Material.Asphalt,
-	})
-	secNS.CFrame = CFrame.new(BASE_COL1_X - BASE_HALF - 4, 0.1, (BASE_ROW1_Z + BASE_ROW2_Z) / 2)
-	secNS.Parent = roadsModel
-
-	local secNS2 = part({
-		Name = "BaseRoadNS2",
-		Size = Vector3.new(SECONDARY_ROAD_WIDTH, 0.2, BASE_ROW2_Z - BASE_ROW1_Z + SECONDARY_ROAD_WIDTH),
-		Color = ROAD_GREY,
-		Material = Enum.Material.Asphalt,
-	})
-	secNS2.CFrame = CFrame.new(BASE_COL2_X + BASE_HALF + 4, 0.1, (BASE_ROW1_Z + BASE_ROW2_Z) / 2)
-	secNS2.Parent = roadsModel
-
-	-- Street lamps along main N-S road: cylinder pole + neon ball head, every 20 studs.
-	for _, z in ipairs({ -100, -80, -60, -40, -20, 20, 40, 60, 80, 100 }) do
-		for _, sx in ipairs({ ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 0.5, -(ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 0.5) }) do
-			local lampModel = Instance.new("Model")
-			lampModel.Name = "StreetLamp"
-
-			local poleH = 9
-			local pole = part({
-				Name = "Pole",
-				Shape = Enum.PartType.Cylinder,
-				Size = Vector3.new(poleH, 0.35, 0.35),
-				Color = LAMP_POLE,
-				Material = Enum.Material.Metal,
-			})
-			pole.CFrame = CFrame.new(sx, poleH / 2 + 0.2, z) * CFrame.Angles(0, 0, math.rad(90))
-			pole.Parent = lampModel
-
-			local head = part({
-				Name = "LampHead",
-				Shape = Enum.PartType.Ball,
-				Size = Vector3.new(1.6, 1.6, 1.6),
-				Color = LAMP_GLOW,
-				Material = Enum.Material.Neon,
-			})
-			head.CFrame = CFrame.new(sx, poleH + 1.0, z)
-			head.Parent = lampModel
-
-			local pointLight = Instance.new("PointLight")
-			pointLight.Color = LAMP_GLOW
-			pointLight.Brightness = 3.2
-			pointLight.Range = 24
-			pointLight.Parent = head
-
-			lampModel.Parent = roadsModel
-		end
-	end
-
-	roadsModel.Parent = workspace
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Central Spawn Plaza: large paved area at origin with Bitcoin landmark.
+-- Building shell: pastel walls, pillars, windows, doorframe, awning, roof.
+-- Shared by bases and shops. Door is on the z-face toward z=0 (normalZ).
 -- ---------------------------------------------------------------------------
 
-local function buildSpawnPlaza()
-	local plazaModel = Instance.new("Model")
-	plazaModel.Name = "SpawnPlaza"
+local function buildShell(model, cx, cz, halfW, halfD, wallH, wallColor, roofColor, normalZ, doorWidth, awningColor)
+	local doorHalf = doorWidth / 2
+	local doorWallZ = cz + normalZ * halfD
+	local oppZ = cz - normalZ * halfD
+	local wallY = wallH / 2 + 0.2
 
-	-- Plaza floor: alternating tile pattern (checkerboard of Box parts).
-	local tileCount = 4
-	local tileSize = PLAZA_HALF * 2 / tileCount
-	for ix = 0, tileCount - 1 do
-		for iz = 0, tileCount - 1 do
-			local isLight = (ix + iz) % 2 == 0
-			local tile = part({
-				Name = "PlazaTile",
-				Size = Vector3.new(tileSize - 0.2, 0.18, tileSize - 0.2),
-				Color = isLight and PLAZA_TILE_A or PLAZA_TILE_B,
-				Material = Enum.Material.SmoothPlastic,
-			})
-			local tx = -PLAZA_HALF + tileSize / 2 + ix * tileSize
-			local tz = -PLAZA_HALF + tileSize / 2 + iz * tileSize
-			tile.CFrame = CFrame.new(tx, 0.2, tz)
-			tile.Parent = plazaModel
+	-- Door wall (split around opening).
+	local segW = halfW - doorHalf
+	box(model, "WallDoorL", Vector3.new(segW, wallH, 0.5),
+		CFrame.new(cx - (halfW + doorHalf) / 2, wallY, doorWallZ), wallColor, Enum.Material.SmoothPlastic)
+	box(model, "WallDoorR", Vector3.new(segW, wallH, 0.5),
+		CFrame.new(cx + (halfW + doorHalf) / 2, wallY, doorWallZ), wallColor, Enum.Material.SmoothPlastic)
+
+	-- Back wall.
+	box(model, "WallBack", Vector3.new(halfW * 2, wallH, 0.5),
+		CFrame.new(cx, wallY, oppZ), wallColor, Enum.Material.SmoothPlastic)
+
+	-- Side walls.
+	box(model, "WallW", Vector3.new(0.5, wallH, halfD * 2),
+		CFrame.new(cx - halfW, wallY, cz), wallColor, Enum.Material.SmoothPlastic)
+	box(model, "WallE", Vector3.new(0.5, wallH, halfD * 2),
+		CFrame.new(cx + halfW, wallY, cz), wallColor, Enum.Material.SmoothPlastic)
+
+	-- Four corner pillars.
+	for _, px in ipairs({ -halfW, halfW }) do
+		for _, pz in ipairs({ -halfD, halfD }) do
+			box(model, "Pillar", Vector3.new(0.4, wallH, 0.4),
+				CFrame.new(cx + px, wallY, cz + pz), PILLAR, Enum.Material.SmoothPlastic)
 		end
 	end
 
-	-- Plaza border trim: gold edge around the plaza perimeter.
-	for _, edge in ipairs({
-		{ name = "PlazaBorderN", cf = CFrame.new(0, 0.15, -PLAZA_HALF), size = Vector3.new(PLAZA_HALF * 2, 0.16, 0.6) },
-		{ name = "PlazaBorderS", cf = CFrame.new(0, 0.15, PLAZA_HALF), size = Vector3.new(PLAZA_HALF * 2, 0.16, 0.6) },
-		{ name = "PlazaBorderE", cf = CFrame.new(PLAZA_HALF, 0.15, 0), size = Vector3.new(0.6, 0.16, PLAZA_HALF * 2) },
-		{ name = "PlazaBorderW", cf = CFrame.new(-PLAZA_HALF, 0.15, 0), size = Vector3.new(0.6, 0.16, PLAZA_HALF * 2) },
-	}) do
-		local border = part({
-			Name = edge.name,
-			Size = edge.size,
-			Color = BITCOIN_GOLD,
-			Material = Enum.Material.Metal,
-		})
-		border.CFrame = edge.cf
-		border.Parent = plazaModel
+	-- Windows: 2 on back wall, 2 on each side wall (blue-tinted insets).
+	local winY = wallH / 2 + 0.2
+	local backOff = math.min(halfW - 2, 3)
+	local sideOff = math.min(halfD - 2, 3)
+	box(model, "Window", Vector3.new(2.6, 2.6, 0.2),
+		CFrame.new(cx - backOff, winY, oppZ), WINDOW_BLUE, Enum.Material.SmoothPlastic, false)
+	box(model, "Window", Vector3.new(2.6, 2.6, 0.2),
+		CFrame.new(cx + backOff, winY, oppZ), WINDOW_BLUE, Enum.Material.SmoothPlastic, false)
+	for _, sx in ipairs({ -halfW, halfW }) do
+		box(model, "Window", Vector3.new(0.2, 2.6, 2.6),
+			CFrame.new(cx + sx, winY, cz - sideOff), WINDOW_BLUE, Enum.Material.SmoothPlastic, false)
+		box(model, "Window", Vector3.new(0.2, 2.6, 2.6),
+			CFrame.new(cx + sx, winY, cz + sideOff), WINDOW_BLUE, Enum.Material.SmoothPlastic, false)
 	end
 
-	-- Bitcoin Statue: large gold Cylinder with ₿ mark, standing in the plaza centre.
-	local statueBase = part({
-		Name = "StatueBase",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(1.5, 6, 6),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	statueBase.CFrame = CFrame.new(0, 0.75, -8) * CFrame.Angles(0, 0, math.rad(90))
-	statueBase.Parent = plazaModel
-
-	local statuePillar = part({
-		Name = "StatuePillar",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(12, 4, 4),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	statuePillar.CFrame = CFrame.new(0, 7.5, -8) * CFrame.Angles(0, 0, math.rad(90))
-	statuePillar.Parent = plazaModel
-
-	-- ₿ symbol as a large flat box on top of the pillar.
-	local bitcoinSymbol = part({
-		Name = "BitcoinSymbol",
-		Size = Vector3.new(3.5, 3.5, 0.4),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	bitcoinSymbol.CFrame = CFrame.new(0, 14, -8)
-	bitcoinSymbol.Parent = plazaModel
-
-	-- BillboardGui for the ₿ symbol text.
-	local symbolGui = Instance.new("BillboardGui")
-	symbolGui.Size = UDim2.fromOffset(200, 80)
-	symbolGui.AlwaysOnTop = true
-	symbolGui.MaxDistance = 80
-	symbolGui.Parent = bitcoinSymbol
-
-	local symbolLabel = Instance.new("TextLabel")
-	symbolLabel.Size = UDim2.fromScale(1, 1)
-	symbolLabel.BackgroundTransparency = 1
-	symbolLabel.Font = Enum.Font.GothamBold
-	symbolLabel.TextScaled = false
-	symbolLabel.TextSize = 14
-	symbolLabel.Text = "₿"
-	symbolLabel.TextColor3 = BITCOIN_GOLD
-	symbolLabel.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	symbolLabel.TextStrokeTransparency = 0.3
-	symbolLabel.Parent = symbolGui
-
-	-- Glowing ring around the statue base.
-	local glowRing = part({
-		Name = "StatueGlowRing",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.6, 7, 7),
-		Color = CYAN_BLUE,
-		Material = Enum.Material.Neon,
-	})
-	glowRing.CFrame = CFrame.new(0, 0.3, -8) * CFrame.Angles(0, 0, math.rad(90))
-	glowRing.CanCollide = false
-	glowRing.Parent = plazaModel
-
-	-- Leaderboard board: tall dark panel with BillboardGui.
-	local leaderboardPanel = part({
-		Name = "LeaderboardSign",
-		Size = Vector3.new(10, 8, 0.6),
-		Color = SIGN_DARK,
-		Material = Enum.Material.SmoothPlastic,
-	})
-	leaderboardPanel.CFrame = CFrame.new(10, 4.4, -PLAZA_HALF + 2)
-	leaderboardPanel.CanCollide = false
-	leaderboardPanel.Parent = plazaModel
-
-	local leaderGui = Instance.new("BillboardGui")
-	leaderGui.Size = UDim2.fromOffset(260, 60)
-	leaderGui.AlwaysOnTop = true
-	leaderGui.MaxDistance = 200
-	leaderGui.Parent = leaderboardPanel
-
-	local leaderTitle = Instance.new("TextLabel")
-	leaderTitle.Size = UDim2.fromScale(1, 0.65)
-	leaderTitle.BackgroundTransparency = 1
-	leaderTitle.Font = Enum.Font.GothamBold
-	leaderTitle.TextScaled = false
-	leaderTitle.TextSize = 14
-	leaderTitle.Text = "🏆 LEADERBOARD"
-	leaderTitle.TextColor3 = BITCOIN_GOLD
-	leaderTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	leaderTitle.TextStrokeTransparency = 0.25
-	leaderTitle.Parent = leaderGui
-
-	-- Info board: smaller panel with instructions.
-	local infoPanel = part({
-		Name = "InfoBoard",
-		Size = Vector3.new(8, 5, 0.6),
-		Color = SIGN_DARK,
-		Material = Enum.Material.SmoothPlastic,
-	})
-	infoPanel.CFrame = CFrame.new(-10, 3.0, -PLAZA_HALF + 2)
-	infoPanel.CanCollide = false
-	infoPanel.Parent = plazaModel
-
-	local infoGui = Instance.new("BillboardGui")
-	infoGui.Size = UDim2.fromOffset(240, 50)
-	infoGui.AlwaysOnTop = true
-	infoGui.MaxDistance = 200
-	infoGui.Parent = infoPanel
-
-	local infoTitle = Instance.new("TextLabel")
-	infoTitle.Size = UDim2.fromScale(1, 1)
-	infoTitle.BackgroundTransparency = 1
-	infoTitle.Font = Enum.Font.GothamBold
-	infoTitle.TextScaled = false
-	infoTitle.TextSize = 14
-	infoTitle.Text = "📦 COLLECT · 💰 EARN · 🏗️ BUILD"
-	infoTitle.TextColor3 = Color3.fromRGB(200, 220, 255)
-	infoTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	infoTitle.TextStrokeTransparency = 0.3
-	infoTitle.Parent = infoGui
-
-	-- Decorative coin ornaments around the plaza edge: small gold Cylinders.
-	local coinRadius = PLAZA_HALF + 1
-	for i = 0, 7 do
-		local angle = math.rad(i * 45)
-		local cx = math.cos(angle) * coinRadius
-		local cz = math.sin(angle) * coinRadius
-
-		-- Skip coins in the road paths (N/S/E/W at angles 0°, 90°, 180°, 270°).
-		local absAngle = (i * 45) % 180
-		if math.abs(absAngle - 90) < 5 then
-			-- E/W road — skip but still place smaller coins further out.
-		end
-
-		local coin = part({
-			Name = "CoinOrnament",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(0.6, 3, 3),
-			Color = COIN_ORNAMENT,
-			Material = Enum.Material.Metal,
-		})
-		coin.CFrame = CFrame.new(cx, 0.3, cz) * CFrame.Angles(0, 0, math.rad(90))
-		coin.CanCollide = false
-		coin.Parent = plazaModel
+	-- Gold neon doorframe pillars + lintel.
+	for _, dx in ipairs({ -doorHalf, doorHalf }) do
+		box(model, "DoorFrame", Vector3.new(0.6, wallH + 1, 0.6),
+			CFrame.new(cx + dx, (wallH + 1) / 2 + 0.2, doorWallZ), DOOR_GOLD, Enum.Material.Neon)
 	end
+	box(model, "DoorLintel", Vector3.new(doorWidth + 1, 0.4, 0.4),
+		CFrame.new(cx, wallH + 0.6, doorWallZ), DOOR_GOLD, Enum.Material.Neon)
 
-	-- 4 radiating path markers: gold strips pointing N/S/E/W.
-	local paths = {
-		{ name = "PathN", cf = CFrame.new(0, 0.13, -PLAZA_HALF - 2), size = Vector3.new(ROAD_WIDTH, 0.1, 4) },
-		{ name = "PathS", cf = CFrame.new(0, 0.13, PLAZA_HALF + 2), size = Vector3.new(ROAD_WIDTH, 0.1, 4) },
-		{ name = "PathE", cf = CFrame.new(PLAZA_HALF + 2, 0.13, 0), size = Vector3.new(4, 0.1, ROAD_WIDTH) },
-		{ name = "PathW", cf = CFrame.new(-PLAZA_HALF - 2, 0.13, 0), size = Vector3.new(4, 0.1, ROAD_WIDTH) },
-	}
-	for _, p in ipairs(paths) do
-		local marker = part({
-			Name = p.name,
-			Size = p.size,
-			Color = BITCOIN_GOLD,
-			Material = Enum.Material.Metal,
-		})
-		marker.CFrame = p.cf
-		marker.Parent = plazaModel
-	end
+	-- Dark grey entrance step.
+	box(model, "DoorStep", Vector3.new(doorWidth, 0.3, 1),
+		CFrame.new(cx, 0.35, doorWallZ + normalZ * 0.5), STEP_GREY, Enum.Material.SmoothPlastic)
 
-	plazaModel.Parent = workspace
+	-- Red awning above the door.
+	box(model, "Awning", Vector3.new(doorWidth + 0.5, 0.3, 1.5),
+		CFrame.new(cx, wallH + 0.4, doorWallZ + normalZ * 0.6), awningColor, Enum.Material.SmoothPlastic, false)
+
+	-- Roof slab with 1-stud overhang.
+	box(model, "Roof", Vector3.new(halfW * 2 + 2, 0.6, halfD * 2 + 2),
+		CFrame.new(cx, wallH + 0.5, cz), roofColor, Enum.Material.SmoothPlastic)
+
+	return doorWallZ
 end
 
 -- ---------------------------------------------------------------------------
--- Single base building: structure for one player's base.
+-- Single player base.
 -- ---------------------------------------------------------------------------
 
 local function buildSingleBase(cx, cz, index)
 	local model = Instance.new("Model")
 	model.Name = "Base" .. index
 
-	local wallH = 10
-	local halfW = BASE_HALF
+	local halfW, halfD, wallH = BASE_HALF, BASE_HALF, BASE_WALL_H
+	local normalZ = cz > 0 and -1 or 1 -- door faces toward z=0 (center path)
+	local doorWallZ = buildShell(model, cx, cz, halfW, halfD, wallH,
+		WALL_PASTEL, ROOF_LIME, normalZ, 5, AWNING_RED)
 
-	-- Red interior floor — also the "Island" part the server hooks .Touched on.
-	local floor = part({
-		Name = "Island",
-		Size = Vector3.new(halfW * 2, 0.4, halfW * 2),
-		Color = INTERIOR_RED,
-		Material = Enum.Material.SmoothPlastic,
-	})
-	floor.CFrame = CFrame.new(cx, 0.2, cz)
-	floor.Parent = model
+	-- Interior red floor — the "Island" the server hooks .Touched on.
+	local floor = box(model, "Island", Vector3.new(halfW * 2, 0.4, halfD * 2),
+		CFrame.new(cx, 0.2, cz), INTERIOR_RED, Enum.Material.SmoothPlastic)
 
-	-- All bases have their doorway facing south (toward spawn / the road).
-	-- South wall (WallS at cz + halfW): doorway in the middle 6 studs.
-	local doorHalf = 3.0
-
-	-- Left segment of south wall.
-	local segL = part({
-		Name = "WallS_L",
-		Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-		Color = WALL_GREY,
-		Material = Enum.Material.Concrete,
-	})
-	segL.CFrame = CFrame.new(cx - (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
-	segL.Parent = model
-
-	-- Right segment of south wall.
-	local segR = part({
-		Name = "WallS_R",
-		Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-		Color = WALL_GREY,
-		Material = Enum.Material.Concrete,
-	})
-	segR.CFrame = CFrame.new(cx + (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
-	segR.Parent = model
-
-	-- Doorframe: tall neon-gold pillars on each side of the opening, a lintel
-	-- above, a threshold step below, and warm point lights flanking the entry.
-	local doorZ = cz + halfW
-	local frameH = wallH + 1.0
-	for _, dx in ipairs({ -doorHalf, doorHalf }) do
-		local framePost = part({
-			Name = "DoorFrame",
-			Size = Vector3.new(0.8, frameH, 0.8),
-			Color = DOOR_FRAME,
-			Material = Enum.Material.Neon,
-		})
-		framePost.CFrame = CFrame.new(cx + dx, frameH / 2 + 0.2, doorZ)
-		framePost.Parent = model
-
-		-- Warm yellow light flanking the doorway so it reads from a distance.
-		local doorLight = Instance.new("PointLight")
-		doorLight.Color = Color3.fromRGB(255, 220, 130)
-		doorLight.Range = 8
-		doorLight.Brightness = 0.5
-		doorLight.Parent = framePost
-	end
-
-	-- Lintel: neon-gold bar across the top of the doorway.
-	local lintel = part({
-		Name = "DoorLintel",
-		Size = Vector3.new(6.5, 0.4, 0.4),
-		Color = DOOR_FRAME,
-		Material = Enum.Material.Neon,
-	})
-	lintel.CFrame = CFrame.new(cx, frameH + 0.4, doorZ)
-	lintel.Parent = model
-
-	-- Threshold step: low gold block across the doorway bottom.
-	local threshold = part({
-		Name = "Threshold",
-		Size = Vector3.new(6, 0.3, 1.0),
-		Color = DOOR_FRAME,
-		Material = Enum.Material.Metal,
-	})
-	threshold.CFrame = CFrame.new(cx, 0.35, doorZ)
-	threshold.Parent = model
-
-	-- Solid walls: west, east, north.
-	local solidWalls = {
-		{ name = "WallW", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx - halfW, wallH / 2 + 0.2, cz) },
-		{ name = "WallE", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx + halfW, wallH / 2 + 0.2, cz) },
-		{ name = "WallN", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz - halfW) },
-	}
-	for _, w in ipairs(solidWalls) do
-		local wall = part({
-			Name = w.name,
-			Size = w.size,
-			Color = WALL_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		wall.CFrame = w.cf
-		wall.Parent = model
-	end
-
-	-- Roof slab: dark colour with gold accent trim.
-	local roofSlab = part({
-		Name = "Roof",
-		Size = Vector3.new(halfW * 2 + 1.8, 1.2, halfW * 2 + 1.8),
-		Color = ROOF_DARK,
-		Material = Enum.Material.Concrete,
-	})
-	roofSlab.CFrame = CFrame.new(cx, wallH + 1.2, cz)
-	roofSlab.Parent = model
-
-	-- Gold roof trim.
-	local roofOverhang = halfW + 1.2
-	for _, rt in ipairs({
-		{ name = "RoofTrimN", cf = CFrame.new(cx, wallH + 2.0, cz - roofOverhang), size = Vector3.new(halfW * 2 + 2.2, 0.6, 0.6) },
-		{ name = "RoofTrimS", cf = CFrame.new(cx, wallH + 2.0, cz + roofOverhang), size = Vector3.new(halfW * 2 + 2.2, 0.6, 0.6) },
-		{ name = "RoofTrimE", cf = CFrame.new(cx + roofOverhang, wallH + 2.0, cz), size = Vector3.new(0.6, 0.6, halfW * 2 + 2.2) },
-		{ name = "RoofTrimW", cf = CFrame.new(cx - roofOverhang, wallH + 2.0, cz), size = Vector3.new(0.6, 0.6, halfW * 2 + 2.2) },
-	}) do
-		local trimPart = part({
-			Name = rt.name,
-			Size = rt.size,
-			Color = ROOF_TRIM,
-			Material = Enum.Material.Metal,
-		})
-		trimPart.CFrame = rt.cf
-		trimPart.Parent = model
-	end
-
-	-- White-framed windows on the side walls (west, east) and back wall (north).
-	local function addWindow(fx, fz, rotY, sx)
-		local frame = part({
-			Name = "Window",
-			Size = Vector3.new(sx, 3.6, 0.2),
-			Color = WINDOW_WHITE,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		frame.CFrame = CFrame.new(cx + fx, 4.6, cz + fz) * CFrame.Angles(0, math.rad(rotY), 0)
-		frame.CanCollide = false
-		frame.Parent = model
-	end
-
-	-- West wall: two windows.
-	addWindow(-halfW - 0.1, -5, 0, 4)
-	addWindow(-halfW - 0.1, 5, 0, 4)
-	-- East wall: two windows.
-	addWindow(halfW + 0.1, -5, 0, 4)
-	addWindow(halfW + 0.1, 5, 0, 4)
-	-- North (back) wall: two windows.
-	addWindow(-5, -halfW - 0.1, 90, 4)
-	addWindow(5, -halfW - 0.1, 90, 4)
-
-	-- Base sign: dark slab above the front (south) wall with BillboardGui.
-	local sign = part({
-		Name = "BaseSign",
-		Size = Vector3.new(16, 2.4, 0.6),
-		Color = SIGN_DARK,
-		Material = Enum.Material.SmoothPlastic,
-	})
-	sign.CFrame = CFrame.new(cx, wallH + 3.6, cz + halfW)
-	sign.CanCollide = false
-	sign.Parent = model
-	buildBaseNameplate(sign, "YOUR BASE", Color3.fromRGB(120, 255, 150))
-
-	-- ProximityPrompt on the floor for "Claim Base".
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "ClaimPrompt"
-	prompt.ActionText = "Claim Base"
-	prompt.ObjectText = "YOUR BASE"
-	prompt.HoldDuration = 0
-	prompt.RequiresLineOfSight = false
-	prompt.MaxActivationDistance = 18
-	prompt.Parent = floor
-
-	-- Pedestal rows: 2 rows of 5 inside the building, facing south.
+	-- 2x5 pedestals, open interior.
 	for slot = 1, Config.Economy.maxSlots do
 		local row = math.floor((slot - 1) / 5)
 		local col = (slot - 1) % 5
-		local px = cx + (col - 2) * PEDESTAL_SPACING
-		local pz = cz + (row - 0.5) * 6 + 3
+		local px = cx + (col - 2) * 4
+		local pz = cz + (row == 0 and -3 or 3)
+		local pedColor = slot <= Config.Economy.startSlots
+			and Color3.fromRGB(115, 120, 135)
+			or Color3.fromRGB(58, 60, 70)
 		local pedestal = part({
 			Name = "Pedestal" .. slot,
 			Shape = Enum.PartType.Cylinder,
 			Size = Vector3.new(1.8, 4.2, 4.2),
-			Color = slot <= Config.Economy.startSlots and Color3.fromRGB(115, 120, 135) or Color3.fromRGB(58, 60, 70),
+			Color = pedColor,
 			Material = Enum.Material.Slate,
 		})
 		pedestal.CFrame = CFrame.new(px, 2.3, pz) * CFrame.Angles(0, 0, math.rad(90))
@@ -874,871 +394,264 @@ local function buildSingleBase(cx, cz, index)
 		pedestal.Parent = model
 	end
 
+	-- YOUR BASE nameplate above the door.
+	local sign = box(model, "BaseSign", Vector3.new(12, 1.6, 0.4),
+		CFrame.new(cx, wallH + 2, doorWallZ + normalZ * 0.3), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+	buildBaseNameplate(sign, "YOUR BASE", SIGN_GREEN)
+
 	-- Attributes the server reads.
 	model:SetAttribute("Index", index)
 	model:SetAttribute("CenterX", cx)
 	model:SetAttribute("CenterZ", cz)
-	model:SetAttribute("TopY", 0.4) -- floor height for tsunami teleport
+	model:SetAttribute("TopY", 0.4)
 
 	model.Parent = workspace
 	return model
 end
 
 -- ---------------------------------------------------------------------------
--- Player Base District: 4 base plots in a 2×2 grid north of spawn.
+-- Base district: 2x2 grid + perimeter fence with gate openings.
 -- ---------------------------------------------------------------------------
 
 local function buildBaseDistrict()
-	local districtModel = Instance.new("Model")
-	districtModel.Name = "BaseDistrict"
-
-	-- 2×2 grid layout (read row-major from south):
-	--   Base 1 (front-left):  x=-15, z=55
-	--   Base 2 (front-right): x=+15, z=55
-	--   Base 3 (back-right):  x=+15, z=85
-	--   Base 4 (back-left):   x=-15, z=85
-	local basePositions = {
-		{ x = BASE_COL1_X, z = BASE_ROW1_Z, index = 1 },
-		{ x = BASE_COL2_X, z = BASE_ROW1_Z, index = 2 },
-		{ x = BASE_COL2_X, z = BASE_ROW2_Z, index = 3 },
-		{ x = BASE_COL1_X, z = BASE_ROW2_Z, index = 4 },
-	}
+	local district = Instance.new("Model")
+	district.Name = "BaseDistrict"
 
 	local bases = {}
-	for _, bp in ipairs(basePositions) do
-		bases[bp.index] = buildSingleBase(bp.x, bp.z, bp.index)
+	for _, bp in ipairs(BASE_POSITIONS) do
+		bases[bp[3]] = buildSingleBase(bp[1], bp[2], bp[3])
+		bases[bp[3]].Parent = district
 	end
 
-	-- Connecting paths between plots: stone walkways.
-	local function addPath(sx, sz, ex, ez)
-		local dx = ex - sx
-		local dz = ez - sz
-		local dist = math.sqrt(dx * dx + dz * dz)
-		local steps = math.max(2, math.floor(dist / 4))
-		for i = 1, steps do
-			local t = i / (steps + 1)
-			local px = sx + dx * t
-			local pz = sz + dz * t
-			local stone = part({
-				Name = "PathStone",
-				Size = Vector3.new(2.4, 0.1, 2.4),
-				Color = SIDEWALK_GREY,
-				Material = Enum.Material.Slate,
-			})
-			stone.CFrame = CFrame.new(px, 0.18, pz)
-			stone.Parent = districtModel
-		end
-	end
+	-- Perimeter fence around the compound (dark brown, 2 tall), gates at x=+/-40
+	-- where the orange path enters (gap at z=0 on east/west edges).
+	local fenceH = 2
+	local gateHalf = 4
+	-- North / south fences (full spans).
+	box(district, "FenceN", Vector3.new(COMPOUND_X * 2, fenceH, 0.3),
+		CFrame.new(0, fenceH / 2 + 0.2, COMPOUND_Z), FENCE_BROWN, Enum.Material.Wood)
+	box(district, "FenceS", Vector3.new(COMPOUND_X * 2, fenceH, 0.3),
+		CFrame.new(0, fenceH / 2 + 0.2, -COMPOUND_Z), FENCE_BROWN, Enum.Material.Wood)
+	-- West fence split around gate at z=0.
+	box(district, "FenceW1", Vector3.new(0.3, fenceH, COMPOUND_Z - gateHalf),
+		CFrame.new(-COMPOUND_X, fenceH / 2 + 0.2, -(COMPOUND_Z + gateHalf) / 2 + gateHalf / 2), FENCE_BROWN, Enum.Material.Wood)
+	box(district, "FenceW2", Vector3.new(0.3, fenceH, COMPOUND_Z - gateHalf),
+		CFrame.new(-COMPOUND_X, fenceH / 2 + 0.2, (COMPOUND_Z + gateHalf) / 2 - gateHalf / 2), FENCE_BROWN, Enum.Material.Wood)
+	-- East fence split around gate at z=0.
+	box(district, "FenceE1", Vector3.new(0.3, fenceH, COMPOUND_Z - gateHalf),
+		CFrame.new(COMPOUND_X, fenceH / 2 + 0.2, -(COMPOUND_Z + gateHalf) / 2 + gateHalf / 2), FENCE_BROWN, Enum.Material.Wood)
+	box(district, "FenceE2", Vector3.new(0.3, fenceH, COMPOUND_Z - gateHalf),
+		CFrame.new(COMPOUND_X, fenceH / 2 + 0.2, (COMPOUND_Z + gateHalf) / 2 - gateHalf / 2), FENCE_BROWN, Enum.Material.Wood)
 
-	-- Paths from main road to each base doorway (south side of each base).
-	for _, bp in ipairs(basePositions) do
-		local doorX = bp.x
-		local doorZ = bp.z + BASE_HALF
-		local roadX = 0
-		local roadZ = bp.z
-		addPath(roadX, roadZ, doorX, doorZ)
-	end
-
-	-- Paths between front and back row bases (north-south connectors).
-	addPath(BASE_COL1_X, BASE_ROW1_Z, BASE_COL1_X, BASE_ROW2_Z)
-	addPath(BASE_COL2_X, BASE_ROW1_Z, BASE_COL2_X, BASE_ROW2_Z)
-
-	districtModel.Parent = workspace
+	district.Parent = workspace
 	return bases
 end
 
 -- ---------------------------------------------------------------------------
--- Phase 11b zone colours
+-- Shops: two buildings flanking the east end of the orange path.
 -- ---------------------------------------------------------------------------
 
-local LIGHT_BLUE = Color3.fromRGB(150, 200, 235)
-local NEON_CYAN = Color3.fromRGB(0, 230, 255)
-local NEON_GREEN = Color3.fromRGB(60, 255, 120)
-local NEON_ORANGE = Color3.fromRGB(255, 140, 30)
-local ETH_BLUE = Color3.fromRGB(40, 90, 255)
-local NEON_PURPLE = Color3.fromRGB(180, 80, 255)
-local DARK_GRASS = Color3.fromRGB(60, 80, 50)
-local CRATE_BROWN = Color3.fromRGB(120, 80, 45)
-local METAL_DARK = Color3.fromRGB(45, 47, 55)
-local CONCRETE_DARK = Color3.fromRGB(70, 72, 80)
-local FENCE_GREY = Color3.fromRGB(60, 62, 70)
-local ROCK_GREY = Color3.fromRGB(110, 112, 118)
-
--- Small BillboardGui text label attached to a part (for zone signs).
-local function makeBillboard(parent, text, color, width, height, maxDist)
-	local gui = Instance.new("BillboardGui")
-	gui.Name = "ZoneLabel"
-	gui.Size = UDim2.fromOffset(width or 200, height or 50)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = maxDist or 80
-	gui.Parent = parent
-	local lbl = Instance.new("TextLabel")
-	lbl.Size = UDim2.fromScale(1, 1)
-	lbl.BackgroundTransparency = 1
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextScaled = false
-	lbl.TextSize = 14
-	lbl.Text = text
-	lbl.TextColor3 = color
-	lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	lbl.TextStrokeTransparency = 0.25
-	lbl.Parent = gui
-	return gui
-end
-
--- ---------------------------------------------------------------------------
--- Crypto Marketplace: 3 shops + Ethereum statue plaza, east of spawn (+X).
--- ---------------------------------------------------------------------------
-
-local function buildMarketplace()
+local function buildShop(cx, cz, name, wallColor, roofColor, signText, signColor, normalZ)
 	local model = Instance.new("Model")
-	model.Name = "MarketDistrict"
+	model.Name = name
 
-	local function box(n, sz, cf, color, mat, collide)
-		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
-		p.CFrame = cf
-		if collide == false then p.CanCollide = false end
-		p.Parent = model
-		return p
-	end
+	local halfW, halfD, wallH = 6, 4, 6 -- 12x8 footprint
+	local doorWallZ = buildShell(model, cx, cz, halfW, halfD, wallH,
+		wallColor, roofColor, normalZ, 4, AWNING_RED)
 
-	-- Plaza centre east of spawn, along the main E-W road.
-	local pcx, pcz = 95, 0
-	box("MarketPlaza", Vector3.new(20, 0.2, 20), CFrame.new(pcx, 0.18, pcz), PLAZA_TILE_B, Enum.Material.SmoothPlastic)
+	-- Interior floor.
+	box(model, "Floor", Vector3.new(halfW * 2, 0.3, halfD * 2),
+		CFrame.new(cx, 0.2, cz), STEP_GREY, Enum.Material.SmoothPlastic)
 
-	-- Generic 8x6x8 shop with a doorway opening on the chosen side.
-	local function buildShop(cx, cz, name, wallColor, doorColor, signText, doorSide, interiorFn)
-		local W, H, D = 8, 6, 8
-		local t = 0.4
-		local baseY = 0.2
-		local cy = baseY + H / 2
-		box("Floor", Vector3.new(W, 0.3, D), CFrame.new(cx, baseY, cz), CONCRETE_DARK, Enum.Material.Concrete)
-		local doorHalf = 1.6
-		if doorSide == "S" or doorSide == "N" then
-			local zs = (doorSide == "S") and 1 or -1
-			local fz = cz + zs * D / 2
-			box("WallFL", Vector3.new(W / 2 - doorHalf, H, t), CFrame.new(cx - (W / 2 + doorHalf) / 2, cy, fz), wallColor)
-			box("WallFR", Vector3.new(W / 2 - doorHalf, H, t), CFrame.new(cx + (W / 2 + doorHalf) / 2, cy, fz), wallColor)
-			box("WallB", Vector3.new(W, H, t), CFrame.new(cx, cy, cz - zs * D / 2), wallColor)
-			box("WallW", Vector3.new(t, H, D), CFrame.new(cx - W / 2, cy, cz), wallColor)
-			box("WallE", Vector3.new(t, H, D), CFrame.new(cx + W / 2, cy, cz), wallColor)
-			for _, dx in ipairs({ -doorHalf, doorHalf }) do
-				box("DoorTrim", Vector3.new(0.5, H, 0.5), CFrame.new(cx + dx, cy, fz), doorColor, Enum.Material.Neon)
-			end
-			box("DoorLintel", Vector3.new(doorHalf * 2 + 0.6, 0.5, 0.5), CFrame.new(cx, cy + H / 2 - 0.4, fz), doorColor, Enum.Material.Neon)
-			local sign = box("Sign", Vector3.new(W, 1.6, 0.4), CFrame.new(cx, cy + H / 2 + 1.0, fz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-			makeBillboard(sign, signText, doorColor, 180, 44)
-			for _, wx in ipairs({ -2.2, 2.2 }) do
-				box("Window", Vector3.new(2.4, 2.6, 0.2), CFrame.new(cx + wx, cy, cz - zs * D / 2), WINDOW_WHITE, Enum.Material.SmoothPlastic, false)
-			end
-		else
-			local xs = (doorSide == "E") and 1 or -1
-			local fx = cx + xs * W / 2
-			box("WallFL", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(fx, cy, cz - (D / 2 + doorHalf) / 2), wallColor)
-			box("WallFR", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(fx, cy, cz + (D / 2 + doorHalf) / 2), wallColor)
-			box("WallB", Vector3.new(t, H, D), CFrame.new(cx - xs * W / 2, cy, cz), wallColor)
-			box("WallN", Vector3.new(W, H, t), CFrame.new(cx, cy, cz - D / 2), wallColor)
-			box("WallS", Vector3.new(W, H, t), CFrame.new(cx, cy, cz + D / 2), wallColor)
-			for _, dz in ipairs({ -doorHalf, doorHalf }) do
-				box("DoorTrim", Vector3.new(0.5, H, 0.5), CFrame.new(fx, cy, cz + dz), doorColor, Enum.Material.Neon)
-			end
-			box("DoorLintel", Vector3.new(0.5, 0.5, doorHalf * 2 + 0.6), CFrame.new(fx, cy + H / 2 - 0.4, cz), doorColor, Enum.Material.Neon)
-			local sign = box("Sign", Vector3.new(0.4, 1.6, W), CFrame.new(fx, cy + H / 2 + 1.0, cz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-			makeBillboard(sign, signText, doorColor, 180, 44)
-			for _, wz in ipairs({ -2.2, 2.2 }) do
-				box("Window", Vector3.new(0.2, 2.6, 2.4), CFrame.new(cx - xs * W / 2, cy, cz + wz), WINDOW_WHITE, Enum.Material.SmoothPlastic, false)
-			end
-		end
-		-- Roof slab + gold trim.
-		box("Roof", Vector3.new(W + 0.8, 0.7, D + 0.8), CFrame.new(cx, baseY + H + 0.35, cz), ROOF_DARK, Enum.Material.Concrete)
-		for _, rt in ipairs({
-			{ cf = CFrame.new(cx, baseY + H + 0.8, cz - D / 2 - 0.4), sz = Vector3.new(W + 1.6, 0.4, 0.4) },
-			{ cf = CFrame.new(cx, baseY + H + 0.8, cz + D / 2 + 0.4), sz = Vector3.new(W + 1.6, 0.4, 0.4) },
-			{ cf = CFrame.new(cx - W / 2 - 0.4, baseY + H + 0.8, cz), sz = Vector3.new(0.4, 0.4, D + 1.6) },
-			{ cf = CFrame.new(cx + W / 2 + 0.4, baseY + H + 0.8, cz), sz = Vector3.new(0.4, 0.4, D + 1.6) },
-		}) do
-			box("RoofTrim", rt.sz, rt.cf, ROOF_TRIM, Enum.Material.Metal)
-		end
-		if interiorFn then interiorFn(box, cx, cz, baseY) end
-	end
-
-	-- Crypto Shop (north of plaza, door faces south toward plaza).
-	buildShop(pcx, pcz - 14, "CryptoShop", WHITE, NEON_CYAN, "CRYPTO SHOP", "S", function(box, cx, cz, baseY)
-		box("Counter", Vector3.new(4, 1.2, 1.2), CFrame.new(cx, baseY + 0.6, cz - 2), WHITE, Enum.Material.SmoothPlastic)
-		box("CounterTop", Vector3.new(4.2, 0.2, 1.4), CFrame.new(cx, baseY + 1.3, cz - 2), BITCOIN_GOLD, Enum.Material.Metal)
-		for _, sx in ipairs({ -2.5, 2.5 }) do
-			box("Shelf", Vector3.new(2, 3, 0.6), CFrame.new(cx + sx, baseY + 1.5, cz + 2.5), WALL_GREY)
-			for _, h in ipairs({ 0.8, 1.8, 2.8 }) do
-				box("ShelfItem", Vector3.new(1.6, 0.15, 0.5), CFrame.new(cx + sx, baseY + h, cz + 2.5), BITCOIN_GOLD, Enum.Material.Neon, false)
-			end
-		end
-	end)
-
-	-- Upgrade Center (south of plaza, door faces north toward plaza).
-	buildShop(pcx, pcz + 14, "UpgradeCenter", WALL_GREY, NEON_GREEN, "UPGRADE CENTER", "N", function(box, cx, cz, baseY)
-		box("ConsoleBase", Vector3.new(3, 1.0, 2), CFrame.new(cx, baseY + 0.5, cz), METAL_DARK, Enum.Material.Metal)
-		box("ConsoleScreen", Vector3.new(2.4, 1.8, 0.2), CFrame.new(cx, baseY + 2.0, cz), NEON_GREEN, Enum.Material.Neon, false)
-		box("ConsoleStand", Vector3.new(0.4, 1.0, 0.4), CFrame.new(cx, baseY + 1.5, cz - 0.8), METAL_DARK, Enum.Material.Metal)
-	end)
-
-	-- Item Shop (east of plaza, door faces west toward plaza).
-	buildShop(pcx + 18, pcz, "ItemShop", LIGHT_BLUE, NEON_ORANGE, "ITEM SHOP", "W", function(box, cx, cz, baseY)
-		box("DisplayTable", Vector3.new(4, 1.0, 2.5), CFrame.new(cx, baseY + 0.5, cz), WALL_GREY)
-		box("DisplayTop", Vector3.new(4.2, 0.2, 2.7), CFrame.new(cx, baseY + 1.1, cz), LIGHT_BLUE, Enum.Material.SmoothPlastic)
-		for _, ix in ipairs({ -1.2, 0, 1.2 }) do
-			box("DisplayItem", Vector3.new(0.7, 0.7, 0.7), CFrame.new(cx + ix, baseY + 1.6, cz), NEON_ORANGE, Enum.Material.Neon, false)
-		end
-	end)
-
-	-- Ethereum statue: two stacked wedges forming a diamond, neon blue, ~8 tall.
-	local sx, sz = pcx, pcz
-	box("EthBase", Vector3.new(3, 0.5, 3), CFrame.new(sx, 0.35, sz), PLAZA_TILE_A, Enum.Material.SmoothPlastic)
-	local gem1 = part({ Name = "EthGemBottom", Shape = Enum.PartType.Wedge, Size = Vector3.new(4, 4, 4), Color = ETH_BLUE, Material = Enum.Material.Neon })
-	gem1.CFrame = CFrame.new(sx, 2.0, sz) * CFrame.Angles(math.rad(180), 0, 0)
-	gem1.CanCollide = false
-	gem1.Parent = model
-	local gem2 = part({ Name = "EthGemTop", Shape = Enum.PartType.Wedge, Size = Vector3.new(4, 4, 4), Color = ETH_BLUE, Material = Enum.Material.Neon })
-	gem2.CFrame = CFrame.new(sx, 6.0, sz)
-	gem2.CanCollide = false
-	gem2.Parent = model
-
-	-- 2 benches in the plaza.
-	for _, b in ipairs({ { pcx - 5, pcz - 3, 0 }, { pcx + 5, pcz + 3, 90 } }) do
-		local rot = math.rad(b[3])
-		box("BenchSeat", Vector3.new(3, 0.3, 1), CFrame.new(b[1], 1.0, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
-		box("BenchLegL", Vector3.new(0.3, 1.0, 1), CFrame.new(b[1] - 1.2, 0.5, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
-		box("BenchLegR", Vector3.new(0.3, 1.0, 1), CFrame.new(b[1] + 1.2, 0.5, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
-	end
-
-	-- 2 lamp posts in the plaza.
-	for _, l in ipairs({ { pcx - 7, pcz + 5 }, { pcx + 7, pcz - 5 } }) do
-		box("LampPole", Vector3.new(0.3, 7, 0.3), CFrame.new(l[1], 3.7, l[2]), LAMP_POLE, Enum.Material.Metal)
-		local head = box("LampHead", Vector3.new(1.2, 1.2, 1.2), CFrame.new(l[1], 7.6, l[2]), LAMP_GLOW, Enum.Material.Neon, false)
-		local pl = Instance.new("PointLight")
-		pl.Color = LAMP_GLOW
-		pl.Brightness = 2.5
-		pl.Range = 20
-		pl.Parent = head
-	end
-
-	-- Stone paths: main road (x=80) to plaza, and plaza to each shop.
-	local function pathSeg(sx, sz, ex, ez)
-		local dx, dz = ex - sx, ez - sz
-		local dist = math.sqrt(dx * dx + dz * dz)
-		local steps = math.max(2, math.floor(dist / 3))
-		for i = 1, steps do
-			local t = i / (steps + 1)
-			box("PathStone", Vector3.new(2.4, 0.1, 2.4), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
-		end
-	end
-	pathSeg(80, 0, pcx, pcz)
-	pathSeg(pcx, pcz, pcx + 18, pcz)
-	pathSeg(pcx, pcz, pcx, pcz - 14)
-	pathSeg(pcx, pcz, pcx, pcz + 14)
+	-- Sign above the door.
+	local sign = box(model, "ShopSign", Vector3.new(halfW * 2, 1.4, 0.3),
+		CFrame.new(cx, wallH + 1.6, doorWallZ + normalZ * 0.3), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+	makeBillboard(sign, signText, signColor, 180, 44, 60, 12)
 
 	model.Parent = workspace
+	return model
+end
+
+local function buildShops()
+	local m = Instance.new("Model")
+	m.Name = "Shops"
+
+	-- Crypto Shop south of path (z=-12), door faces +z toward path.
+	local crypto = buildShop(SHOP_X, -12, "CryptoShop", CRYPTO_WALL, CRYPTO_ROOF, "CRYPTO SHOP", CRYPTO_ROOF, 1)
+	crypto.Parent = m
+	-- Upgrade Center north of path (z=+12), door faces -z toward path.
+	local upgrade = buildShop(SHOP_X, 12, "UpgradeCenter", UPGRADE_WALL, UPGRADE_ROOF, "UPGRADE CENTER", UPGRADE_ROOF, -1)
+	upgrade.Parent = m
+
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Brainrot Production Zone: factory + smokestacks + loading dock, west (-X).
+-- Spawn area: checkerboard plaza + bitcoin statue at west end.
 -- ---------------------------------------------------------------------------
 
-local function buildProductionZone()
-	local model = Instance.new("Model")
-	model.Name = "ProductionZone"
+local function buildSpawnArea()
+	local m = Instance.new("Model")
+	m.Name = "SpawnArea"
 
-	local function box(n, sz, cf, color, mat, collide)
-		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
-		p.CFrame = cf
-		if collide == false then p.CanCollide = false end
-		p.Parent = model
-		return p
-	end
-
-	local fx, fz = -95, 0 -- factory centre
-	local W, H, D = 16, 8, 12
-	local t = 0.5
-	local baseY = 0.2
-	local cy = baseY + H / 2
-
-	-- Factory floor.
-	box("FactoryFloor", Vector3.new(W, 0.3, D), CFrame.new(fx, baseY, fz), METAL_DARK, Enum.Material.Metal)
-
-	-- Walls: doorway (6 wide) faces +X (east, toward road).
-	local doorHalf = 3.0
-	local frontX = fx + W / 2
-	box("WallFL", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(frontX, cy, fz - (D / 2 + doorHalf) / 2), METAL_DARK, Enum.Material.Metal)
-	box("WallFR", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(frontX, cy, fz + (D / 2 + doorHalf) / 2), METAL_DARK, Enum.Material.Metal)
-	box("WallB", Vector3.new(t, H, D), CFrame.new(fx - W / 2, cy, fz), METAL_DARK, Enum.Material.Metal)
-	box("WallN", Vector3.new(W, H, t), CFrame.new(fx, cy, fz - D / 2), METAL_DARK, Enum.Material.Metal)
-	box("WallS", Vector3.new(W, H, t), CFrame.new(fx, cy, fz + D / 2), METAL_DARK, Enum.Material.Metal)
-
-	-- Corrugated wall detail: 3 horizontal bands across the front wall.
-	for _, h in ipairs({ cy - 2.2, cy, cy + 2.2 }) do
-		box("Corrugation", Vector3.new(t + 0.05, 0.4, D), CFrame.new(frontX, h, fz), METAL_DARK, Enum.Material.Metal)
-	end
-
-	-- Door trim (neon orange) + sign above entrance.
-	for _, dz in ipairs({ -doorHalf, doorHalf }) do
-		box("DoorTrim", Vector3.new(0.6, H, 0.6), CFrame.new(frontX, cy, fz + dz), NEON_ORANGE, Enum.Material.Neon)
-	end
-	box("DoorLintel", Vector3.new(0.6, 0.6, doorHalf * 2 + 0.6), CFrame.new(frontX, cy + H / 2 - 0.4, fz), NEON_ORANGE, Enum.Material.Neon)
-	local sign = box("FactorySign", Vector3.new(0.5, 2.0, W), CFrame.new(frontX + 0.4, cy + H / 2 + 1.4, fz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-	makeBillboard(sign, "BRAINROT FACTORY", NEON_ORANGE, 220, 50, 80)
-
-	-- Roof slab.
-	box("Roof", Vector3.new(W + 0.8, 0.6, D + 0.8), CFrame.new(fx, baseY + H + 0.3, fz), ROOF_DARK, Enum.Material.Concrete)
-
-	-- Smokestacks: 2 tall cylinders on the roof with neon orange tips.
-	for _, s in ipairs({ { fx - 3, fz - 3 }, { fx + 3, fz + 3 } }) do
-		local stack = part({ Name = "Smokestack", Shape = Enum.PartType.Cylinder, Size = Vector3.new(10, 1.5, 1.5), Color = METAL_DARK, Material = Enum.Material.Metal })
-		stack.CFrame = CFrame.new(s[1], baseY + H + 0.6 + 5, s[2]) * CFrame.Angles(0, 0, math.rad(90))
-		stack.Parent = model
-		local tip = part({ Name = "StackTip", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.6, 1.7, 1.7), Color = NEON_ORANGE, Material = Enum.Material.Neon })
-		tip.CFrame = CFrame.new(s[1], baseY + H + 0.6 + 10.3, s[2]) * CFrame.Angles(0, 0, math.rad(90))
-		tip.CanCollide = false
-		tip.Parent = model
-	end
-
-	-- Interior: 2 conveyor belts, 2 machine housings, control panel.
-	for _, cz in ipairs({ fz - 3, fz + 3 }) do
-		box("Conveyor", Vector3.new(1.6, 0.4, 8), CFrame.new(fx, baseY + 0.6, cz), METAL_DARK, Enum.Material.Metal)
-		for _, szp in ipairs({ -3, -1, 1, 3 }) do
-			box("BeltStripe", Vector3.new(1.7, 0.06, 0.4), CFrame.new(fx, baseY + 0.82, cz + szp), YELLOW_LINE, Enum.Material.Neon, false)
+	-- Checkerboard plaza tiles.
+	local tileCount = 4
+	local tileSize = PLAZA_HALF * 2 / tileCount
+	for ix = 0, tileCount - 1 do
+		for iz = 0, tileCount - 1 do
+			local isLight = (ix + iz) % 2 == 0
+			local tx = SPAWN_X - PLAZA_HALF + tileSize / 2 + ix * tileSize
+			local tz = -PLAZA_HALF + tileSize / 2 + iz * tileSize
+			box(m, "PlazaTile", Vector3.new(tileSize - 0.15, 0.18, tileSize - 0.15),
+				CFrame.new(tx, 0.2, tz), isLight and PLAZA_TILE_A or PLAZA_TILE_B, Enum.Material.SmoothPlastic)
 		end
 	end
-	for _, mx in ipairs({ fx - 5, fx + 5 }) do
-		box("Machine", Vector3.new(2.5, 4, 2.5), CFrame.new(mx, baseY + 2, fz), METAL_DARK, Enum.Material.Metal)
-		box("MachineAccent", Vector3.new(2.6, 0.4, 2.6), CFrame.new(mx, baseY + 3.5, fz), NEON_ORANGE, Enum.Material.Neon, false)
-	end
-	box("ControlPanel", Vector3.new(1.5, 2.0, 1.0), CFrame.new(fx, baseY + 1.0, fz - 5), METAL_DARK, Enum.Material.Metal)
-	box("ControlScreen", Vector3.new(1.2, 0.8, 0.1), CFrame.new(fx, baseY + 1.6, fz - 5 + 0.55), NEON_GREEN, Enum.Material.Neon, false)
 
-	-- Loading dock: concrete platform with 2 crates.
-	local dockZ = fz + 12
-	box("LoadingDock", Vector3.new(10, 0.5, 6), CFrame.new(fx, baseY + 0.25, dockZ), SIDEWALK_GREY, Enum.Material.Concrete)
-	for _, c in ipairs({ { fx - 2.5, dockZ - 1 }, { fx + 2.5, dockZ + 1 } }) do
-		box("Crate", Vector3.new(2.2, 2.2, 2.2), CFrame.new(c[1], baseY + 1.4, c[2]), CRATE_BROWN, Enum.Material.Wood)
-		box("CrateTrimH", Vector3.new(2.3, 0.3, 2.3), CFrame.new(c[1], baseY + 2.5, c[2]), BITCOIN_GOLD, Enum.Material.Metal, false)
-		box("CrateTrimV", Vector3.new(0.3, 2.3, 2.3), CFrame.new(c[1], baseY + 1.4, c[2]), BITCOIN_GOLD, Enum.Material.Metal, false)
-	end
+	-- Bitcoin statue: gold cylinder (3 x 10 x 3).
+	local statue = part({
+		Name = "BitcoinStatue",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(10, 3, 3),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	statue.CFrame = CFrame.new(SPAWN_X, 5.2, 0) * CFrame.Angles(0, 0, math.rad(90))
+	statue.Parent = m
 
-	-- Chain-link fence around the zone (4 tall), gate opening on the east side.
-	local fenceH = 4
-	local xMin, xMax, zMin, zMax = -112, -80, -20, 22
-	local function fence(n, sz, cf)
-		box(n, sz, cf, FENCE_GREY, Enum.Material.Metal)
-	end
-	fence("FenceN", Vector3.new(xMax - xMin, fenceH, 0.3), CFrame.new((xMin + xMax) / 2, fenceH / 2, zMin))
-	fence("FenceS", Vector3.new(xMax - xMin, fenceH, 0.3), CFrame.new((xMin + xMax) / 2, fenceH / 2, zMax))
-	fence("FenceW", Vector3.new(0.3, fenceH, zMax - zMin), CFrame.new(xMin, fenceH / 2, (zMin + zMax) / 2))
-	fence("FenceELow", Vector3.new(0.3, fenceH, 17), CFrame.new(xMax, fenceH / 2, -11.5))
-	fence("FenceEHigh", Vector3.new(0.3, fenceH, 19), CFrame.new(xMax, fenceH / 2, 12.5))
-	for _, gz in ipairs({ -3, 3 }) do
-		fence("GatePost", Vector3.new(0.5, fenceH + 1, 0.5), CFrame.new(xMax, (fenceH + 1) / 2, gz))
-	end
+	-- ₿ symbol label.
+	makeBillboard(statue, "₿", STATUE_GOLD, 120, 60, 100, 12)
 
-	-- Stone path: road (-80) to factory door (-87).
-	local function pathSeg(sx, sz, ex, ez)
-		local dx, dz = ex - sx, ez - sz
-		local dist = math.sqrt(dx * dx + dz * dz)
-		local steps = math.max(2, math.floor(dist / 3))
-		for i = 1, steps do
-			local t = i / (steps + 1)
-			box("PathStone", Vector3.new(2.4, 0.1, 2.4), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
-		end
-	end
-	pathSeg(-80, 0, -87, 0)
-
-	model.Parent = workspace
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Secret Zone: portal + hidden altar clearing, south of spawn (-Z).
+-- Tree border: dense ring around the island edge.
 -- ---------------------------------------------------------------------------
 
-local function buildSecretZone()
-	local model = Instance.new("Model")
-	model.Name = "SecretZone"
+local function buildTreeBorder()
+	local m = Instance.new("Model")
+	m.Name = "TreeBorder"
 
-	local function box(n, sz, cf, color, mat, collide)
-		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
-		p.CFrame = cf
-		if collide == false then p.CanCollide = false end
-		p.Parent = model
-		return p
-	end
-
-	-- Dark grass patch over the secret area (south of spawn).
-	local areaZ = -95
-	box("DarkGrass", Vector3.new(40, 0.18, 40), CFrame.new(0, 0.12, areaZ), DARK_GRASS, Enum.Material.Grass)
-
-	-- Portal: ring of 12 thin boxes, radius 3, vertical (XY plane), neon cyan.
-	local portalZ = -88
-	local ringR = 3
-	local ringCY = 4
-	for i = 0, 11 do
-		local theta = (i / 12) * math.pi * 2
-		local px = math.cos(theta) * ringR
-		local py = math.sin(theta) * ringR + ringCY
-		local seg = part({ Name = "PortalRing", Size = Vector3.new(2.0, 0.3, 0.3), Color = NEON_CYAN, Material = Enum.Material.Neon })
-		seg.CFrame = CFrame.new(px, py, portalZ) * CFrame.Angles(0, 0, theta + math.pi / 2)
-		seg.CanCollide = false
-		seg.Parent = model
-	end
-	local psign = box("PortalSign", Vector3.new(6, 1.6, 0.3), CFrame.new(0, ringCY + ringR + 1.5, portalZ), SIGN_DARK, Enum.Material.SmoothPlastic, false)
-	makeBillboard(psign, "SECRET ZONE", NEON_CYAN, 200, 48, 80)
-
-	-- Hidden clearing behind the portal (further south).
-	local clearZ = areaZ + 4 -- -91
-	box("Clearing", Vector3.new(8, 0.2, 8), CFrame.new(0, 0.16, clearZ), DARK_GRASS, Enum.Material.Grass)
-
-	-- Altar: cylinder base + glowing purple orb on top.
-	local altar = part({ Name = "AltarBase", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 4, 4), Color = ROCK_GREY, Material = Enum.Material.Slate })
-	altar.CFrame = CFrame.new(0, 1.0, clearZ) * CFrame.Angles(0, 0, math.rad(90))
-	altar.Parent = model
-	local orb = part({ Name = "AltarOrb", Shape = Enum.PartType.Ball, Size = Vector3.new(2.2, 2.2, 2.2), Color = NEON_PURPLE, Material = Enum.Material.Neon })
-	orb.CFrame = CFrame.new(0, 3.2, clearZ)
-	orb.CanCollide = false
-	orb.Parent = model
-	local orbLight = Instance.new("PointLight")
-	orbLight.Color = NEON_PURPLE
-	orbLight.Brightness = 3
-	orbLight.Range = 24
-	orbLight.Parent = orb
-
-	-- 4 glowing crystal formations in a diamond pattern around the altar.
-	local crystalColors = { NEON_PURPLE, NEON_CYAN, NEON_PURPLE, NEON_CYAN }
-	for idx, c in ipairs({ { 4, 0 }, { -4, 0 }, { 0, 4 }, { 0, -4 } }) do
-		local crystal = part({ Name = "Crystal", Shape = Enum.PartType.Wedge, Size = Vector3.new(2, 3, 2), Color = crystalColors[idx], Material = Enum.Material.Neon })
-		crystal.CFrame = CFrame.new(c[1], 1.5, clearZ + c[2])
-		crystal.CanCollide = false
-		crystal.Parent = model
-	end
-
-	-- 3 large rocks partially hiding the path to the portal.
-	for _, r in ipairs({ { 0, -40, 6 }, { -6, -55, 5 }, { 6, -70, 6 } }) do
-		local rock = part({ Name = "Rock", Shape = Enum.PartType.Ball, Size = Vector3.new(r[3] * 2, r[3] * 2, r[3] * 2), Color = ROCK_GREY, Material = Enum.Material.Slate })
-		rock.CFrame = CFrame.new(r[1], r[3] * 0.6, r[2])
-		rock.Parent = model
-	end
-
-	-- Stone path: plaza south edge to portal, then to the clearing.
-	local function pathSeg(sx, sz, ex, ez)
-		local dx, dz = ex - sx, ez - sz
-		local dist = math.sqrt(dx * dx + dz * dz)
-		local steps = math.max(2, math.floor(dist / 4))
-		for i = 1, steps do
-			local t = i / (steps + 1)
-			box("PathStone", Vector3.new(2.0, 0.1, 2.0), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
-		end
-	end
-	pathSeg(0, -22, 0, portalZ)
-	pathSeg(0, portalZ, 0, clearZ)
-
-	model.Parent = workspace
-end
-
--- ---------------------------------------------------------------------------
--- Phase 11c: Environmental decorations — trees, bushes, flowers, benches,
--- signposts, billboards, coin ornaments, beach palms/rocks. Spread evenly,
--- never blocking roads or building entrances. Grouped under "Decorations".
--- ---------------------------------------------------------------------------
-
-local TRUNK_BROWN = Color3.fromRGB(100, 70, 40)
-local FOLIAGE_GREEN = Color3.fromRGB(80, 180, 70)
-local BUSH_GREEN = Color3.fromRGB(60, 150, 60)
-local TERRACOTTA = Color3.fromRGB(200, 100, 60)
-local BENCH_WOOD = Color3.fromRGB(110, 75, 45)
-local BENCH_LEG = Color3.fromRGB(55, 57, 65)
-local BILLBOARD_BG = Color3.fromRGB(28, 30, 38)
-local PALM_BROWN = Color3.fromRGB(120, 85, 50)
-local PALM_GREEN = Color3.fromRGB(70, 160, 60)
-
-local function buildDecorations()
-	local model = Instance.new("Model")
-	model.Name = "Decorations"
-
-	-- Tiny local helper: make a part already parented to the decorations model.
-	local function dPart(name, size, cf, color, mat, collide)
-		local p = part({ Name = name, Size = size, Color = color, Material = mat or Enum.Material.SmoothPlastic })
-		p.CFrame = cf
-		if collide == false then p.CanCollide = false end
-		p.Parent = model
-		return p
-	end
-
-	-- --- Trees: blocky voxel style (trunk cylinder + 3 stacked boxes) -----
-	-- Hand-placed positions spread across the island, kept clear of roads
-	-- (x=0 N-S, z=0 E-W) and building entrances.
-	local treePositions = {
-		{ -28, -75 }, { 30, -72 }, { -42, -40 }, { 44, -36 },
-		{ -60, 18 }, { 62, 22 }, { -38, 95 }, { 40, 100 },
-		{ -75, 60 }, { 78, 70 }, { -95, -50 }, { 95, -55 },
-		{ -20, 120 }, { 22, 122 },
-	}
-	for i, tp in ipairs(treePositions) do
-		local tx, tz = tp[1], tp[2]
-		local treeModel = Instance.new("Model")
-		treeModel.Name = "Tree" .. i
-		treeModel.Parent = model
+	for i = 0, TREE_COUNT - 1 do
+		local angle = (i / TREE_COUNT) * math.pi * 2
+		local tx = math.cos(angle) * TREE_RADIUS
+		local tz = math.sin(angle) * TREE_RADIUS
 
 		local trunk = part({
 			Name = "Trunk",
 			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(4.0, 0.8, 0.8),
+			Size = Vector3.new(4, 0.8, 0.8),
 			Color = TRUNK_BROWN,
 			Material = Enum.Material.Wood,
 		})
-		trunk.CFrame = CFrame.new(tx, 2.0, tz) * CFrame.Angles(0, 0, math.rad(90))
-		trunk.Parent = treeModel
+		trunk.CFrame = CFrame.new(tx, 2, tz) * CFrame.Angles(0, 0, math.rad(90))
+		trunk.Parent = m
 
-		-- 3 stacked foliage boxes of decreasing size.
-		local layers = { { 3.5, 5.0 }, { 2.8, 6.8 }, { 2.0, 8.2 } }
-		for _, layer in ipairs(layers) do
+		for _, layer in ipairs({ { 3.5, 5.0 }, { 2.8, 6.8 }, { 2.0, 8.2 } }) do
 			local foliage = part({
 				Name = "Foliage",
+				Shape = Enum.PartType.Ball,
 				Size = Vector3.new(layer[1], layer[1], layer[1]),
-				Color = FOLIAGE_GREEN,
+				Color = FOLIAGE,
 				Material = Enum.Material.Grass,
 			})
 			foliage.CFrame = CFrame.new(tx, layer[2], tz)
-			foliage.Parent = treeModel
+			foliage.Parent = m
 		end
 	end
 
-	-- --- Bushes: single dark-green box, scattered along sidewalks/plaza ---
-	local bushPositions = {
-		{ -10, -28 }, { 10, -28 }, { -14, 28 }, { 14, 28 },
-		{ -30, 0 }, { 30, 0 }, { -8, 75 }, { 8, 78 },
-		{ -65, 0 }, { 65, 0 },
-	}
-	for i, bp in ipairs(bushPositions) do
-		dPart("Bush" .. i, Vector3.new(1.5, 1.2, 1.5), CFrame.new(bp[1], 0.6, bp[2]), BUSH_GREEN, Enum.Material.Grass, false)
-	end
-
-	-- --- Flower pots: terracotta cylinder + colored ball on top -----------
-	local flowerColors = {
-		Color3.fromRGB(255, 60, 60), -- red
-		Color3.fromRGB(255, 220, 40), -- yellow
-		Color3.fromRGB(255, 120, 200), -- pink
-		Color3.fromRGB(60, 230, 255), -- cyan
-	}
-	local flowerPositions = {
-		{ 18, -16 }, { 24, -14 }, { -18, -16 }, { -24, -14 }, -- near spawn plaza
-		{ 88, -8 }, { 88, 8 }, { 102, -6 }, { 102, 6 }, -- near marketplace
-	}
-	for i, fp in ipairs(flowerPositions) do
-		local potModel = Instance.new("Model")
-		potModel.Name = "FlowerPot" .. i
-		potModel.Parent = model
-
-		local pot = part({
-			Name = "Pot",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(0.8, 0.6, 0.6),
-			Color = TERRACOTTA,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		pot.CFrame = CFrame.new(fp[1], 0.4, fp[2]) * CFrame.Angles(0, 0, math.rad(90))
-		pot.Parent = potModel
-
-		local flower = part({
-			Name = "Flower",
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.8, 0.8, 0.8),
-			Color = flowerColors[((i - 1) % #flowerColors) + 1],
-			Material = Enum.Material.Neon,
-		})
-		flower.CFrame = CFrame.new(fp[1], 1.2, fp[2])
-		flower.CanCollide = false
-		flower.Parent = potModel
-	end
-
-	-- --- Park benches: seat + 2 legs + backrest --------------------------
-	-- 2 near spawn plaza, 2 near marketplace, 2 near production zone.
-	local benches = {
-		-- spawn plaza
-		{ -14, -16, 0 }, { 14, -16, 0 },
-		-- marketplace
-		{ 90, -8, 90 }, { 100, 8, 90 },
-		-- production zone entrance (east gate at x=-80)
-		{ -76, -6, 90 }, { -76, 6, 90 },
-	}
-	for i, b in ipairs(benches) do
-		local bx, bz, rotDeg = b[1], b[2], b[3]
-		local rot = math.rad(rotDeg)
-		local bModel = Instance.new("Model")
-		bModel.Name = "Bench" .. i
-		bModel.Parent = model
-
-		local seat = part({
-			Name = "Seat",
-			Size = Vector3.new(2.0, 0.3, 0.8),
-			Color = BENCH_WOOD,
-			Material = Enum.Material.Wood,
-		})
-		seat.CFrame = CFrame.new(bx, 1.0, bz) * CFrame.Angles(0, rot, 0)
-		seat.Parent = bModel
-
-		for _, lx in ipairs({ -0.9, 0.9 }) do
-			local leg = part({
-				Name = "Leg",
-				Size = Vector3.new(0.2, 1.0, 0.8),
-				Color = BENCH_LEG,
-				Material = Enum.Material.Metal,
-			})
-			-- rotate the offset around Y so legs align with the seat.
-			local ox = math.cos(rot) * lx
-			local oz = math.sin(rot) * lx
-			leg.CFrame = CFrame.new(bx + ox, 0.5, bz + oz) * CFrame.Angles(0, rot, 0)
-			leg.Parent = bModel
-		end
-
-		-- Backrest: offset behind the seat (negative local X after rotation).
-		local backOff = -0.7
-		local backX = bx + math.cos(rot) * backOff
-		local backZ = bz + math.sin(rot) * backOff
-		local backrest = part({
-			Name = "Backrest",
-			Size = Vector3.new(2.0, 1.0, 0.2),
-			Color = BENCH_WOOD,
-			Material = Enum.Material.Wood,
-		})
-		backrest.CFrame = CFrame.new(backX, 1.5, backZ) * CFrame.Angles(0, rot, 0)
-		backrest.Parent = bModel
-	end
-
-	-- --- Directional signposts at zone junctions -------------------------
-	-- Pole + 2 wedge arrow signs with BillboardGui labels: BASES, MARKET,
-	-- FACTORY, SECRET. Placed at the 4 road junctions where zones branch.
-	local signposts = {
-		-- Base district junction (main road meets base district, z=40).
-		{ x = 9, z = 40, label = "BASES", color = NEON_GREEN, arrowAngle = 0 },
-		-- Marketplace junction (E-W road toward +X market, x=75).
-		{ x = 75, z = 9, label = "MARKET", color = NEON_CYAN, arrowAngle = 90 },
-		-- Factory junction (E-W road toward -X production zone, x=-75).
-		{ x = -75, z = 9, label = "FACTORY", color = NEON_ORANGE, arrowAngle = -90 },
-		-- Secret zone junction (main road south toward -Z, z=-40).
-		{ x = 9, z = -40, label = "SECRET", color = NEON_PURPLE, arrowAngle = 180 },
-	}
-	for i, sp in ipairs(signposts) do
-		local spModel = Instance.new("Model")
-		spModel.Name = "Signpost" .. i
-		spModel.Parent = model
-
-		local pole = part({
-			Name = "Pole",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(4.0, 0.15, 0.15),
-			Color = TRUNK_BROWN,
-			Material = Enum.Material.Wood,
-		})
-		pole.CFrame = CFrame.new(sp.x, 2.0, sp.z) * CFrame.Angles(0, 0, math.rad(90))
-		pole.Parent = spModel
-
-		-- Two arrow-shaped wedge signs stacked on the pole, pointing toward
-		-- the zone (the arrowAngle orients the wedge tip).
-		for _, yOff in ipairs({ 3.2, 2.2 }) do
-			local arrow = part({
-				Name = "ArrowSign",
-				Shape = Enum.PartType.Wedge,
-				Size = Vector3.new(0.3, 1.0, 1.8),
-				Color = sp.color,
-				Material = Enum.Material.Neon,
-			})
-			arrow.CFrame = CFrame.new(sp.x, yOff, sp.z) * CFrame.Angles(0, math.rad(sp.arrowAngle), 0)
-			arrow.CanCollide = false
-			arrow.Parent = spModel
-
-			local gui = Instance.new("BillboardGui")
-			gui.Name = "SignLabel"
-			gui.Size = UDim2.fromOffset(160, 44)
-			gui.AlwaysOnTop = true
-			gui.MaxDistance = 80
-			gui.Parent = arrow
-			local lbl = Instance.new("TextLabel")
-			lbl.Size = UDim2.fromScale(1, 1)
-			lbl.BackgroundTransparency = 1
-			lbl.Font = Enum.Font.GothamBold
-			lbl.TextScaled = false
-			lbl.TextSize = 14
-			lbl.Text = sp.label
-			lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-			lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-			lbl.TextStrokeTransparency = 0.25
-			lbl.Parent = gui
-		end
-	end
-
-	-- --- Crypto billboards: tall pole + panel with neon border -----------
-	-- 1 near spawn plaza facing the base district, 1 near marketplace.
-	local billboards = {
-		{ x = 0, z = 35, text = "BTC TO THE MOON" }, -- spawn plaza, facing base district (north)
-		{ x = 80, z = -14, text = "HODL HARD" }, -- near marketplace
-	}
-	for i, bb in ipairs(billboards) do
-		local bbModel = Instance.new("Model")
-		bbModel.Name = "CryptoBillboard" .. i
-		bbModel.Parent = model
-
-		local pole = part({
-			Name = "Pole",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(10.0, 0.3, 0.3),
-			Color = DARK_GREY,
-			Material = Enum.Material.Metal,
-		})
-		pole.CFrame = CFrame.new(bb.x, 5.0, bb.z) * CFrame.Angles(0, 0, math.rad(90))
-		pole.Parent = bbModel
-
-		local panel = part({
-			Name = "Panel",
-			Size = Vector3.new(6.0, 4.0, 0.3),
-			Color = BILLBOARD_BG,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		panel.CFrame = CFrame.new(bb.x, 11.0, bb.z)
-		panel.Parent = bbModel
-
-		-- Neon border: 4 thin strips around the panel edges.
-		for _, bd in ipairs({
-			{ cf = CFrame.new(bb.x, 13.0, bb.z), size = Vector3.new(6.2, 0.2, 0.4) },
-			{ cf = CFrame.new(bb.x, 9.0, bb.z), size = Vector3.new(6.2, 0.2, 0.4) },
-			{ cf = CFrame.new(bb.x - 3.0, 11.0, bb.z), size = Vector3.new(0.2, 4.2, 0.4) },
-			{ cf = CFrame.new(bb.x + 3.0, 11.0, bb.z), size = Vector3.new(0.2, 4.2, 0.4) },
-		}) do
-			dPart("BillboardBorder", bd.size, bd.cf, NEON_CYAN, Enum.Material.Neon, false).Parent = bbModel
-		end
-
-		local gui = Instance.new("BillboardGui")
-		gui.Name = "BillboardText"
-		gui.Size = UDim2.fromOffset(280, 120)
-		gui.AlwaysOnTop = true
-		gui.MaxDistance = 100
-		gui.Parent = panel
-		local lbl = Instance.new("TextLabel")
-		lbl.Size = UDim2.fromScale(1, 1)
-		lbl.BackgroundTransparency = 1
-		lbl.Font = Enum.Font.GothamBold
-		lbl.TextScaled = false
-		lbl.TextSize = 14
-		lbl.Text = bb.text
-		lbl.TextColor3 = BITCOIN_GOLD
-		lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-		lbl.TextStrokeTransparency = 0.2
-		lbl.Parent = gui
-	end
-
-	-- --- Coin ornaments: small gold neon cylinders along roads/plaza ----
-	local coinPositions = {
-		{ -50, 0.3, -50 }, { 50, 0.3, -50 }, { -50, 0.3, 50 }, { 50, 0.3, 50 },
-		{ -100, 0.3, 0 }, { 100, 0.3, 0 }, { 0, 0.3, -100 }, { 0, 0.3, 100 },
-		{ -30, 0.3, 30 }, { 30, 0.3, -30 }, { -70, 0.3, 40 }, { 70, 0.3, -40 },
-	}
-	for i, cp in ipairs(coinPositions) do
-		dPart(
-			"CoinOrnament" .. i,
-			Vector3.new(1.0, 0.2, 1.0),
-			CFrame.new(cp[1], cp[2], cp[3]) * CFrame.Angles(0, 0, math.rad(90)),
-			COIN_ORNAMENT,
-			Enum.Material.Neon,
-			false
-		)
-	end
-
-	-- --- Beach polish: palm trees + rock formations at the water edge -----
-	-- Palm trees: curved trunk (2 angled segments) + radiating wedge leaves.
-	local palmPositions = {
-		{ -130, -130 }, { 130, -130 }, { -130, 130 }, { 130, 130 }, { 0, -140 },
-	}
-	for i, pp in ipairs(palmPositions) do
-		local px, pz = pp[1], pp[2]
-		local palmModel = Instance.new("Model")
-		palmModel.Name = "PalmTree" .. i
-		palmModel.Parent = model
-
-		-- Trunk segment 1 (lower, vertical-ish).
-		local trunk1 = part({
-			Name = "TrunkLower",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(3.0, 0.5, 0.5),
-			Color = PALM_BROWN,
-			Material = Enum.Material.Wood,
-		})
-		trunk1.CFrame = CFrame.new(px, 1.5, pz) * CFrame.Angles(0, 0, math.rad(90))
-		trunk1.Parent = palmModel
-
-		-- Trunk segment 2 (upper, angled outward to suggest a curve).
-		local lean = CFrame.Angles(0, 0, math.rad(18))
-		local trunk2 = part({
-			Name = "TrunkUpper",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(3.0, 0.45, 0.45),
-			Color = PALM_BROWN,
-			Material = Enum.Material.Wood,
-		})
-		trunk2.CFrame = CFrame.new(px, 4.5, pz) * lean * CFrame.Angles(0, 0, math.rad(90))
-		trunk2.Parent = palmModel
-
-		-- 5 wedge leaves radiating from the top of the upper trunk.
-		local topX = px
-		local topY = 6.0
-		local topZ = pz
-		for li = 0, 4 do
-			local angle = (li / 5) * math.pi * 2
-			local leaf = part({
-				Name = "PalmLeaf",
-				Shape = Enum.PartType.Wedge,
-				Size = Vector3.new(0.3, 1.2, 4.0),
-				Color = PALM_GREEN,
-				Material = Enum.Material.Grass,
-			})
-			-- position the leaf base at the trunk top, radiate outward.
-			local lx = topX + math.cos(angle) * 1.5
-			local lz = topZ + math.sin(angle) * 1.5
-			leaf.CFrame = CFrame.new(lx, topY, lz, math.cos(angle), 0, math.sin(angle), 0, 1, 0, -math.sin(angle), 0, math.cos(angle))
-				* CFrame.Angles(0, math.rad(90), math.rad(15))
-			leaf.CanCollide = false
-			leaf.Parent = palmModel
-		end
-	end
-
-	-- Rock formations at the water edge: grey balls/cylinders, varying sizes.
-	local rocks = {
-		{ -120, -120, 3 }, { 120, 120, 4 }, { 0, -135, 2.5 },
-	}
-	for i, r in ipairs(rocks) do
-		local rock = part({
-			Name = "BeachRock" .. i,
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(r[3] * 2, r[3] * 2, r[3] * 2),
-			Color = ROCK_GREY,
-			Material = Enum.Material.Slate,
-		})
-		rock.CFrame = CFrame.new(r[1], r[3] * 0.5, r[2])
-		rock.Parent = model
-	end
-
-	model.Parent = workspace
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Capsule spawn pad: glowing disc along the main road.
+-- Decorations: flower dots scattered on the grass.
+-- ---------------------------------------------------------------------------
+
+local function buildDecorations()
+	local m = Instance.new("Model")
+	m.Name = "Decorations"
+
+	local flowerPositions = {
+		{ -60, 20 }, { -60, -20 }, { -50, 30 }, { -50, -30 },
+		{ -40, 12 }, { -40, -12 }, { 60, 20 }, { 60, -20 },
+		{ 50, 30 }, { 50, -30 }, { 40, 12 }, { 40, -12 },
+		{ 0, 60 }, { 0, -60 }, { 30, 60 }, { -30, 60 },
+		{ 30, -60 }, { -30, -60 },
+	}
+
+	for i, fp in ipairs(flowerPositions) do
+		local color = FLOWER_COLORS[((i - 1) % #FLOWER_COLORS) + 1]
+		local flower = part({
+			Name = "Flower" .. i,
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(0.4, 0.4, 0.4),
+			Color = color,
+			Material = Enum.Material.Neon,
+		})
+		flower.CFrame = CFrame.new(fp[1], 0.3, fp[2])
+		flower.CanCollide = false
+		flower.Parent = m
+	end
+
+	m.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Street lamps: 8 along the orange path.
+-- ---------------------------------------------------------------------------
+
+local function buildLamps()
+	local m = Instance.new("Model")
+	m.Name = "Lamps"
+
+	for i = 1, 8 do
+		local lx = PATH_X_MIN + (i - 1) * 20 + 10
+		local lz = (i % 2 == 1) and -6 or 6
+
+		local pole = part({
+			Name = "Pole",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(6, 0.2, 0.2),
+			Color = LAMP_POLE,
+			Material = Enum.Material.Metal,
+		})
+		pole.CFrame = CFrame.new(lx, 3.2, lz) * CFrame.Angles(0, 0, math.rad(90))
+		pole.Parent = m
+
+		local head = part({
+			Name = "LampHead",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(0.5, 0.5, 0.5),
+			Color = LAMP_GLOW,
+			Material = Enum.Material.Neon,
+		})
+		head.CFrame = CFrame.new(lx, 6.4, lz)
+		head.CanCollide = false
+		head.Parent = m
+
+		local light = Instance.new("PointLight")
+		light.Color = LAMP_GLOW
+		light.Brightness = 2.5
+		light.Range = 20
+		light.Parent = head
+	end
+
+	m.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Spawn pad: glowing disc along the orange path.
 -- ---------------------------------------------------------------------------
 
 function WorldBuilder.buildSpawnPad(index)
-	-- 8 pads, 4 on each side of the main N-S road, spread along Z.
-	local side = index % 2 == 1 and -1 or 1
-	local row = math.floor((index - 1) / 2) -- 0..3
-	local z = -60 + row * 40
-	local x = side * (ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 6)
+	local x = PATH_X_MIN + (index - 1) * 20 + 10
+	local z = (index % 2 == 1) and -6 or 6
 
 	local pad = part({
 		Name = "SpawnPad" .. index,
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(0.4, 8, 8),
-		Color = Color3.fromRGB(210, 130, 255),
+		Color = PAD_CORE,
 		Material = Enum.Material.Neon,
 	})
 	pad.CFrame = CFrame.new(x, 0.2, z) * CFrame.Angles(0, 0, math.rad(90))
@@ -1749,10 +662,11 @@ function WorldBuilder.buildSpawnPad(index)
 		Name = "SpawnPadRing" .. index,
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(0.3, 10, 10),
-		Color = Color3.fromRGB(160, 110, 230),
+		Color = PAD_RING,
 		Material = Enum.Material.Neon,
 	})
 	ring.CFrame = CFrame.new(x, 0.1, z) * CFrame.Angles(0, 0, math.rad(90))
+	ring.CanCollide = false
 	ring.Parent = workspace
 
 	return pad
@@ -1794,23 +708,23 @@ function WorldBuilder.build()
 		end
 	end
 
-	-- Destroy old template Baseplate if present.
 	local template = workspace:FindFirstChild("Baseplate")
-	if template then template:Destroy() end
+	if template then
+		template:Destroy()
+	end
 
 	safeStep("setupLighting", setupLighting)
 	safeStep("buildTerrain", buildTerrain)
 	safeStep("buildOcean", buildOcean)
-	safeStep("buildRoads", buildRoads)
-	safeStep("buildSpawnPlaza", buildSpawnPlaza)
-	safeStep("buildMarketplace", buildMarketplace)
-	safeStep("buildProductionZone", buildProductionZone)
-	safeStep("buildSecretZone", buildSecretZone)
+	safeStep("buildPaths", buildPaths)
+	safeStep("buildSpawnArea", buildSpawnArea)
+	safeStep("buildLamps", buildLamps)
+	safeStep("buildTreeBorder", buildTreeBorder)
 	safeStep("buildDecorations", buildDecorations)
+	safeStep("buildShops", buildShops)
 
 	local bases = buildBaseDistrict()
 
-	-- Spawn pads.
 	local pads = {}
 	for i = 1, Config.Capsule.padCount do
 		pads[i] = WorldBuilder.buildSpawnPad(i)
