@@ -403,77 +403,269 @@ end
 -- at the origin (the body center sits at y=0).
 local builders = {}
 
--- 1. Satoshi Nekotto — cat head + Bitcoin orange coin body, pickaxe prop.
+-- 1. Satoshi Nekotto — HUMANISED crypto-degen cat: hoodie, sunglasses, grin,
+-- chain, sneakers, Bitcoin coin backpack, pickaxe. Full blocky voxel aesthetic.
 builders["satoshi-nekotto"] = function(model, bodyColor, scale)
-	-- Bitcoin coin STANDING on edge: cylinder axis is vertical (Y), so it reads
-	-- as a coin balanced upright, not lying flat.
+	local CAT_ORANGE    = Color3.fromRGB(255, 165, 60)
+	local HOODIE_ORANGE = Color3.fromRGB(255, 140, 0)
+	local SNEAKER_WHITE = Color3.fromRGB(255, 255, 255)
+	local RED           = Color3.fromRGB(220, 30, 30)
+	local DARK_SOLE     = Color3.fromRGB(30, 30, 30)
+	local GLASSES_BLACK = Color3.fromRGB(15, 15, 15)
+	local COIN_GOLD     = Color3.fromRGB(255, 200, 40)
+	local CHAIN_GOLD    = Color3.fromRGB(255, 215, 0)
+	local WOOD_BROWN    = Color3.fromRGB(100, 60, 20)
+	local SILVER        = Color3.fromRGB(190, 190, 200)
+	local CAP_DOME_GOLD = Color3.fromRGB(200, 140, 40)
+
+	-- === BODY — orange hoodie ===
 	local body = makePart({
 		Name = "Body",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.8, 1.2, 3.2) * scale, -- X is the cylinder axis (thickness)
-		Color = bodyColor,
-		Material = Enum.Material.Metal,
+		Size = Vector3.new(2.0, 3.2, 1.5) * scale,
+		Color = HOODIE_ORANGE,
+		Material = Enum.Material.SmoothPlastic,
 	})
-	body.CFrame = CFrame.new(0, 0, 0) -- no rotation: stands on edge
+	body.CFrame = CFrame.new(0, 0, 0)
 	body.Parent = model
-	-- Bitcoin "₿" emboss: a dark disc on the coin face (front).
-	local emboss = makePart({
-		Name = "CoinEmboss",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.6, 1.6, 0.2) * scale,
-		Color = Color3.fromRGB(180, 110, 0),
+
+	-- "HODL" dark strip on the hoodie front.
+	local hodl = makePart({
+		Name = "HodlStrip",
+		Size = Vector3.new(1.2, 0.4, 0.08) * scale,
+		Color = Color3.fromRGB(20, 20, 20),
+		Material = Enum.Material.SmoothPlastic,
+	})
+	hodl.CFrame = CFrame.new(0, 0.1 * scale, body.Size.Z / 2 + 0.04 * scale)
+	hodl.Parent = model
+
+	-- Gold chain: thin cylinder ring around the neck, rotated horizontal.
+	local chain = makePart({
+		Name = "Chain",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.1, 2.4, 2.4) * scale,
+		Color = CHAIN_GOLD,
 		Material = Enum.Material.Metal,
 	})
-	emboss.CFrame = CFrame.new(0, 0, -1.65 * scale)
-	emboss.Parent = model
+	chain.CFrame = CFrame.new(0, body.Size.Y / 2 - 0.6 * scale, 0)
+		* CFrame.Angles(math.rad(90), 0, 0)
+	chain.Parent = model
 
-	addLegs(model, body, bodyColor, false, scale)
-	local arms = addArms(model, body, bodyColor, scale)
-
-	-- Cat head above the coin — large (1.5:1 head:body).
-	local headY = body.Size.Y / 2 + 1.8 * scale
+	-- === HEAD — large blocky cat head ===
+	local headY = body.Size.Y / 2 + 2.2
 	local head = makePart({
 		Name = "Head",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(3.0, 3.0, 3.0) * scale,
-		Color = bodyColor:Lerp(WHITE, 0.2),
+		Size = Vector3.new(3.5, 3.5, 3.0) * scale,
+		Color = CAT_ORANGE,
 		Material = Enum.Material.SmoothPlastic,
 	})
 	head.CFrame = CFrame.new(0, headY, 0)
 	head.Parent = model
-	-- Cat ears (wedges).
+
+	local faceZ = head.Size.Z / 2 -- front-surface world Z
+
+	-- Black sunglasses: two chunky panels with a thin bridge ("thug life").
+	for _, side in ipairs({ -1, 1 }) do
+		local lens = makePart({
+			Name = "Sunglass",
+			Size = Vector3.new(1.2, 1.2, 0.3) * scale,
+			Color = GLASSES_BLACK,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		lens.CFrame = CFrame.new(side * 0.85 * scale, headY + 0.12 * scale, faceZ + 0.15 * scale)
+		lens.Parent = model
+	end
+	local bridge = makePart({
+		Name = "SunglassBridge",
+		Size = Vector3.new(0.55, 0.18, 0.3) * scale,
+		Color = GLASSES_BLACK,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	bridge.CFrame = CFrame.new(0, headY + 0.12 * scale, faceZ + 0.15 * scale)
+	bridge.Parent = model
+
+	-- Thick eyebrows floating above the glasses.
+	for _, side in ipairs({ -1, 1 }) do
+		local brow = makePart({
+			Name = "Eyebrow",
+			Size = Vector3.new(1.4, 0.3, 0.3) * scale,
+			Color = GLASSES_BLACK,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		brow.CFrame = CFrame.new(side * 0.85 * scale, headY + 1.05 * scale, faceZ + 0.1 * scale)
+		brow.Parent = model
+	end
+
+	-- Wide grinning mouth :D — bright red box.
+	local mouth = makePart({
+		Name = "Mouth",
+		Size = Vector3.new(2.4, 1.2, 0.3) * scale,
+		Color = RED,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	mouth.CFrame = CFrame.new(0, headY - 0.7 * scale, faceZ + 0.15 * scale)
+	mouth.Parent = model
+
+	-- Cat ears: wedge triangles on the top corners.
 	for _, side in ipairs({ -1, 1 }) do
 		local ear = makeWedge({
 			Name = "Ear",
-
-			Size = Vector3.new(0.5, 1.0, 0.5) * scale,
-			Color = bodyColor:Lerp(WHITE, 0.2),
+			Size = Vector3.new(0.8, 1.0, 0.5) * scale,
+			Color = CAT_ORANGE,
 			Material = Enum.Material.SmoothPlastic,
 		})
-		ear.CFrame = CFrame.new(side * 0.85 * scale, headY + 1.4 * scale, 0)
-			* CFrame.Angles(0, 0, math.rad(-15 * side))
+		ear.CFrame = CFrame.new(side * 1.4 * scale, headY + head.Size.Y / 2 - 0.4 * scale, 0)
+			* CFrame.Angles(0, 0, math.rad(-20 * side))
 		ear.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0, 1.5 * scale, 0.6 * scale, 0.25 * scale, scale)
-	addHeadHat(model, "none", headY + head.Size.Y / 2, scale)
 
-	-- Pickaxe prop in the right hand.
-	local pick = makePart({
-		Name = "Prop",
-		Size = Vector3.new(0.18, 1.6, 0.18) * scale,
-		Color = Color3.fromRGB(110, 70, 30),
-		Material = Enum.Material.Wood,
+	-- Baseball cap.
+	local capTop = headY + head.Size.Y / 2
+	local brim = makePart({
+		Name = "CapBrim",
+		Size = Vector3.new(3.0, 0.3, 2.2) * scale,
+		Color = CAT_ORANGE,
+		Material = Enum.Material.SmoothPlastic,
 	})
-	pick.CFrame = arms[1].CFrame * CFrame.new(0, -0.9 * scale, 0)
-	pick.Parent = model
-	local pickHead = makePart({
-		Name = "PropHead",
-		Size = Vector3.new(1.2, 0.2, 0.2) * scale,
-		Color = Color3.fromRGB(180, 180, 190),
+	brim.CFrame = CFrame.new(0, capTop - 0.15 * scale, faceZ * 0.55)
+	brim.Parent = model
+
+	local dome = makePart({
+		Name = "CapDome",
+		Size = Vector3.new(2.2, 1.0, 2.2) * scale,
+		Color = CAP_DOME_GOLD,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	dome.CFrame = CFrame.new(0, capTop + 0.25 * scale, 0)
+	dome.Parent = model
+
+	-- "₿" decal on the cap dome (dark marker box).
+	local btcMark = makePart({
+		Name = "BtcMark",
+		Size = Vector3.new(0.6, 0.55, 0.1) * scale,
+		Color = GLASSES_BLACK,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	btcMark.CFrame = CFrame.new(0, capTop + 0.25 * scale, dome.Size.Z / 2 + 0.05 * scale)
+	btcMark.Parent = model
+
+	-- === ARMS — box arms hanging from body sides, ending in box hands ===
+	local arms = {}
+	for _, side in ipairs({ -1, 1 }) do
+		local arm = makePart({
+			Name = "Arm",
+			Size = Vector3.new(0.8, 2.8, 0.8) * scale,
+			Color = HOODIE_ORANGE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		arm.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.4 * scale), 0.1 * scale, 0)
+			* CFrame.Angles(0, 0, math.rad(-10 * side))
+		arm.Parent = model
+
+		local hand = makePart({
+			Name = "Hand",
+			Size = Vector3.new(0.9, 0.9, 0.9) * scale,
+			Color = CAT_ORANGE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		hand.CFrame = arm.CFrame * CFrame.new(0, -arm.Size.Y / 2 - 0.45 * scale, 0)
+		hand.Parent = model
+		arms[side] = arm
+	end
+
+	-- === LEGS — box legs with white sneakers ===
+	for _, side in ipairs({ -1, 1 }) do
+		local legX = side * 0.75 * scale
+		local legY = -body.Size.Y / 2 - 1.25 * scale
+		local leg = makePart({
+			Name = "Leg",
+			Size = Vector3.new(1.0, 2.5, 1.0) * scale,
+			Color = Color3.fromRGB(40, 40, 45),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		leg.CFrame = CFrame.new(legX, legY, 0.1 * scale)
+		leg.Parent = model
+
+		-- Sneaker body sits exactly at the leg bottom.
+		local sneakerY = legY - leg.Size.Y / 2 - 0.35 * scale
+		local sneaker = makePart({
+			Name = "Sneaker",
+			Size = Vector3.new(1.3, 0.7, 2.0) * scale,
+			Color = SNEAKER_WHITE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		sneaker.CFrame = CFrame.new(legX, sneakerY, 0.15 * scale)
+		sneaker.Parent = model
+
+		-- Red accent stripe on the outer side.
+		local stripe = makePart({
+			Name = "SneakerStripe",
+			Size = Vector3.new(0.12, 0.4, 1.8) * scale,
+			Color = RED,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		stripe.CFrame = CFrame.new(legX + side * sneaker.Size.X / 2, sneakerY, 0.15 * scale)
+		stripe.Parent = model
+
+		-- Dark thick sole.
+		local sole = makePart({
+			Name = "SneakerSole",
+			Size = Vector3.new(1.4, 0.3, 2.2) * scale,
+			Color = DARK_SOLE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		sole.CFrame = CFrame.new(legX, sneakerY - sneaker.Size.Y / 2 - 0.15 * scale, 0.15 * scale)
+		sole.Parent = model
+	end
+
+	-- === CRYPTO BACKPACK — standing Bitcoin coin behind the character ===
+	local coin = makePart({
+		Name = "CoinBackpack",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.8, 3.2, 3.2) * scale, -- axis = X, thin standing coin
+		Color = COIN_GOLD,
 		Material = Enum.Material.Metal,
 	})
-	pickHead.CFrame = pick.CFrame * CFrame.new(0, -0.8 * scale, 0)
-	pickHead.Parent = model
+	-- Rotate so the coin faces backward (flat face perpendicular to Z).
+	coin.CFrame = CFrame.new(0, 0, -body.Size.Z / 2 - 1.65 * scale)
+		* CFrame.Angles(0, math.rad(90), 0)
+	coin.Parent = model
+
+	-- Dark "₿" mark disc on the coin's outward face.
+	local coinMark = makePart({
+		Name = "CoinMark",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.06, 1.2, 1.2) * scale,
+		Color = Color3.fromRGB(160, 110, 0),
+		Material = Enum.Material.Metal,
+	})
+	coinMark.CFrame = coin.CFrame * CFrame.new(0, 0, -coin.Size.Y / 2 - 0.03 * scale)
+	coinMark.Parent = model
+
+	-- === PROP — pickaxe in right hand (side=1) ===
+	local pickHandle = makePart({
+		Name = "Prop",
+		Size = Vector3.new(0.15, 2.5, 0.15) * scale,
+		Color = WOOD_BROWN,
+		Material = Enum.Material.Wood,
+	})
+	pickHandle.CFrame = arms[1].CFrame
+		* CFrame.new(0, -arms[1].Size.Y / 2 - 0.45 * scale - 1.25 * scale, 0)
+	pickHandle.Parent = model
+
+	-- Two wedge blades at the pickaxe head.
+	for _, bside in ipairs({ -1, 1 }) do
+		local blade = makeWedge({
+			Name = "PickBlade",
+			Size = Vector3.new(0.8, 0.3, 0.3) * scale,
+			Color = SILVER,
+			Material = Enum.Material.Metal,
+		})
+		blade.CFrame = pickHandle.CFrame
+			* CFrame.new(bside * 0.22 * scale, -1.25 * scale, 0)
+			* CFrame.Angles(0, math.rad(90), math.rad(-40 * bside))
+		blade.Parent = model
+	end
+
 	return body
 end
 
