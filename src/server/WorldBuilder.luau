@@ -158,41 +158,67 @@ local function setupLighting()
 
 	-- DirectionalLight: explicit late-afternoon sun, bright, shadows on.
 	-- (Lighting.Technology is intentionally never assigned.)
-	local oldSun = Lighting:FindFirstChild("MainSun")
-	if oldSun then oldSun:Destroy() end
-	local sun = Instance.new("DirectionalLight")
-	sun.Name = "MainSun"
-	sun.Brightness = 2.5
-	sun.Shadows = true
-	sun.CFrame = CFrame.new(Vector3.new(80, 60, -30), Vector3.new(0, 0, 0))
-	sun.Parent = Lighting
+	-- Destroy ALL existing DirectionalLight children (the template Baseplate may
+	-- have created one under a name other than "MainSun").
+	while true do
+		local old = Lighting:FindFirstChildWhichIsA("DirectionalLight")
+		if not old then break end
+		old:Destroy()
+	end
+
+	local ok, sunResult = pcall(function()
+		local s = Instance.new("DirectionalLight")
+		s.Name = "MainSun"
+		s.Brightness = 2.5
+		s.Shadows = true
+		s.CFrame = CFrame.new(Vector3.new(80, 60, -30), Vector3.new(0, 0, 0))
+		s.Parent = Lighting
+		return s
+	end)
+	if not ok then
+		warn("[WorldBuilder] DirectionalLight creation failed: " .. tostring(sunResult))
+	else
+		-- sunResult holds the created instance
+	end
 
 	-- Remove any existing Sky so we always create a fresh one.
 	local oldSky = Lighting:FindFirstChildWhichIsA("Sky")
 	if oldSky then oldSky:Destroy() end
-	local sky = Instance.new("Sky")
-	sky.Name = "DaySky"
-	sky.SkyboxBk = "rbxasset://textures/sky/sky512_bk.tex"
-	sky.SkyboxFt = "rbxasset://textures/sky/sky512_ft.tex"
-	sky.SkyboxLf = "rbxasset://textures/sky/sky512_lf.tex"
-	sky.SkyboxRt = "rbxasset://textures/sky/sky512_rt.tex"
-	sky.SkyboxUp = "rbxasset://textures/sky/sky512_up.tex"
-	sky.SkyboxDn = "rbxasset://textures/sky/sky512_dn.tex"
-	sky.StarCount = 0
-	sky.Parent = Lighting
+	local okSky, skyResult = pcall(function()
+		local sky = Instance.new("Sky")
+		sky.Name = "DaySky"
+		sky.SkyboxBk = "rbxasset://textures/sky/sky512_bk.tex"
+		sky.SkyboxFt = "rbxasset://textures/sky/sky512_ft.tex"
+		sky.SkyboxLf = "rbxasset://textures/sky/sky512_lf.tex"
+		sky.SkyboxRt = "rbxasset://textures/sky/sky512_rt.tex"
+		sky.SkyboxUp = "rbxasset://textures/sky/sky512_up.tex"
+		sky.SkyboxDn = "rbxasset://textures/sky/sky512_dn.tex"
+		sky.StarCount = 0
+		sky.Parent = Lighting
+		return sky
+	end)
+	if not okSky then
+		warn("[WorldBuilder] Sky creation failed: " .. tostring(skyResult))
+	end
 
 	-- Remove any existing Atmosphere so we always create a fresh one.
 	local oldAtmo = Lighting:FindFirstChildWhichIsA("Atmosphere")
 	if oldAtmo then oldAtmo:Destroy() end
-	local atmosphere = Instance.new("Atmosphere")
-	atmosphere.Name = "VaultAtmosphere"
-	atmosphere.Density = 0.28
-	atmosphere.Offset = 0.25
-	atmosphere.Color = Color3.fromRGB(199, 204, 214)
-	atmosphere.Decay = Color3.fromRGB(106, 112, 125)
-	atmosphere.Glare = 0.15
-	atmosphere.Haze = 0.8
-	atmosphere.Parent = Lighting
+	local okAtmo, atmoResult = pcall(function()
+		local atmosphere = Instance.new("Atmosphere")
+		atmosphere.Name = "VaultAtmosphere"
+		atmosphere.Density = 0.28
+		atmosphere.Offset = 0.25
+		atmosphere.Color = Color3.fromRGB(199, 204, 214)
+		atmosphere.Decay = Color3.fromRGB(106, 112, 125)
+		atmosphere.Glare = 0.15
+		atmosphere.Haze = 0.8
+		atmosphere.Parent = Lighting
+		return atmosphere
+	end)
+	if not okAtmo then
+		warn("[WorldBuilder] Atmosphere creation failed: " .. tostring(atmoResult))
+	end
 end
 
 -- ---------------------------------------------------------------------------
@@ -1154,8 +1180,15 @@ end
 -- ---------------------------------------------------------------------------
 
 function WorldBuilder.build()
-	setupLighting()
-	buildGround()
+	local function safeStep(name, fn)
+		local ok, err = pcall(fn)
+		if not ok then
+			warn("[WorldBuilder] step failed (" .. name .. "): " .. tostring(err))
+		end
+	end
+
+	safeStep("setupLighting", setupLighting)
+	safeStep("buildGround", buildGround)
 
 	-- 4 bases: row A at Z = -BASE_GAP/2, row B at Z = +BASE_GAP/2.
 	-- Indices 1-4: front-left, front-right, back-right, back-left (clockwise).
@@ -1172,21 +1205,21 @@ function WorldBuilder.build()
 	end
 
 	-- Golden statues off the carpet at x = -14 and x = +14.
-	buildGoldStatue(-14, -28)
-	buildGoldStatue(14, 0)
-	buildGoldStatue(-14, 28)
+	safeStep("buildGoldStatue1", function() buildGoldStatue(-14, -28) end)
+	safeStep("buildGoldStatue2", function() buildGoldStatue(14, 0) end)
+	safeStep("buildGoldStatue3", function() buildGoldStatue(-14, 28) end)
 
 	-- Small vault sign at the far end.
-	buildVaultSign()
+	safeStep("buildVaultSign", buildVaultSign)
 
 	-- Perimeter wall around all four map edges.
-	buildPerimeterWall()
+	safeStep("buildPerimeterWall", buildPerimeterWall)
 
 	-- Stone/brick paths from spawn area to each base entrance.
-	buildStonePaths()
+	safeStep("buildStonePaths", buildStonePaths)
 
 	-- Environment props: trees, rocks, lamps, benches, bushes.
-	buildEnvironmentProps()
+	safeStep("buildEnvironmentProps", buildEnvironmentProps)
 
 	-- Spawn pads.
 	local pads = {}
