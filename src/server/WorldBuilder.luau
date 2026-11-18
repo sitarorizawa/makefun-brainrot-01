@@ -1,29 +1,43 @@
--- WorldBuilder: constructs the whole 3D arena at server start — bright daytime
--- lighting and sky, the grass ground with sand paths, the four player bases
--- (raised SAFE ZONE islands with pedestals and stairs), the spawn court, the
--- eight capsule pads, the central plaza with mascot and signs, the museum
--- showcase of all twelve brainrots, and the neon-trimmed perimeter walls.
--- Everything is anchored plain parts, so the place stays cheap and the whole
--- map lives in code next to the scripts that use it.
+-- WorldBuilder: clean tycoon layout matching the operator's reference.
+-- Green stud baseplate, wide red carpet down the center, 4 base buildings
+-- (2 per side) with grey walls, white-framed windows, red interiors and
+-- "YOUR BASE" BillboardGuis. Golden statues along the carpet, capsule
+-- pads on both sides, a small vault sign at the far end. No floating
+-- text labels — just the base nameplates and the end sign.
+--
+-- Keep the interface init.server.luau depends on:
+--   build() → { pads = array<Part>, bases = array<Model> }
+--   setBaseSign(model, title, subtitle, color)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 
-local BrainrotModels = require(script.Parent.BrainrotModels)
-
 local WorldBuilder = {}
 
-local ARENA_HALF = 110 -- play area is a 220-stud square inside the walls
-local BASE_RADIUS = 70 -- distance from plaza center to each base
-local BASE_TOP = 16 -- top of a base island; the tsunami stays below it
-local PEDESTAL_SPACING = 6.2
+-- ---------------------------------------------------------------------------
+-- Layout constants
+-- ---------------------------------------------------------------------------
 
-local GRASS = Color3.fromRGB(115, 195, 100)
-local SAND = Color3.fromRGB(238, 216, 150)
-local ISLAND = Color3.fromRGB(232, 234, 240)
-local NEON_TRIM = Color3.fromRGB(80, 255, 170)
+local CARPET_HALF = 72 -- carpet runs Z = -72 .. +72
+local CARPET_WIDTH = 22
+local BASE_GAP = 46  -- Z-distance between front-row and back-row bases
+local BASE_X = 22    -- absolute X of each base's center
+local PEDESTAL_SPACING = 5.2
+
+-- Colors
+local GRASS_GREEN = Color3.fromRGB(98, 178, 72)
+local CARPET_RED = Color3.fromRGB(195, 48, 48)
+local WALL_GREY = Color3.fromRGB(160, 165, 175)
+local WINDOW_WHITE = Color3.fromRGB(245, 245, 250)
+local INTERIOR_RED = Color3.fromRGB(188, 52, 52)
+local STATUE_GOLD = Color3.fromRGB(255, 210, 48)
+local SIGN_DARK = Color3.fromRGB(32, 36, 44)
+
+-- ---------------------------------------------------------------------------
+-- Part helper
+-- ---------------------------------------------------------------------------
 
 local function part(props)
 	local p = Instance.new("Part")
@@ -36,25 +50,23 @@ local function part(props)
 	return p
 end
 
-local function label(parent, title, subtitle, color, studsOffset)
-	local anchor = part({
-		Name = "LabelAnchor",
-		Size = Vector3.new(0.05, 0.05, 0.05),
-		Transparency = 1,
-		CanCollide = false,
-	})
-	anchor.CFrame = parent.CFrame * CFrame.new(0, (parent.Size.Y / 2) + 0.2, 0)
-	anchor.Parent = parent
+-- ---------------------------------------------------------------------------
+-- BillboardGui for a base nameplate.  Kept separate from the old `label()`
+-- so we never leak floating labels onto the map.
+-- ---------------------------------------------------------------------------
 
+local function buildBaseNameplate(parent, title, color)
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(240, 60)
-	gui.StudsOffset = studsOffset or Vector3.new(0, 2.6, 0)
+	gui.Name = "BaseSignGui"
+	gui.Size = UDim2.fromOffset(220, 56)
+	gui.StudsOffset = Vector3.new(0, 0, 0)
 	gui.AlwaysOnTop = true
-	gui.MaxDistance = 250
-	gui.Parent = anchor
+	gui.MaxDistance = 220
+	gui.Parent = parent
 
 	local main = Instance.new("TextLabel")
-	main.Size = UDim2.fromScale(1, 0.55)
+	main.Name = "Title"
+	main.Size = UDim2.fromScale(1, 0.58)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
 	main.TextScaled = true
@@ -65,12 +77,13 @@ local function label(parent, title, subtitle, color, studsOffset)
 	main.Parent = gui
 
 	local sub = Instance.new("TextLabel")
-	sub.Position = UDim2.fromScale(0, 0.55)
-	sub.Size = UDim2.fromScale(1, 0.45)
+	sub.Name = "Subtitle"
+	sub.Position = UDim2.fromScale(0, 0.58)
+	sub.Size = UDim2.fromScale(1, 0.42)
 	sub.BackgroundTransparency = 1
 	sub.Font = Enum.Font.GothamBold
 	sub.TextScaled = true
-	sub.Text = subtitle or ""
+	sub.Text = ""
 	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
 	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
 	sub.TextStrokeTransparency = 0.3
@@ -80,7 +93,7 @@ local function label(parent, title, subtitle, color, studsOffset)
 end
 
 -- ---------------------------------------------------------------------------
--- Lighting: bright afternoon so every screenshot is clearly readable.
+-- Lighting: bright afternoon
 -- ---------------------------------------------------------------------------
 
 local function setupLighting()
@@ -118,480 +131,308 @@ local function setupLighting()
 	atmosphere.Decay = Color3.fromRGB(106, 112, 125)
 	atmosphere.Glare = 0.15
 	atmosphere.Haze = 0.8
-
-	local terrain = workspace:FindFirstChildOfClass("Terrain")
-	if terrain and terrain:FindFirstChild("Clouds") == nil then
-		local clouds = Instance.new("Clouds")
-		clouds.Cover = 0.4
-		clouds.Density = 0.45
-		clouds.Parent = terrain
-	end
 end
 
 -- ---------------------------------------------------------------------------
--- Ground plane and the sand paths that link plaza to every base
+-- Green stud baseplate + red carpet
 -- ---------------------------------------------------------------------------
 
 local function buildGround()
-	local grass = part({
+	local half = 110
+	-- Green stud baseplate: Plastic material gives the classic stud texture.
+	local baseplate = part({
 		Name = "Ground",
-		Size = Vector3.new(ARENA_HALF * 2 + 4, 0.4, ARENA_HALF * 2 + 4),
-		Color = GRASS,
-		Material = Enum.Material.Grass,
+		Size = Vector3.new(half * 2 + 4, 0.4, half * 2 + 4),
+		Color = GRASS_GREEN,
+		Material = Enum.Material.Plastic,
 	})
-	grass.CFrame = CFrame.new(0, -0.15, 0) -- top sits at 0.05, above the baseplate
-	grass.Parent = workspace
+	baseplate.CFrame = CFrame.new(0, -0.15, 0)
+	baseplate.Parent = workspace
 
-	-- One sand path from the plaza to each base's staircase.
-	for index = 1, 4 do
-		local angle = math.rad((index - 1) * 90 - 90)
-		local dir = Vector3.new(math.cos(angle), 0, math.sin(angle))
-		local mid = dir * 31
-		local path = part({
-			Name = "Path" .. index,
-			Size = Vector3.new(12, 0.18, 18),
-			Color = SAND,
-			Material = Enum.Material.Sand,
-		})
-		path.CFrame = CFrame.lookAt(mid + Vector3.new(0, 0.1, 0), mid + dir * 45 + Vector3.new(0, 0.1, 0))
-		path.Parent = workspace
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Spawn court: a decorated platform with the SpawnLocation moved onto it
--- (the default project spawns players in the plaza fountain otherwise).
--- ---------------------------------------------------------------------------
-
-local function buildSpawnArea()
-	local center = Vector3.new(0, 0, 30)
-
-	local court = part({
-		Name = "SpawnCourt",
-		Size = Vector3.new(22, 0.6, 18),
-		Color = Color3.fromRGB(70, 150, 230),
-		Material = Enum.Material.Concrete,
-	})
-	court.CFrame = CFrame.new(center + Vector3.new(0, 0.3, 0))
-	court.Parent = workspace
-
-	local rim = part({
-		Name = "SpawnRim",
-		Size = Vector3.new(23.4, 0.4, 19.4),
-		Color = Color3.fromRGB(80, 230, 255),
-		Material = Enum.Material.Neon,
-	})
-	rim.CFrame = CFrame.new(center + Vector3.new(0, 0.4, 0))
-	rim.CanCollide = false
-	rim.Parent = workspace
-
-	local spawn = workspace:FindFirstChild("SpawnLocation")
-	if spawn then
-		spawn.Anchored = true
-		spawn.Size = Vector3.new(16, 1.2, 12)
-		spawn.Color = Color3.fromRGB(240, 245, 255)
-		spawn.Material = Enum.Material.SmoothPlastic
-		spawn.Position = center + Vector3.new(0, 1.2, 0) -- bottom rests on the court
-	end
-
-	local signAnchor = part({
-		Name = "SpawnSign",
-		Size = Vector3.new(12, 2.6, 0.6),
-		Color = Color3.fromRGB(8, 35, 60),
+	-- Red carpet: wide, runs Z = -CARPET_HALF .. +CARPET_HALF
+	local carpet = part({
+		Name = "Carpet",
+		Size = Vector3.new(CARPET_WIDTH, 0.22, CARPET_HALF * 2),
+		Color = CARPET_RED,
 		Material = Enum.Material.SmoothPlastic,
 	})
-	signAnchor.CFrame = CFrame.new(center + Vector3.new(0, 7, 0))
-	signAnchor.CanCollide = false
-	signAnchor.Parent = workspace
-	label(signAnchor, "SPAWN AREA", "grab a capsule in the plaza!", Color3.fromRGB(140, 235, 255))
-end
+	carpet.CFrame = CFrame.new(0, 0.11, 0)
+	carpet.Parent = workspace
 
--- A text sign standing on the plaza, so the loop is readable in a screenshot.
--- The text is put on both faces so it reads correctly from either side.
-local function buildSign(position, rotationY, title, lines)
-	local board = part({
-		Name = "Sign",
-		Size = Vector3.new(14, 8, 1),
-		Color = Color3.fromRGB(70, 52, 40),
-		Material = Enum.Material.WoodPlanks,
-	})
-	board.CFrame = CFrame.new(position) * CFrame.Angles(0, math.rad(rotationY), 0)
-	board.Parent = workspace
-
-	local function addFaceText(faceNormal)
-		local face = Instance.new("SurfaceGui")
-		face.Face = faceNormal
-		face.CanvasSize = Vector2.new(700, 400)
-		face.Parent = board
-
-		local titleBox = Instance.new("TextLabel")
-		titleBox.Size = UDim2.fromScale(1, 0.28)
-		titleBox.BackgroundTransparency = 1
-		titleBox.Font = Enum.Font.GothamBold
-		titleBox.TextScaled = true
-		titleBox.TextColor3 = Color3.fromRGB(255, 225, 120)
-		titleBox.Text = title
-		titleBox.Parent = face
-
-		local body = Instance.new("TextLabel")
-		body.Position = UDim2.fromScale(0, 0.3)
-		body.Size = UDim2.fromScale(1, 0.7)
-		body.BackgroundTransparency = 1
-		body.Font = Enum.Font.GothamBold
-		body.TextScaled = true
-		body.TextColor3 = Color3.new(1, 1, 1)
-		body.Text = table.concat(lines, "\n")
-		body.Parent = face
+	-- Thin gold trim on each side of the carpet so it pops against the green.
+	for _, side in ipairs({ -CARPET_WIDTH / 2, CARPET_WIDTH / 2 }) do
+		local trim = part({
+			Name = "CarpetTrim",
+			Size = Vector3.new(0.6, 0.12, CARPET_HALF * 2),
+			Color = STATUE_GOLD,
+			Material = Enum.Material.Metal,
+		})
+		trim.CFrame = CFrame.new(side, 0.22, 0)
+		trim.CanCollide = false
+		trim.Parent = workspace
 	end
-	addFaceText(Enum.NormalId.Front)
-	addFaceText(Enum.NormalId.Back)
-
-	local post = part({
-		Name = "SignPost",
-		Size = Vector3.new(1.2, 6, 1.2),
-		Color = Color3.fromRGB(90, 68, 50),
-		Material = Enum.Material.Wood,
-	})
-	post.CFrame = CFrame.new(position - Vector3.new(0, 7, 0)) * CFrame.Angles(0, math.rad(rotationY), 0)
-	post.Parent = workspace
 end
 
--- One player base: a raised island, a ring of pedestals (locked ones dimmed),
--- stairs up from the plaza, and signs that flip to the owner's name.
-function WorldBuilder.buildBase(index)
-	local angle = math.rad((index - 1) * 90 - 90) -- bases at north/east/south/west
-	local center = Vector3.new(math.cos(angle) * BASE_RADIUS, 0, math.sin(angle) * BASE_RADIUS)
+-- ---------------------------------------------------------------------------
+-- One base building: grey-walled room with white-framed windows, red interior,
+-- "YOUR BASE" BillboardGui, ProximityPrompt, and rows of pedestals.
+-- ---------------------------------------------------------------------------
 
-	local base = Instance.new("Model")
-	base.Name = "Base" .. index
+local function buildSingleBase(cx, cz, index)
+	local model = Instance.new("Model")
+	model.Name = "Base" .. index
 
-	local island = part({
+	local wallH = 8
+	local halfW = 8.5 -- half-width of the building
+
+	-- Red interior floor — also the "Island" part the server hooks .Touched on.
+	local floor = part({
 		Name = "Island",
-		Size = Vector3.new(38, BASE_TOP, 38),
-		Color = ISLAND,
-		Material = Enum.Material.Concrete,
+		Size = Vector3.new(halfW * 2, 0.4, halfW * 2),
+		Color = INTERIOR_RED,
+		Material = Enum.Material.SmoothPlastic,
 	})
-	island.CFrame = CFrame.new(center + Vector3.new(0, BASE_TOP / 2, 0))
-	island.Parent = base
+	floor.CFrame = CFrame.new(cx, 0.2, cz)
+	floor.Parent = model
 
-	-- Glowing green floor inlay: "safe zone" colour, readable from the plaza.
-	local trim = part({
-		Name = "Trim",
-		Size = Vector3.new(37.4, 0.2, 37.4),
-		Color = NEON_TRIM,
-		Material = Enum.Material.Neon,
-	})
-	trim.CFrame = CFrame.new(center + Vector3.new(0, BASE_TOP + 0.1, 0))
-	trim.CanCollide = false
-	trim.Parent = base
-
-	-- Four steps up the plaza-facing side; each is jumpable.
-	local inward = -Vector3.new(math.cos(angle), 0, math.sin(angle)) -- toward plaza
-	for step = 1, 4 do
-		local height = BASE_TOP * step / 4
-		local depth = 3
-		local offset = 19 + (4 - step) * depth + depth / 2
-		local stair = part({
-			Name = "Stair" .. step,
-			Size = Vector3.new(14, height, depth),
-			Color = ISLAND,
+	-- Grey walls: four slabs around the floor, each 0.6 thick.
+	local wallDefs = {
+		{ name = "WallN", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz - halfW) },
+		{ name = "WallS", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz + halfW) },
+		{ name = "WallE", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx + halfW, wallH / 2 + 0.2, cz) },
+		{ name = "WallW", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx - halfW, wallH / 2 + 0.2, cz) },
+	}
+	for _, w in ipairs(wallDefs) do
+		local wall = part({
+			Name = w.name,
+			Size = w.size,
+			Color = WALL_GREY,
 			Material = Enum.Material.Concrete,
 		})
-		stair.CFrame = CFrame.lookAt(center + inward * offset + Vector3.new(0, height / 2, 0), center + inward * (offset + 1) + Vector3.new(0, height / 2, 0))
-		stair.Parent = base
+		wall.CFrame = w.cf
+		wall.Parent = model
 	end
 
-	-- Pedestals: the first Economy.startSlots accept units, the rest start locked.
-	local right = Vector3.new(-math.sin(angle), 0, math.cos(angle))
-	local rowCount = 5
-	for slot = 1, Config.Economy.maxSlots do
-		local row = math.floor((slot - 1) / rowCount)
-		local col = (slot - 1) % rowCount
-		local rowOffset = row * 7 - 3.5
-		local colOffset = (col - (rowCount - 1) / 2) * PEDESTAL_SPACING
-		local pos = center + right * colOffset + inward * rowOffset + Vector3.new(0, BASE_TOP + 0.9, 0)
+	-- White-framed windows on each wall: thin white rectangles on the outside face.
+	-- Two windows per wall, skipping the front (carpet-facing) wall so the
+	-- entrance is clear.
+	local function addWindow(wallName, fx, fz, rotY, sx, sz, windowCX, windowCZ)
+		local frame = part({
+			Name = "Window",
+			Size = Vector3.new(sx, 3.6, 0.2),
+			Color = WINDOW_WHITE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		frame.CFrame = CFrame.new(cx + fx, 4.6, cz + fz) * CFrame.Angles(0, math.rad(rotY), 0)
+		frame.CanCollide = false
+		frame.Parent = model
+	end
 
+	-- Left wall (west): two windows
+	addWindow("WallW", -halfW - 0.1, -3.3, 0, 3, 3.6, 0, 0)
+	addWindow("WallW", -halfW - 0.1, 3.3, 0, 3, 3.6, 0, 0)
+	-- Right wall (east): two windows
+	addWindow("WallE", halfW + 0.1, -3.3, 0, 3, 3.6, 0, 0)
+	addWindow("WallE", halfW + 0.1, 3.3, 0, 3, 3.6, 0, 0)
+	-- Back wall (south, away from carpet): two windows
+	addWindow("WallS", -3.3, halfW + 0.1, 90, 3, 3.6, 0, 0)
+	addWindow("WallS", 3.3, halfW + 0.1, 90, 3, 3.6, 0, 0)
+
+	-- Base sign: a dark slab hovering above the front wall with the BillboardGui.
+	local sign = part({
+		Name = "BaseSign",
+		Size = Vector3.new(12, 2.4, 0.6),
+		Color = SIGN_DARK,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	-- Front wall is "WallN" at cz - halfW.  Lift the sign above it.
+	sign.CFrame = CFrame.new(cx, wallH + 1.8, cz - halfW)
+	sign.CanCollide = false
+	sign.Parent = model
+	buildBaseNameplate(sign, "YOUR BASE", Color3.fromRGB(120, 255, 150))
+
+	-- ProximityPrompt on the floor so a player sees "Claim Base" when close.
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "ClaimPrompt"
+	prompt.ActionText = "Claim Base"
+	prompt.ObjectText = "YOUR BASE"
+	prompt.HoldDuration = 0
+	prompt.RequiresLineOfSight = false
+	prompt.MaxActivationDistance = 18
+	prompt.Parent = floor
+
+	-- Pedestal rows: 2 rows of 5, arranged inside the building.
+	local facingDir = cz > 0 and -1 or 1 -- pedestals face the carpet
+	for slot = 1, Config.Economy.maxSlots do
+		local row = math.floor((slot - 1) / 5)
+		local col = (slot - 1) % 5
+		local px = cx + (col - 2) * PEDESTAL_SPACING
+		local pz = cz + (row - 0.5) * 6 * facingDir + 1.5 * facingDir
 		local pedestal = part({
 			Name = "Pedestal" .. slot,
 			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(1.8, 4.4, 4.4),
+			Size = Vector3.new(1.8, 4.2, 4.2),
 			Color = slot <= Config.Economy.startSlots and Color3.fromRGB(115, 120, 135) or Color3.fromRGB(58, 60, 70),
 			Material = Enum.Material.Slate,
 		})
-		pedestal.CFrame = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90))
+		pedestal.CFrame = CFrame.new(px, 2.3, pz) * CFrame.Angles(0, 0, math.rad(90))
 		pedestal:SetAttribute("Slot", slot)
-		pedestal.Parent = base
+		pedestal.Parent = model
 	end
 
-	-- The sign above the island: "OPEN" until a player claims it.
-	local signAnchor = part({
-		Name = "BaseSign",
-		Size = Vector3.new(14, 3.2, 0.8),
-		Color = Color3.fromRGB(28, 30, 38),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	signAnchor.CFrame = CFrame.new(center + Vector3.new(0, BASE_TOP + 6.5, 0)) * CFrame.Angles(0, angle + math.rad(90), 0)
-	signAnchor.CanCollide = false
-	signAnchor.Parent = base
-	local signGui = label(signAnchor, "BASE " .. index .. " — OPEN", "stand on it to claim", Color3.fromRGB(120, 255, 150))
-	signGui.Name = "BaseSignGui"
-
-	-- Permanent SAFE ZONE marker on the plaza-facing edge of the island.
-	local safeAnchor = part({
-		Name = "SafeSign",
-		Size = Vector3.new(11, 2.6, 0.6),
-		Color = Color3.fromRGB(8, 50, 22),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	safeAnchor.CFrame = CFrame.new(center + inward * 17.5 + Vector3.new(0, BASE_TOP + 2.8, 0))
-	safeAnchor.CanCollide = false
-	safeAnchor.Parent = base
-	label(safeAnchor, "SAFE ZONE", "the tsunami can't reach here", Color3.fromRGB(130, 255, 165))
-
-	base:SetAttribute("Index", index)
-	base:SetAttribute("CenterX", center.X)
-	base:SetAttribute("CenterZ", center.Z)
-	base:SetAttribute("TopY", BASE_TOP)
-	base.Parent = workspace
-	return base
+	-- Attributes the server reads.
+	model:SetAttribute("Index", index)
+	model:SetAttribute("CenterX", cx)
+	model:SetAttribute("CenterZ", cz)
+	model:SetAttribute("TopY", 0.4) -- floor height for tsunami teleport
+	model.Parent = workspace
+	return model
 end
 
--- One capsule spawn pad: a glowing disc the capsules appear on.
+-- ---------------------------------------------------------------------------
+-- Golden statue: a simple trophy shape along the carpet.
+-- ---------------------------------------------------------------------------
+
+local function buildGoldStatue(x, z)
+	local model = Instance.new("Model")
+	model.Name = "GoldStatue"
+
+	local base = part({
+		Name = "Base",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(1.2, 4.5, 4.5),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	base.CFrame = CFrame.new(x, 0.6, z) * CFrame.Angles(0, 0, math.rad(90))
+	base.Parent = model
+
+	local pillar = part({
+		Name = "Pillar",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(5.2, 1.8, 1.8),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	pillar.CFrame = CFrame.new(x, 3.8, z) * CFrame.Angles(0, 0, math.rad(90))
+	pillar.Parent = model
+
+	local head = part({
+		Name = "Head",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(2.8, 2.8, 2.8),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	head.CFrame = CFrame.new(x, 7.4, z)
+	head.Parent = model
+
+	model.Parent = workspace
+	return model
+end
+
+-- ---------------------------------------------------------------------------
+-- Small vault sign at the far end of the carpet.
+-- ---------------------------------------------------------------------------
+
+local function buildVaultSign()
+	local z = CARPET_HALF + 4
+	local board = part({
+		Name = "VaultSign",
+		Size = Vector3.new(12, 5, 0.8),
+		Color = Color3.fromRGB(50, 48, 62),
+		Material = Enum.Material.SmoothPlastic,
+	})
+	board.CFrame = CFrame.new(0, 4.5, z)
+	board.Parent = workspace
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(300, 60)
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = 200
+	gui.Parent = board
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.fromScale(1, 0.65)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBold
+	title.TextScaled = true
+	title.Text = "BRAINROT VAULT"
+	title.TextColor3 = Color3.fromRGB(255, 210, 90)
+	title.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	title.TextStrokeTransparency = 0.25
+	title.Parent = gui
+
+	local sub = Instance.new("TextLabel")
+	sub.Position = UDim2.fromScale(0, 0.65)
+	sub.Size = UDim2.fromScale(1, 0.35)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextScaled = true
+	sub.Text = "TYCOON"
+	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
+	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	sub.TextStrokeTransparency = 0.3
+	sub.Parent = gui
+
+	-- Two posts
+	for _, sx in ipairs({ -5.5, 5.5 }) do
+		local post = part({
+			Name = "Post",
+			Size = Vector3.new(1, 8, 1),
+			Color = Color3.fromRGB(60, 56, 74),
+			Material = Enum.Material.Metal,
+		})
+		post.CFrame = CFrame.new(sx, 4, z)
+		post.Parent = workspace
+	end
+end
+
+-- ---------------------------------------------------------------------------
+-- Capsule spawn pad: glowing disc (public API — init.server uses it).
+-- ---------------------------------------------------------------------------
+
 function WorldBuilder.buildSpawnPad(index)
-	local angle = math.rad((index - 1) * (360 / Config.Capsule.padCount) + 22.5)
-	local radius = 40
-	local center = Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+	-- 4 pads on each side of the carpet, alternating Z.
+	local side = index % 2 == 1 and -1 or 1
+	local row = math.floor((index - 1) / 2)   -- 0..3
+	local z = -45 + row * 30
+	local x = side * 32
 
 	local pad = part({
 		Name = "SpawnPad" .. index,
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.4, 9, 9),
+		Size = Vector3.new(0.4, 8, 8),
 		Color = Color3.fromRGB(210, 130, 255),
 		Material = Enum.Material.Neon,
 	})
-	pad.CFrame = CFrame.new(center + Vector3.new(0, 0.2, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	pad.CFrame = CFrame.new(x, 0.2, z) * CFrame.Angles(0, 0, math.rad(90))
 	pad:SetAttribute("PadIndex", index)
 	pad.Parent = workspace
 
 	local ring = part({
 		Name = "SpawnPadRing" .. index,
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.3, 11, 11),
+		Size = Vector3.new(0.3, 10, 10),
 		Color = Color3.fromRGB(70, 58, 85),
 		Material = Enum.Material.Slate,
 	})
-	ring.CFrame = CFrame.new(center + Vector3.new(0, 0.1, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	ring.CFrame = CFrame.new(x, 0.1, z) * CFrame.Angles(0, 0, math.rad(90))
 	ring.Parent = workspace
 
 	return pad
 end
 
--- Perimeter walls: four slabs with a glowing top trim that mark the boundary.
-local function buildWalls()
-	local height = 22
-	local length = ARENA_HALF * 2 + 4
-	for i = 1, 4 do
-		local wall = part({
-			Name = "Wall" .. i,
-			Size = i % 2 == 1 and Vector3.new(length, height, 3) or Vector3.new(3, height, length),
-			Color = Color3.fromRGB(95, 125, 185),
-			Material = Enum.Material.Brick,
-		})
-		local half = ARENA_HALF + 1.5
-		local offset = Vector3.new(
-			i == 2 and half or (i == 4 and -half or 0),
-			height / 2,
-			i == 1 and -half or (i == 3 and half or 0)
-		)
-		wall.CFrame = CFrame.new(offset)
-		wall.Parent = workspace
+-- ---------------------------------------------------------------------------
+-- setBaseSign: update a claimed base's nameplate.  Called by init.server.
+-- ---------------------------------------------------------------------------
 
-		local trim = part({
-			Name = "WallTrim" .. i,
-			Size = i % 2 == 1 and Vector3.new(length + 0.4, 0.9, 3.6) or Vector3.new(3.6, 0.9, length + 0.4),
-			Color = Color3.fromRGB(80, 235, 255),
-			Material = Enum.Material.Neon,
-		})
-		trim.CFrame = CFrame.new(offset + Vector3.new(0, height / 2 + 0.45, 0))
-		trim.CanCollide = false
-		trim.Parent = workspace
-	end
-end
-
--- A tree: trunk + blob canopy.
-local function buildTree(position, size)
-	local trunk = part({
-		Name = "Trunk",
-		Size = Vector3.new(2, 7 * size, 2),
-		Color = Color3.fromRGB(120, 82, 50),
-		Material = Enum.Material.Wood,
-	})
-	trunk.CFrame = CFrame.new(position + Vector3.new(0, 3.5 * size, 0))
-	trunk.Parent = workspace
-
-	local canopy = part({
-		Name = "Canopy",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(9, 8, 9) * size,
-		Color = Color3.fromRGB(70, 175, 85),
-		Material = Enum.Material.Grass,
-	})
-	canopy.CFrame = CFrame.new(position + Vector3.new(0, 9 * size, 0))
-	canopy.Parent = workspace
-end
-
--- A rock: a squashed grey sphere.
-local function buildRock(position, size)
-	local rock = part({
-		Name = "Rock",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(size, size * 0.6, size),
-		Color = Color3.fromRGB(145, 145, 150),
-		Material = Enum.Material.Slate,
-	})
-	rock.CFrame = CFrame.new(position + Vector3.new(0, size * 0.2, 0))
-	rock.Parent = workspace
-end
-
--- The central plaza: disc, fountain plinth with the mascot statue, and the
--- how-to-play signs a new player walks past first.
-local function buildPlaza()
-	local disc = part({
-		Name = "PlazaDisc",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.5, 46, 46),
-		Color = Color3.fromRGB(250, 243, 215),
-		Material = Enum.Material.Concrete,
-	})
-	disc.CFrame = CFrame.new(0, 0.25, 0) * CFrame.Angles(0, 0, math.rad(90))
-	disc.Parent = workspace
-
-	local plinth = part({
-		Name = "Plinth",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(5, 12, 12),
-		Color = Color3.fromRGB(170, 160, 185),
-		Material = Enum.Material.Marble,
-	})
-	plinth.CFrame = CFrame.new(0, 2.5, 0) * CFrame.Angles(0, 0, math.rad(90))
-	plinth.Parent = workspace
-
-	-- Mascot: a giant Gunko looking over the arena.
-	local statue = BrainrotModels.buildStatue(Config.Brainrots[1])
-	local statuePivot = CFrame.new(0, 5 + 8.5, 0) * CFrame.Angles(0, math.rad(180), 0)
-	statue:PivotTo(statuePivot)
-	statue.Parent = workspace
-
-	buildSign(Vector3.new(-26, 7, -26), 45, "HOW TO PLAY", {
-		"1. Touch a capsule to CATCH a brainrot",
-		"2. Bring it to YOUR base — the green SAFE ZONE",
-		"3. It earns cash every second while placed",
-		"4. When the TSUNAMI warning sounds, RUN HOME",
-	})
-	buildSign(Vector3.new(26, 7, -26), -45, "THE VAULT", {
-		"12 brainrots from Common to Mythic",
-		"Mutations + traits multiply a rate up to 9x",
-		"Guard your base — the robbery lock is 60s+",
-		"REBIRTH: more income, +2 base slots each",
-	})
-end
-
--- The museum: one pedestal per catalog entry along the north edge, so a
--- screenshot instantly reads "collection game".
-local function buildShowcase()
-	local count = #Config.Brainrots
-	local spacing = 11
-	local startX = -(count - 1) / 2 * spacing
-	local z = -84
-
-	for i, entry in ipairs(Config.Brainrots) do
-		local pos = Vector3.new(startX + (i - 1) * spacing, 0, z)
-		local rarity = Config.rarity(entry.rarity)
-
-		local pedestal = part({
-			Name = "MuseumPedestal" .. i,
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(2.6, 5, 5),
-			Color = Color3.fromRGB(40, 42, 52),
-			Material = Enum.Material.Slate,
-		})
-		pedestal.CFrame = CFrame.new(pos + Vector3.new(0, 1.3, 0)) * CFrame.Angles(0, 0, math.rad(90))
-		pedestal.Parent = workspace
-
-		local plate = part({
-			Name = "MuseumPlate" .. i,
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(0.3, 5.4, 5.4),
-			Color = rarity.color,
-			Material = Enum.Material.Neon,
-		})
-		plate.CFrame = CFrame.new(pos + Vector3.new(0, 2.7, 0)) * CFrame.Angles(0, 0, math.rad(90))
-		plate.CanCollide = false
-		plate.Parent = workspace
-
-		local unit = BrainrotModels.buildPlaced(entry, nil)
-		unit:PivotTo(CFrame.new(pos + Vector3.new(0, 4.7, 0)) * CFrame.Angles(0, math.rad(180), 0))
-		unit.Parent = workspace
-		BrainrotModels.startSway(unit)
-	end
-
-	-- Wide banner board behind the row.
-	local board = part({
-		Name = "ShowcaseBoard",
-		Size = Vector3.new(72, 9, 1),
-		Color = Color3.fromRGB(30, 26, 45),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	board.CFrame = CFrame.new(0, 14, -97)
-	board.CanCollide = false
-	board.Parent = workspace
-
-	for _, faceNormal in ipairs({ Enum.NormalId.Front, Enum.NormalId.Back }) do
-		local face = Instance.new("SurfaceGui")
-		face.Face = faceNormal
-		face.CanvasSize = Vector2.new(1440, 180)
-		face.Parent = board
-
-		local titleBox = Instance.new("TextLabel")
-		titleBox.Size = UDim2.fromScale(1, 0.55)
-		titleBox.BackgroundTransparency = 1
-		titleBox.Font = Enum.Font.GothamBold
-		titleBox.TextScaled = true
-		titleBox.TextColor3 = Color3.fromRGB(255, 215, 90)
-		titleBox.Text = "★ VAULT SHOWCASE — ALL 12 BRAINROTS ★"
-		titleBox.Parent = face
-
-		local sub = Instance.new("TextLabel")
-		sub.Position = UDim2.fromScale(0, 0.55)
-		sub.Size = UDim2.fromScale(1, 0.45)
-		sub.BackgroundTransparency = 1
-		sub.Font = Enum.Font.GothamBold
-		sub.TextScaled = true
-		sub.TextColor3 = Color3.fromRGB(235, 235, 245)
-		sub.Text = "Common → Mythic · catch them all to fill your collection"
-		sub.Parent = face
-	end
-
-	for _, side in ipairs({ -1, 1 }) do
-		local post = part({
-			Name = "ShowcasePost",
-			Size = Vector3.new(1.6, 19, 1.6),
-			Color = Color3.fromRGB(45, 40, 60),
-			Material = Enum.Material.Metal,
-		})
-		post.CFrame = CFrame.new(side * 32, 9.5, -97)
-		post.Parent = workspace
-	end
-end
-
--- Flip a base's sign to a new owner (called when a player claims their island).
 function WorldBuilder.setBaseSign(baseModel, title, subtitle, color)
 	local sign = baseModel:FindFirstChild("BaseSign")
 	if sign == nil then
 		return
 	end
-	local anchor = sign:FindFirstChild("LabelAnchor")
-	local gui = anchor and (anchor:FindFirstChild("BaseSignGui") or anchor:FindFirstChild("Label"))
+	local gui = sign:FindFirstChild("BaseSignGui")
 	if gui == nil then
 		return
 	end
@@ -606,47 +447,40 @@ function WorldBuilder.setBaseSign(baseModel, title, subtitle, color)
 	end
 end
 
--- Build everything. Returns { pads = {spawn pad parts}, bases = {base models} }.
+-- ---------------------------------------------------------------------------
+-- Build everything.  Returns { pads, bases }.
+-- ---------------------------------------------------------------------------
+
 function WorldBuilder.build()
 	setupLighting()
 	buildGround()
-	buildWalls()
-	buildPlaza()
-	buildShowcase()
-	buildSpawnArea()
 
+	-- 4 bases: row A at Z = -BASE_GAP/2, row B at Z = +BASE_GAP/2.
+	-- Indices 1-4: front-left, front-right, back-right, back-left (clockwise).
+	local basePositions = {
+		{ x = -BASE_X, z = -BASE_GAP / 2, index = 1 },
+		{ x =  BASE_X, z = -BASE_GAP / 2, index = 2 },
+		{ x =  BASE_X, z =  BASE_GAP / 2, index = 3 },
+		{ x = -BASE_X, z =  BASE_GAP / 2, index = 4 },
+	}
+
+	local bases = {}
+	for _, bp in ipairs(basePositions) do
+		bases[bp.index] = buildSingleBase(bp.x, bp.z, bp.index)
+	end
+
+	-- Golden statues along the carpet.
+	buildGoldStatue(0, -28)
+	buildGoldStatue(0, 0)
+	buildGoldStatue(0, 28)
+
+	-- Small vault sign at the far end.
+	buildVaultSign()
+
+	-- Spawn pads.
 	local pads = {}
 	for i = 1, Config.Capsule.padCount do
 		pads[i] = WorldBuilder.buildSpawnPad(i)
-	end
-
-	local bases = {}
-	for i = 1, 4 do
-		bases[i] = WorldBuilder.buildBase(i)
-	end
-
-	-- Decoration tucked between the bases and the walls.
-	local scenery = {
-		{ Vector3.new(-95, 0, -40), "tree", 1.2 },
-		{ Vector3.new(-95, 0, 40), "tree", 0.9 },
-		{ Vector3.new(95, 0, -40), "tree", 1.1 },
-		{ Vector3.new(95, 0, 45), "tree", 1.0 },
-		{ Vector3.new(-40, 0, 95), "tree", 1.3 },
-		{ Vector3.new(40, 0, 95), "tree", 0.95 },
-		{ Vector3.new(-40, 0, -95), "tree", 1.05 },
-		{ Vector3.new(45, 0, -95), "tree", 1.25 },
-		{ Vector3.new(-55, 0, 55), "rock", 6 },
-		{ Vector3.new(58, 0, -52), "rock", 7 },
-		{ Vector3.new(-58, 0, -58), "rock", 5 },
-		{ Vector3.new(60, 0, 60), "rock", 6.5 },
-	}
-	for _, item in ipairs(scenery) do
-		local position, kind, size = item[1], item[2], item[3]
-		if kind == "tree" then
-			buildTree(position, size)
-		else
-			buildRock(position, size)
-		end
 	end
 
 	return { pads = pads, bases = bases }

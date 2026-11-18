@@ -690,21 +690,31 @@ shopRemote.OnServerEvent:Connect(onShopAction)
 -- ---------------------------------------------------------------------------
 
 Wave.start({
-	-- Anyone at or above the water line (on an island, or a lucky jump) is safe.
+	-- Bases are at ground level so safety is a region check.
 	isSafe = function(character)
 		local root = character:FindFirstChild("HumanoidRootPart")
-		return root ~= nil and root.Position.Y >= Config.Wave.waterHeight
+		if root == nil then
+			return false
+		end
+		local px, pz = root.Position.X, root.Position.Z
+		for _, base in ipairs(world.bases) do
+			local cx, cz = base:GetAttribute("CenterX"), base:GetAttribute("CenterZ")
+			if cx and cz and math.abs(px - cx) < 9 and math.abs(pz - cz) < 9 then
+				return true
+			end
+		end
+		return false
 	end,
 
 	onSwept = function(player, root)
 		local state = states[player]
 		dropCarried(player, "swept")
 
-		-- Sweep them home: onto their island if they have one, else spawn.
+		-- Sweep them home: onto their base if they have one, else spawn.
 		local target
 		if state and state.baseModel then
 			local center = baseCenter(state.baseModel)
-			target = CFrame.new(center + Vector3.new(0, state.baseModel:GetAttribute("TopY") + 4, 0))
+			target = CFrame.new(center + Vector3.new(0, 5, 0))
 				* CFrame.Angles(0, math.rad(180), 0)
 		else
 			target = CFrame.new(0, 6, 0)
@@ -712,8 +722,6 @@ Wave.start({
 		root.CFrame = target
 		if state then
 			setHint(player, "The wave swept you home — your catch got away")
-			-- The wave leaves an unattended vault exposed: the robbery lock
-			-- starts (no thief named — it holds unless someone steps aboard).
 			startLock(player, state, nil)
 		end
 	end,
