@@ -189,6 +189,28 @@ local function buildCliffs()
 end
 
 -- ---------------------------------------------------------------------------
+-- Spawn: dark green Plastic baseplate, 30x30, 0.5 thick, at map center.
+-- ---------------------------------------------------------------------------
+
+local function buildSpawnArea()
+	local m = Instance.new("Model")
+	m.Name = "SpawnArea"
+
+	local platform = part({
+		Name = "SpawnPlatform",
+		Size = Vector3.new(30, 0.5, 30),
+		Color = Color3.fromRGB(50, 140, 50),
+		Material = Enum.Material.Plastic,
+	})
+	platform.CFrame = CFrame.new(0, 0.2, 0)
+	platform.Anchored = true
+	platform.CanCollide = true
+	platform.Parent = m
+
+	m.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
 -- Road: one straight asphalt road at x=0, from z=-150 to z=+150.
 -- ---------------------------------------------------------------------------
 
@@ -256,6 +278,7 @@ function WorldBuilder.build()
 	safeStep("buildGround", buildGround)
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildCliffs", buildCliffs)
+	safeStep("buildSpawnArea", buildSpawnArea)
 	safeStep("buildRoad", buildRoad)
 
 	return { pads = {}, bases = {} }
