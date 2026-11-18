@@ -993,6 +993,397 @@ local function buildBaseDistrict()
 end
 
 -- ---------------------------------------------------------------------------
+-- Phase 11b zone colours
+-- ---------------------------------------------------------------------------
+
+local LIGHT_BLUE = Color3.fromRGB(150, 200, 235)
+local NEON_CYAN = Color3.fromRGB(0, 230, 255)
+local NEON_GREEN = Color3.fromRGB(60, 255, 120)
+local NEON_ORANGE = Color3.fromRGB(255, 140, 30)
+local ETH_BLUE = Color3.fromRGB(40, 90, 255)
+local NEON_PURPLE = Color3.fromRGB(180, 80, 255)
+local DARK_GRASS = Color3.fromRGB(60, 80, 50)
+local CRATE_BROWN = Color3.fromRGB(120, 80, 45)
+local METAL_DARK = Color3.fromRGB(45, 47, 55)
+local CONCRETE_DARK = Color3.fromRGB(70, 72, 80)
+local FENCE_GREY = Color3.fromRGB(60, 62, 70)
+local ROCK_GREY = Color3.fromRGB(110, 112, 118)
+
+-- Small BillboardGui text label attached to a part (for zone signs).
+local function makeBillboard(parent, text, color, width, height)
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "ZoneLabel"
+	gui.Size = UDim2.fromOffset(width or 200, height or 50)
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = 240
+	gui.Parent = parent
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.fromScale(1, 1)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextScaled = true
+	lbl.Text = text
+	lbl.TextColor3 = color
+	lbl.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	lbl.TextStrokeTransparency = 0.25
+	lbl.Parent = gui
+	return gui
+end
+
+-- ---------------------------------------------------------------------------
+-- Crypto Marketplace: 3 shops + Ethereum statue plaza, east of spawn (+X).
+-- ---------------------------------------------------------------------------
+
+local function buildMarketplace()
+	local model = Instance.new("Model")
+	model.Name = "MarketDistrict"
+
+	local function box(n, sz, cf, color, mat, collide)
+		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
+		p.CFrame = cf
+		if collide == false then p.CanCollide = false end
+		p.Parent = model
+		return p
+	end
+
+	-- Plaza centre east of spawn, along the main E-W road.
+	local pcx, pcz = 95, 0
+	box("MarketPlaza", Vector3.new(20, 0.2, 20), CFrame.new(pcx, 0.18, pcz), PLAZA_TILE_B, Enum.Material.SmoothPlastic)
+
+	-- Generic 8x6x8 shop with a doorway opening on the chosen side.
+	local function buildShop(cx, cz, name, wallColor, doorColor, signText, doorSide, interiorFn)
+		local W, H, D = 8, 6, 8
+		local t = 0.4
+		local baseY = 0.2
+		local cy = baseY + H / 2
+		box("Floor", Vector3.new(W, 0.3, D), CFrame.new(cx, baseY, cz), CONCRETE_DARK, Enum.Material.Concrete)
+		local doorHalf = 1.6
+		if doorSide == "S" or doorSide == "N" then
+			local zs = (doorSide == "S") and 1 or -1
+			local fz = cz + zs * D / 2
+			box("WallFL", Vector3.new(W / 2 - doorHalf, H, t), CFrame.new(cx - (W / 2 + doorHalf) / 2, cy, fz), wallColor)
+			box("WallFR", Vector3.new(W / 2 - doorHalf, H, t), CFrame.new(cx + (W / 2 + doorHalf) / 2, cy, fz), wallColor)
+			box("WallB", Vector3.new(W, H, t), CFrame.new(cx, cy, cz - zs * D / 2), wallColor)
+			box("WallW", Vector3.new(t, H, D), CFrame.new(cx - W / 2, cy, cz), wallColor)
+			box("WallE", Vector3.new(t, H, D), CFrame.new(cx + W / 2, cy, cz), wallColor)
+			for _, dx in ipairs({ -doorHalf, doorHalf }) do
+				box("DoorTrim", Vector3.new(0.5, H, 0.5), CFrame.new(cx + dx, cy, fz), doorColor, Enum.Material.Neon)
+			end
+			box("DoorLintel", Vector3.new(doorHalf * 2 + 0.6, 0.5, 0.5), CFrame.new(cx, cy + H / 2 - 0.4, fz), doorColor, Enum.Material.Neon)
+			local sign = box("Sign", Vector3.new(W, 1.6, 0.4), CFrame.new(cx, cy + H / 2 + 1.0, fz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+			makeBillboard(sign, signText, doorColor, 180, 44)
+			for _, wx in ipairs({ -2.2, 2.2 }) do
+				box("Window", Vector3.new(2.4, 2.6, 0.2), CFrame.new(cx + wx, cy, cz - zs * D / 2), WINDOW_WHITE, Enum.Material.SmoothPlastic, false)
+			end
+		else
+			local xs = (doorSide == "E") and 1 or -1
+			local fx = cx + xs * W / 2
+			box("WallFL", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(fx, cy, cz - (D / 2 + doorHalf) / 2), wallColor)
+			box("WallFR", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(fx, cy, cz + (D / 2 + doorHalf) / 2), wallColor)
+			box("WallB", Vector3.new(t, H, D), CFrame.new(cx - xs * W / 2, cy, cz), wallColor)
+			box("WallN", Vector3.new(W, H, t), CFrame.new(cx, cy, cz - D / 2), wallColor)
+			box("WallS", Vector3.new(W, H, t), CFrame.new(cx, cy, cz + D / 2), wallColor)
+			for _, dz in ipairs({ -doorHalf, doorHalf }) do
+				box("DoorTrim", Vector3.new(0.5, H, 0.5), CFrame.new(fx, cy, cz + dz), doorColor, Enum.Material.Neon)
+			end
+			box("DoorLintel", Vector3.new(0.5, 0.5, doorHalf * 2 + 0.6), CFrame.new(fx, cy + H / 2 - 0.4, cz), doorColor, Enum.Material.Neon)
+			local sign = box("Sign", Vector3.new(0.4, 1.6, W), CFrame.new(fx, cy + H / 2 + 1.0, cz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+			makeBillboard(sign, signText, doorColor, 180, 44)
+			for _, wz in ipairs({ -2.2, 2.2 }) do
+				box("Window", Vector3.new(0.2, 2.6, 2.4), CFrame.new(cx - xs * W / 2, cy, cz + wz), WINDOW_WHITE, Enum.Material.SmoothPlastic, false)
+			end
+		end
+		-- Roof slab + gold trim.
+		box("Roof", Vector3.new(W + 0.8, 0.7, D + 0.8), CFrame.new(cx, baseY + H + 0.35, cz), ROOF_DARK, Enum.Material.Concrete)
+		for _, rt in ipairs({
+			{ cf = CFrame.new(cx, baseY + H + 0.8, cz - D / 2 - 0.4), sz = Vector3.new(W + 1.6, 0.4, 0.4) },
+			{ cf = CFrame.new(cx, baseY + H + 0.8, cz + D / 2 + 0.4), sz = Vector3.new(W + 1.6, 0.4, 0.4) },
+			{ cf = CFrame.new(cx - W / 2 - 0.4, baseY + H + 0.8, cz), sz = Vector3.new(0.4, 0.4, D + 1.6) },
+			{ cf = CFrame.new(cx + W / 2 + 0.4, baseY + H + 0.8, cz), sz = Vector3.new(0.4, 0.4, D + 1.6) },
+		}) do
+			box("RoofTrim", rt.sz, rt.cf, ROOF_TRIM, Enum.Material.Metal)
+		end
+		if interiorFn then interiorFn(box, cx, cz, baseY) end
+	end
+
+	-- Crypto Shop (north of plaza, door faces south toward plaza).
+	buildShop(pcx, pcz - 14, "CryptoShop", WHITE, NEON_CYAN, "CRYPTO SHOP", "S", function(box, cx, cz, baseY)
+		box("Counter", Vector3.new(4, 1.2, 1.2), CFrame.new(cx, baseY + 0.6, cz - 2), WHITE, Enum.Material.SmoothPlastic)
+		box("CounterTop", Vector3.new(4.2, 0.2, 1.4), CFrame.new(cx, baseY + 1.3, cz - 2), BITCOIN_GOLD, Enum.Material.Metal)
+		for _, sx in ipairs({ -2.5, 2.5 }) do
+			box("Shelf", Vector3.new(2, 3, 0.6), CFrame.new(cx + sx, baseY + 1.5, cz + 2.5), WALL_GREY)
+			for _, h in ipairs({ 0.8, 1.8, 2.8 }) do
+				box("ShelfItem", Vector3.new(1.6, 0.15, 0.5), CFrame.new(cx + sx, baseY + h, cz + 2.5), BITCOIN_GOLD, Enum.Material.Neon, false)
+			end
+		end
+	end)
+
+	-- Upgrade Center (south of plaza, door faces north toward plaza).
+	buildShop(pcx, pcz + 14, "UpgradeCenter", WALL_GREY, NEON_GREEN, "UPGRADE CENTER", "N", function(box, cx, cz, baseY)
+		box("ConsoleBase", Vector3.new(3, 1.0, 2), CFrame.new(cx, baseY + 0.5, cz), METAL_DARK, Enum.Material.Metal)
+		box("ConsoleScreen", Vector3.new(2.4, 1.8, 0.2), CFrame.new(cx, baseY + 2.0, cz), NEON_GREEN, Enum.Material.Neon, false)
+		box("ConsoleStand", Vector3.new(0.4, 1.0, 0.4), CFrame.new(cx, baseY + 1.5, cz - 0.8), METAL_DARK, Enum.Material.Metal)
+	end)
+
+	-- Item Shop (east of plaza, door faces west toward plaza).
+	buildShop(pcx + 18, pcz, "ItemShop", LIGHT_BLUE, NEON_ORANGE, "ITEM SHOP", "W", function(box, cx, cz, baseY)
+		box("DisplayTable", Vector3.new(4, 1.0, 2.5), CFrame.new(cx, baseY + 0.5, cz), WALL_GREY)
+		box("DisplayTop", Vector3.new(4.2, 0.2, 2.7), CFrame.new(cx, baseY + 1.1, cz), LIGHT_BLUE, Enum.Material.SmoothPlastic)
+		for _, ix in ipairs({ -1.2, 0, 1.2 }) do
+			box("DisplayItem", Vector3.new(0.7, 0.7, 0.7), CFrame.new(cx + ix, baseY + 1.6, cz), NEON_ORANGE, Enum.Material.Neon, false)
+		end
+	end)
+
+	-- Ethereum statue: two stacked wedges forming a diamond, neon blue, ~8 tall.
+	local sx, sz = pcx, pcz
+	box("EthBase", Vector3.new(3, 0.5, 3), CFrame.new(sx, 0.35, sz), PLAZA_TILE_A, Enum.Material.SmoothPlastic)
+	local gem1 = part({ Name = "EthGemBottom", Shape = Enum.PartType.Wedge, Size = Vector3.new(4, 4, 4), Color = ETH_BLUE, Material = Enum.Material.Neon })
+	gem1.CFrame = CFrame.new(sx, 2.0, sz) * CFrame.Angles(math.rad(180), 0, 0)
+	gem1.CanCollide = false
+	gem1.Parent = model
+	local gem2 = part({ Name = "EthGemTop", Shape = Enum.PartType.Wedge, Size = Vector3.new(4, 4, 4), Color = ETH_BLUE, Material = Enum.Material.Neon })
+	gem2.CFrame = CFrame.new(sx, 6.0, sz)
+	gem2.CanCollide = false
+	gem2.Parent = model
+
+	-- 2 benches in the plaza.
+	for _, b in ipairs({ { pcx - 5, pcz - 3, 0 }, { pcx + 5, pcz + 3, 90 } }) do
+		local rot = math.rad(b[3])
+		box("BenchSeat", Vector3.new(3, 0.3, 1), CFrame.new(b[1], 1.0, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
+		box("BenchLegL", Vector3.new(0.3, 1.0, 1), CFrame.new(b[1] - 1.2, 0.5, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
+		box("BenchLegR", Vector3.new(0.3, 1.0, 1), CFrame.new(b[1] + 1.2, 0.5, b[2]) * CFrame.Angles(0, rot, 0), WALL_GREY, Enum.Material.Wood)
+	end
+
+	-- 2 lamp posts in the plaza.
+	for _, l in ipairs({ { pcx - 7, pcz + 5 }, { pcx + 7, pcz - 5 } }) do
+		box("LampPole", Vector3.new(0.3, 7, 0.3), CFrame.new(l[1], 3.7, l[2]), LAMP_POLE, Enum.Material.Metal)
+		local head = box("LampHead", Vector3.new(1.2, 1.2, 1.2), CFrame.new(l[1], 7.6, l[2]), LAMP_GLOW, Enum.Material.Neon, false)
+		local pl = Instance.new("PointLight")
+		pl.Color = LAMP_GLOW
+		pl.Brightness = 2.5
+		pl.Range = 20
+		pl.Parent = head
+	end
+
+	-- Stone paths: main road (x=80) to plaza, and plaza to each shop.
+	local function pathSeg(sx, sz, ex, ez)
+		local dx, dz = ex - sx, ez - sz
+		local dist = math.sqrt(dx * dx + dz * dz)
+		local steps = math.max(2, math.floor(dist / 3))
+		for i = 1, steps do
+			local t = i / (steps + 1)
+			box("PathStone", Vector3.new(2.4, 0.1, 2.4), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
+		end
+	end
+	pathSeg(80, 0, pcx, pcz)
+	pathSeg(pcx, pcz, pcx + 18, pcz)
+	pathSeg(pcx, pcz, pcx, pcz - 14)
+	pathSeg(pcx, pcz, pcx, pcz + 14)
+
+	model.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Brainrot Production Zone: factory + smokestacks + loading dock, west (-X).
+-- ---------------------------------------------------------------------------
+
+local function buildProductionZone()
+	local model = Instance.new("Model")
+	model.Name = "ProductionZone"
+
+	local function box(n, sz, cf, color, mat, collide)
+		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
+		p.CFrame = cf
+		if collide == false then p.CanCollide = false end
+		p.Parent = model
+		return p
+	end
+
+	local fx, fz = -95, 0 -- factory centre
+	local W, H, D = 16, 8, 12
+	local t = 0.5
+	local baseY = 0.2
+	local cy = baseY + H / 2
+
+	-- Factory floor.
+	box("FactoryFloor", Vector3.new(W, 0.3, D), CFrame.new(fx, baseY, fz), METAL_DARK, Enum.Material.Metal)
+
+	-- Walls: doorway (6 wide) faces +X (east, toward road).
+	local doorHalf = 3.0
+	local frontX = fx + W / 2
+	box("WallFL", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(frontX, cy, fz - (D / 2 + doorHalf) / 2), METAL_DARK, Enum.Material.Metal)
+	box("WallFR", Vector3.new(t, H, D / 2 - doorHalf), CFrame.new(frontX, cy, fz + (D / 2 + doorHalf) / 2), METAL_DARK, Enum.Material.Metal)
+	box("WallB", Vector3.new(t, H, D), CFrame.new(fx - W / 2, cy, fz), METAL_DARK, Enum.Material.Metal)
+	box("WallN", Vector3.new(W, H, t), CFrame.new(fx, cy, fz - D / 2), METAL_DARK, Enum.Material.Metal)
+	box("WallS", Vector3.new(W, H, t), CFrame.new(fx, cy, fz + D / 2), METAL_DARK, Enum.Material.Metal)
+
+	-- Corrugated wall detail: 3 horizontal bands across the front wall.
+	for _, h in ipairs({ cy - 2.2, cy, cy + 2.2 }) do
+		box("Corrugation", Vector3.new(t + 0.05, 0.4, D), CFrame.new(frontX, h, fz), METAL_DARK, Enum.Material.Metal)
+	end
+
+	-- Door trim (neon orange) + sign above entrance.
+	for _, dz in ipairs({ -doorHalf, doorHalf }) do
+		box("DoorTrim", Vector3.new(0.6, H, 0.6), CFrame.new(frontX, cy, fz + dz), NEON_ORANGE, Enum.Material.Neon)
+	end
+	box("DoorLintel", Vector3.new(0.6, 0.6, doorHalf * 2 + 0.6), CFrame.new(frontX, cy + H / 2 - 0.4, fz), NEON_ORANGE, Enum.Material.Neon)
+	local sign = box("FactorySign", Vector3.new(0.5, 2.0, W), CFrame.new(frontX + 0.4, cy + H / 2 + 1.4, fz), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+	makeBillboard(sign, "BRAINROT FACTORY", NEON_ORANGE, 220, 50)
+
+	-- Roof slab.
+	box("Roof", Vector3.new(W + 0.8, 0.6, D + 0.8), CFrame.new(fx, baseY + H + 0.3, fz), ROOF_DARK, Enum.Material.Concrete)
+
+	-- Smokestacks: 2 tall cylinders on the roof with neon orange tips.
+	for _, s in ipairs({ { fx - 3, fz - 3 }, { fx + 3, fz + 3 } }) do
+		local stack = part({ Name = "Smokestack", Shape = Enum.PartType.Cylinder, Size = Vector3.new(10, 1.5, 1.5), Color = METAL_DARK, Material = Enum.Material.Metal })
+		stack.CFrame = CFrame.new(s[1], baseY + H + 0.6 + 5, s[2]) * CFrame.Angles(0, 0, math.rad(90))
+		stack.Parent = model
+		local tip = part({ Name = "StackTip", Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.6, 1.7, 1.7), Color = NEON_ORANGE, Material = Enum.Material.Neon })
+		tip.CFrame = CFrame.new(s[1], baseY + H + 0.6 + 10.3, s[2]) * CFrame.Angles(0, 0, math.rad(90))
+		tip.CanCollide = false
+		tip.Parent = model
+	end
+
+	-- Interior: 2 conveyor belts, 2 machine housings, control panel.
+	for _, cz in ipairs({ fz - 3, fz + 3 }) do
+		box("Conveyor", Vector3.new(1.6, 0.4, 8), CFrame.new(fx, baseY + 0.6, cz), METAL_DARK, Enum.Material.Metal)
+		for _, szp in ipairs({ -3, -1, 1, 3 }) do
+			box("BeltStripe", Vector3.new(1.7, 0.06, 0.4), CFrame.new(fx, baseY + 0.82, cz + szp), YELLOW_LINE, Enum.Material.Neon, false)
+		end
+	end
+	for _, mx in ipairs({ fx - 5, fx + 5 }) do
+		box("Machine", Vector3.new(2.5, 4, 2.5), CFrame.new(mx, baseY + 2, fz), METAL_DARK, Enum.Material.Metal)
+		box("MachineAccent", Vector3.new(2.6, 0.4, 2.6), CFrame.new(mx, baseY + 3.5, fz), NEON_ORANGE, Enum.Material.Neon, false)
+	end
+	box("ControlPanel", Vector3.new(1.5, 2.0, 1.0), CFrame.new(fx, baseY + 1.0, fz - 5), METAL_DARK, Enum.Material.Metal)
+	box("ControlScreen", Vector3.new(1.2, 0.8, 0.1), CFrame.new(fx, baseY + 1.6, fz - 5 + 0.55), NEON_GREEN, Enum.Material.Neon, false)
+
+	-- Loading dock: concrete platform with 2 crates.
+	local dockZ = fz + 12
+	box("LoadingDock", Vector3.new(10, 0.5, 6), CFrame.new(fx, baseY + 0.25, dockZ), SIDEWALK_GREY, Enum.Material.Concrete)
+	for _, c in ipairs({ { fx - 2.5, dockZ - 1 }, { fx + 2.5, dockZ + 1 } }) do
+		box("Crate", Vector3.new(2.2, 2.2, 2.2), CFrame.new(c[1], baseY + 1.4, c[2]), CRATE_BROWN, Enum.Material.Wood)
+		box("CrateTrimH", Vector3.new(2.3, 0.3, 2.3), CFrame.new(c[1], baseY + 2.5, c[2]), BITCOIN_GOLD, Enum.Material.Metal, false)
+		box("CrateTrimV", Vector3.new(0.3, 2.3, 2.3), CFrame.new(c[1], baseY + 1.4, c[2]), BITCOIN_GOLD, Enum.Material.Metal, false)
+	end
+
+	-- Chain-link fence around the zone (4 tall), gate opening on the east side.
+	local fenceH = 4
+	local xMin, xMax, zMin, zMax = -112, -80, -20, 22
+	local function fence(n, sz, cf)
+		box(n, sz, cf, FENCE_GREY, Enum.Material.Metal)
+	end
+	fence("FenceN", Vector3.new(xMax - xMin, fenceH, 0.3), CFrame.new((xMin + xMax) / 2, fenceH / 2, zMin))
+	fence("FenceS", Vector3.new(xMax - xMin, fenceH, 0.3), CFrame.new((xMin + xMax) / 2, fenceH / 2, zMax))
+	fence("FenceW", Vector3.new(0.3, fenceH, zMax - zMin), CFrame.new(xMin, fenceH / 2, (zMin + zMax) / 2))
+	fence("FenceELow", Vector3.new(0.3, fenceH, 17), CFrame.new(xMax, fenceH / 2, -11.5))
+	fence("FenceEHigh", Vector3.new(0.3, fenceH, 19), CFrame.new(xMax, fenceH / 2, 12.5))
+	for _, gz in ipairs({ -3, 3 }) do
+		fence("GatePost", Vector3.new(0.5, fenceH + 1, 0.5), CFrame.new(xMax, (fenceH + 1) / 2, gz))
+	end
+
+	-- Stone path: road (-80) to factory door (-87).
+	local function pathSeg(sx, sz, ex, ez)
+		local dx, dz = ex - sx, ez - sz
+		local dist = math.sqrt(dx * dx + dz * dz)
+		local steps = math.max(2, math.floor(dist / 3))
+		for i = 1, steps do
+			local t = i / (steps + 1)
+			box("PathStone", Vector3.new(2.4, 0.1, 2.4), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
+		end
+	end
+	pathSeg(-80, 0, -87, 0)
+
+	model.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Secret Zone: portal + hidden altar clearing, south of spawn (-Z).
+-- ---------------------------------------------------------------------------
+
+local function buildSecretZone()
+	local model = Instance.new("Model")
+	model.Name = "SecretZone"
+
+	local function box(n, sz, cf, color, mat, collide)
+		local p = part({ Name = n, Size = sz, Color = color, Material = mat or Enum.Material.Concrete })
+		p.CFrame = cf
+		if collide == false then p.CanCollide = false end
+		p.Parent = model
+		return p
+	end
+
+	-- Dark grass patch over the secret area (south of spawn).
+	local areaZ = -95
+	box("DarkGrass", Vector3.new(40, 0.18, 40), CFrame.new(0, 0.12, areaZ), DARK_GRASS, Enum.Material.Grass)
+
+	-- Portal: ring of 12 thin boxes, radius 3, vertical (XY plane), neon cyan.
+	local portalZ = -88
+	local ringR = 3
+	local ringCY = 4
+	for i = 0, 11 do
+		local theta = (i / 12) * math.pi * 2
+		local px = math.cos(theta) * ringR
+		local py = math.sin(theta) * ringR + ringCY
+		local seg = part({ Name = "PortalRing", Size = Vector3.new(2.0, 0.3, 0.3), Color = NEON_CYAN, Material = Enum.Material.Neon })
+		seg.CFrame = CFrame.new(px, py, portalZ) * CFrame.Angles(0, 0, theta + math.pi / 2)
+		seg.CanCollide = false
+		seg.Parent = model
+	end
+	local psign = box("PortalSign", Vector3.new(6, 1.6, 0.3), CFrame.new(0, ringCY + ringR + 1.5, portalZ), SIGN_DARK, Enum.Material.SmoothPlastic, false)
+	makeBillboard(psign, "SECRET ZONE", NEON_CYAN, 200, 48)
+
+	-- Hidden clearing behind the portal (further south).
+	local clearZ = areaZ + 4 -- -91
+	box("Clearing", Vector3.new(8, 0.2, 8), CFrame.new(0, 0.16, clearZ), DARK_GRASS, Enum.Material.Grass)
+
+	-- Altar: cylinder base + glowing purple orb on top.
+	local altar = part({ Name = "AltarBase", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2, 4, 4), Color = ROCK_GREY, Material = Enum.Material.Slate })
+	altar.CFrame = CFrame.new(0, 1.0, clearZ) * CFrame.Angles(0, 0, math.rad(90))
+	altar.Parent = model
+	local orb = part({ Name = "AltarOrb", Shape = Enum.PartType.Ball, Size = Vector3.new(2.2, 2.2, 2.2), Color = NEON_PURPLE, Material = Enum.Material.Neon })
+	orb.CFrame = CFrame.new(0, 3.2, clearZ)
+	orb.CanCollide = false
+	orb.Parent = model
+	local orbLight = Instance.new("PointLight")
+	orbLight.Color = NEON_PURPLE
+	orbLight.Brightness = 3
+	orbLight.Range = 24
+	orbLight.Parent = orb
+
+	-- 4 glowing crystal formations in a diamond pattern around the altar.
+	local crystalColors = { NEON_PURPLE, NEON_CYAN, NEON_PURPLE, NEON_CYAN }
+	for idx, c in ipairs({ { 4, 0 }, { -4, 0 }, { 0, 4 }, { 0, -4 } }) do
+		local crystal = part({ Name = "Crystal", Shape = Enum.PartType.Wedge, Size = Vector3.new(2, 3, 2), Color = crystalColors[idx], Material = Enum.Material.Neon })
+		crystal.CFrame = CFrame.new(c[1], 1.5, clearZ + c[2])
+		crystal.CanCollide = false
+		crystal.Parent = model
+	end
+
+	-- 3 large rocks partially hiding the path to the portal.
+	for _, r in ipairs({ { 0, -40, 6 }, { -6, -55, 5 }, { 6, -70, 6 } }) do
+		local rock = part({ Name = "Rock", Shape = Enum.PartType.Ball, Size = Vector3.new(r[3] * 2, r[3] * 2, r[3] * 2), Color = ROCK_GREY, Material = Enum.Material.Slate })
+		rock.CFrame = CFrame.new(r[1], r[3] * 0.6, r[2])
+		rock.Parent = model
+	end
+
+	-- Stone path: plaza south edge to portal, then to the clearing.
+	local function pathSeg(sx, sz, ex, ez)
+		local dx, dz = ex - sx, ez - sz
+		local dist = math.sqrt(dx * dx + dz * dz)
+		local steps = math.max(2, math.floor(dist / 4))
+		for i = 1, steps do
+			local t = i / (steps + 1)
+			box("PathStone", Vector3.new(2.0, 0.1, 2.0), CFrame.new(sx + dx * t, 0.16, sz + dz * t), SIDEWALK_GREY, Enum.Material.Slate)
+		end
+	end
+	pathSeg(0, -22, 0, portalZ)
+	pathSeg(0, portalZ, 0, clearZ)
+
+	model.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
 -- Capsule spawn pad: glowing disc along the main road.
 -- ---------------------------------------------------------------------------
 
@@ -1072,6 +1463,9 @@ function WorldBuilder.build()
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildRoads", buildRoads)
 	safeStep("buildSpawnPlaza", buildSpawnPlaza)
+	safeStep("buildMarketplace", buildMarketplace)
+	safeStep("buildProductionZone", buildProductionZone)
+	safeStep("buildSecretZone", buildSecretZone)
 
 	local bases = buildBaseDistrict()
 
