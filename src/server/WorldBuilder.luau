@@ -62,6 +62,17 @@ local function buildGround()
 		Material = Enum.Material.Plastic,
 	})
 	grass.CFrame = CFrame.new(0, 0, 0)
+
+	-- Apply stud texture to the top face for LEGO baseplate look.
+	pcall(function()
+		local tex = Instance.new("Texture")
+		tex.Texture = "rbxassetid://5808313338" -- Roblox classic stud pattern
+		tex.Face = Enum.NormalId.Top
+		tex.StudsPerTileU = 4
+		tex.StudsPerTileV = 4
+		tex.Parent = grass
+	end)
+
 	grass.Anchored = true
 	grass.CanCollide = true
 	grass.Parent = workspace
