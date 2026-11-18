@@ -60,7 +60,7 @@ local function buildGround()
 		Name = "Island",
 		Size = Vector3.new(ISLAND_SIZE, 0.4, ISLAND_SIZE),
 		Color = GRASS,
-		Material = Enum.Material.Grass,
+		Material = Enum.Material.Plastic,
 	})
 	grass.CFrame = CFrame.new(0, 0, 0)
 
