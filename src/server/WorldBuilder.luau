@@ -25,6 +25,7 @@ local ROAD_HALF = 150 -- road spans z = -150 .. +150
 local GRASS = Color3.fromRGB(80, 180, 70)
 local OCEAN = Color3.fromRGB(60, 160, 220)
 local ASPHALT = Color3.fromRGB(55, 55, 65)
+local PATH = Color3.fromRGB(100, 200, 80)
 local YELLOW_LINE = Color3.fromRGB(255, 220, 40)
 
 -- ---------------------------------------------------------------------------
@@ -190,12 +191,12 @@ local function buildRoad()
 	local m = Instance.new("Model")
 	m.Name = "Road"
 
-	-- Asphalt slab: width 14, length 300, thickness 0.3, Y=0.2.
+	-- Green path slab: width 24, length 300, thickness 0.3, Y=0.2.
 	local road = part({
-		Name = "Asphalt",
+		Name = "Path",
 		Size = Vector3.new(ROAD_WIDTH, 0.3, ROAD_HALF * 2),
-		Color = ASPHALT,
-		Material = Enum.Material.SmoothPlastic,
+		Color = PATH,
+		Material = Enum.Material.Plastic,
 	})
 	road.CFrame = CFrame.new(0, 0.2, 0)
 	road.Anchored = true
