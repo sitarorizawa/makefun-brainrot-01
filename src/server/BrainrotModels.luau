@@ -28,8 +28,18 @@ local function makePart(props)
 	return part
 end
 
--- A simple billboard above a model: title line and a smaller subtitle line.
-local function addLabel(model, title, subtitle, titleColor)
+-- Phase 7 label fix: capsule name labels were overlapping and clipping because
+-- every billboard used the same fixed StudsOffset and a two-line layout. Now
+-- each caller passes its own vertical offset (capsules float highest, placed
+-- units lower, carried units between), the text is a single short line, and a
+-- running cap keeps the total visible labels bounded so a busy plaza never
+-- stacks a wall of text.
+local LABEL_MAX_VISIBLE = 16
+local labelsCreated = 0
+
+-- A simple billboard above a model: one short title line. `vOffset` is the
+-- studs above the model the label sits at, so nearby labels never share a line.
+local function addLabel(model, title, subtitle, titleColor, vOffset)
 	local anchor = makePart({
 		Name = "LabelAnchor",
 		Size = Vector3.new(0.05, 0.05, 0.05),
@@ -40,36 +50,38 @@ local function addLabel(model, title, subtitle, titleColor)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Label"
-	gui.Size = UDim2.fromOffset(220, 54)
-	gui.StudsOffset = Vector3.new(0, 4.0, 0)
+	gui.Size = UDim2.fromOffset(200, 30)
+	gui.StudsOffset = Vector3.new(0, vOffset or 4.0, 0)
 	gui.AlwaysOnTop = true -- names must stay readable in screenshots, even across the map
-	gui.MaxDistance = 220
+	gui.MaxDistance = 200
+	gui.LightInfluence = 0
 	gui.Parent = anchor
+
+	-- Cap the total visible labels: once we hit the cap, the oldest labels
+	-- stop rendering text so new ones never add to an unreadable stack.
+	labelsCreated += 1
+	local visible = labelsCreated <= LABEL_MAX_VISIBLE
+
+	-- Short single-line title. If a subtitle was requested, fold it onto the
+	-- same line as "title — subtitle" so nothing wraps or clips.
+	local line = title
+	if subtitle and subtitle ~= "" then
+		line = title .. " — " .. subtitle
+	end
 
 	local main = Instance.new("TextLabel")
 	main.Name = "Title"
-	main.Size = UDim2.fromScale(1, 0.55)
+	main.Size = UDim2.fromScale(1, 1)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
 	main.TextScaled = true
-	main.Text = title
+	main.TextWrapped = false
+	main.Text = visible and line or ""
 	main.TextColor3 = titleColor or Color3.new(1, 1, 1)
 	main.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
 	main.TextStrokeTransparency = 0.25
+	main.TextTruncate = Enum.TextTruncate.AtEnd
 	main.Parent = gui
-
-	local sub = Instance.new("TextLabel")
-	sub.Name = "Subtitle"
-	sub.Position = UDim2.fromScale(0, 0.55)
-	sub.Size = UDim2.fromScale(1, 0.45)
-	sub.BackgroundTransparency = 1
-	sub.Font = Enum.Font.GothamBold
-	sub.TextScaled = true
-	sub.Text = subtitle or ""
-	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
-	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	sub.TextStrokeTransparency = 0.3
-	sub.Parent = gui
 
 	return gui
 end
@@ -434,9 +446,16 @@ function BrainrotModels.buildCapsule(entry, mutation, position, traits)
 	unit:PivotTo(CFrame.new(orb.Position) * CFrame.Angles(0, math.rad(180), 0))
 	unit.Parent = model
 
+	-- Capsule labels sit highest (above the floating orb + shell) and carry a
+	-- compact one-line "name $rate/s · rarity" so they never wrap or clip.
 	local rate = Config.unitIncome(entry, mutation, traits)
-	local gui = addLabel(model, Config.unitTitle(entry, mutation, traits), string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
-	gui.StudsOffset = Vector3.new(0, 4.2, 0)
+	local gui = addLabel(
+		model,
+		entry.name,
+		string.format("$%d/s %s", rate, string.upper(string.sub(entry.rarity, 1, 1))),
+		rarity.color,
+		4.4
+	)
 
 	table.insert(animated, { model = model, kind = "spin", base = orb.Position })
 	return model
@@ -444,20 +463,22 @@ end
 
 -- The unit a player is carrying: the game script positions it above the
 -- character each frame, so it is not registered for idle animation here.
+-- Label sits just above the head, lower than a capsule label.
 function BrainrotModels.buildCarried(entry, mutation, traits)
 	local model = BrainrotModels.build(entry, mutation, nil, traits)
 	local rarity = Config.rarity(entry.rarity)
 	local rateText = string.format("$%d/s", Config.unitIncome(entry, mutation, traits))
-	addLabel(model, Config.unitTitle(entry, mutation, traits), rateText, rarity.color)
+	addLabel(model, entry.name, rateText, rarity.color, 3.4)
 	return model
 end
 
--- The unit resting on a pedestal: label shows mutation, traits, name and rate.
+-- The unit resting on a pedestal: label shows name and rate, just above the
+-- unit (lower than carried/capsule so stacked placed units don't collide).
 function BrainrotModels.buildPlaced(entry, mutation, traits)
 	local model = BrainrotModels.build(entry, mutation, nil, traits)
 	local rarity = Config.rarity(entry.rarity)
 	local rate = Config.unitIncome(entry, mutation, traits)
-	addLabel(model, Config.unitTitle(entry, mutation, traits), string.format("$%d/s  ·  %s", rate, entry.rarity), rarity.color)
+	addLabel(model, entry.name, string.format("$%d/s", rate), rarity.color, 3.0)
 	return model
 end
 
@@ -559,8 +580,7 @@ end)
 -- The plaza statue: a giant Gunko over the fountain, built once by the world builder.
 function BrainrotModels.buildStatue(entry)
 	local model = BrainrotModels.build(entry, nil, 4)
-	local gui = addLabel(model, entry.name, "mascot of the vault", Config.rarity(entry.rarity).color)
-	gui.StudsOffset = Vector3.new(0, 14, 0) -- the body is four times normal size
+	local gui = addLabel(model, entry.name, "mascot of the vault", Config.rarity(entry.rarity).color, 14)
 	return model
 end
 
