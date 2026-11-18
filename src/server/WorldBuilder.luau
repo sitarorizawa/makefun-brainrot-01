@@ -66,7 +66,7 @@ local function buildGround()
 				Name = "Tile",
 				Size = Vector3.new(30, 0.4, 30),
 				Color = GRASS,
-				Material = Enum.Material.Plastic,
+				Material = Enum.Material.DiamondPlate,
 			})
 			tile.CFrame = CFrame.new(x + 15, 0, z + 15)
 			tile.Anchored = true
@@ -200,7 +200,7 @@ local function buildSpawnArea()
 		Name = "SpawnPlatform",
 		Size = Vector3.new(30, 0.5, 30),
 		Color = Color3.fromRGB(50, 140, 50),
-		Material = Enum.Material.Plastic,
+		Material = Enum.Material.DiamondPlate,
 	})
 	platform.CFrame = CFrame.new(0, 0.2, 0)
 	platform.Anchored = true
