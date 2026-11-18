@@ -66,10 +66,10 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Label"
-	gui.Size = UDim2.fromOffset(280, 56)
+	gui.Size = UDim2.fromOffset(340, 68)
 	gui.StudsOffset = Vector3.new(0, vOffset or 4.0, 0)
 	gui.AlwaysOnTop = true -- names must stay readable in screenshots, even across the map
-	gui.MaxDistance = 200
+	gui.MaxDistance = 180
 	gui.LightInfluence = 0
 	gui.Parent = anchor
 
@@ -89,20 +89,13 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 		line = string.sub(line, 1, 27) .. "…"
 	end
 
-	-- Thin dark background panel behind the text for contrast in screenshots.
-	local bg = Instance.new("Frame")
-	bg.Name = "Background"
-	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
-	bg.BackgroundTransparency = 0.5
-	bg.Parent = gui
-
 	local main = Instance.new("TextLabel")
 	main.Name = "Title"
 	main.Size = UDim2.fromScale(1, 1)
 	main.BackgroundTransparency = 1
 	main.Font = Enum.Font.GothamBold
 	main.TextScaled = true
+	main.TextSize = 18
 	main.TextWrapped = false
 	main.Text = visible and line or ""
 	main.TextColor3 = titleColor or Color3.new(1, 1, 1)
