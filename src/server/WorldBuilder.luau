@@ -278,24 +278,13 @@ end
 
 -- ---------------------------------------------------------------------------
 -- Base interior machine cluster: a cash generator box, a conveyor strip,
--- an upgrade console, a shelf, an inner wall, a counter desk, and a neon
+-- an upgrade console, a shelf, a counter desk, and a neon
 -- accent stripe. All placed on a tidy grid.
 -- ---------------------------------------------------------------------------
 
 local function buildBaseInterior(model, cx, cz, facingDir)
 	local halfW = 13
 	local wallH = 10
-
-	-- Inner wall: a dividing line about 1/3 back from the front wall, with a gap for passage.
-	local innerWallXLen = halfW * 2 - 6
-	local innerWall = part({
-		Name = "InnerWall",
-		Size = Vector3.new(innerWallXLen, wallH, 0.4),
-		Color = WALL_GREY,
-		Material = Enum.Material.Concrete,
-	})
-	innerWall.CFrame = CFrame.new(cx, wallH / 2 + 0.2, cz + facingDir * 0)
-	innerWall.Parent = model
 
 	-- Counter / cash desk: wooden slab in the front-right area.
 	local counter = part({
@@ -376,14 +365,15 @@ local function buildBaseInterior(model, cx, cz, facingDir)
 		shelf.Parent = model
 	end
 
-	-- Neon accent stripe along the inner wall.
+	-- Neon accent stripe along the back wall (was on the inner wall; moved here
+	-- when the inner partition wall was removed to open up the interior).
 	local neon = part({
 		Name = "NeonStripe",
 		Size = Vector3.new(halfW * 2 - 2, 0.3, 0.3),
 		Color = NEON_STRIPE,
 		Material = Enum.Material.Neon,
 	})
-	neon.CFrame = CFrame.new(cx, 3.6, cz + facingDir * 0.3)
+	neon.CFrame = CFrame.new(cx, 3.6, cz - facingDir * (halfW - 0.4))
 	neon.Parent = model
 end
 
@@ -1010,7 +1000,7 @@ local function buildSingleBase(cx, cz, index)
 	model:SetAttribute("CenterZ", cz)
 	model:SetAttribute("TopY", 0.4) -- floor height for tsunami teleport
 
-	-- Phase 8a: neat grid interior with inner wall, counter, and neon stripe.
+	-- Phase 8a: neat grid interior with counter, machines, and neon stripe.
 	buildBaseInterior(model, cx, cz, facingDir)
 
 	model.Parent = workspace

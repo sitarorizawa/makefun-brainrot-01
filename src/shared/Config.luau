@@ -114,7 +114,8 @@ Config.RareAnnounce = {
 
 -- Walking brainrot characters on the red carpet: 12-16 walkers always alive,
 -- single lane at x=0, z from -CARPET_HALF to +CARPET_HALF then wrap.
--- Speed scales with rarity so rarer characters are harder to catch.
+-- Every walker moves at one convoy speed and keeps a fixed laneSpacing gap, so
+-- the lane reads as an even convoy instead of fast walkers pile-driving slow ones.
 Config.CARPET_HALF = 72 -- exported so init.server can use it without hardcoding
 Config.Walkers = {
 	minAlive = 12,
@@ -122,14 +123,8 @@ Config.Walkers = {
 	respawnDelay = 4, -- seconds before a replacement spawns after a catch
 	labelVOffset = 3.8, -- higher than capsule/carried/placed labels so they never overlap
 	spawnY = 2.0, -- studs above the carpet
-	speeds = {
-		Common = 4,
-		Uncommon = 6,
-		Rare = 8,
-		Epic = 10,
-		Legendary = 13,
-		Mythic = 17,
-	},
+	laneSpacing = 9, -- fixed convoy gap kept between walkers (studs)
+	convoySpeed = 7, -- every walker moves at this speed (no per-rarity speed)
 }
 
 -- Rarity lookup by name, for rolls and labels.

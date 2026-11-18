@@ -13,6 +13,8 @@ local BrainrotModels = {}
 -- Registry for the one animation loop: models that bob, spin or hue-cycle.
 local animated = {}
 local rainbowParts = {}
+-- Active walk items for the convoy gap safety net (keyed by model for fast lookup).
+local walkItems = {}
 
 local function makePart(props)
 	local part = Instance.new("Part")
@@ -518,6 +520,7 @@ function BrainrotModels.startWalker(model, laneX, startZ, speed, carpetHalf)
 		lastTick = tick(),
 	}
 	table.insert(animated, item)
+	walkItems[model] = item
 	return item
 end
 
@@ -528,6 +531,7 @@ function BrainrotModels.stopWalker(model)
 			table.remove(animated, i)
 		end
 	end
+	walkItems[model] = nil
 end
 	-- The unit resting on a pedestal: label shows name and rate, just above the
 -- unit (lower than carried/capsule so stacked placed units don't collide).
@@ -592,6 +596,7 @@ function BrainrotModels.retire(model)
 			table.remove(animated, i)
 		end
 	end
+	walkItems[model] = nil
 	for i = #rainbowParts, 1, -1 do
 		if not rainbowParts[i].Parent then
 			table.remove(rainbowParts, i)
@@ -625,6 +630,32 @@ RunService.Heartbeat:Connect(function()
 			if item.z > item.carpetHalf then
 				item.z = -item.carpetHalf
 			end
+
+			-- Convoy safety net: never let a walker close on the one ahead.
+			-- Find the nearest other walker with a greater z (the one in front,
+			-- accounting for wrap). If this walker is within laneSpacing * 0.8 of
+			-- it, clamp its z so the 9-stud gap can never collapse.
+			local minGap = Config.Walkers.laneSpacing * 0.8
+			local span = item.carpetHalf * 2
+			local aheadDelta = nil
+			for otherModel, other in pairs(walkItems) do
+				if otherModel ~= model then
+					local d = other.z - item.z
+					if d < 0 then
+						d += span -- other wrapped behind; treat as ahead
+					end
+					if d > 0 and (aheadDelta == nil or d < aheadDelta) then
+						aheadDelta = d
+					end
+				end
+			end
+			if aheadDelta ~= nil and aheadDelta < minGap then
+				item.z = item.z + (aheadDelta - minGap)
+				if item.z > item.carpetHalf then
+					item.z = -item.carpetHalf
+				end
+			end
+
 			local bob = math.sin(now * 8 + item.z) * 0.18
 			local sway = math.sin(now * 6 + item.z) * 0.12
 			model:PivotTo(CFrame.new(item.laneX, Config.Walkers.spawnY + bob, item.z)

@@ -218,7 +218,8 @@ local function catchWalker(player, record)
 	local wi = record.walkerIndex
 	task.delay(Config.Walkers.respawnDelay, function()
 		if walkers[wi] == nil then
-			spawnWalker(rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
+			-- Replacement joins the BACK of the convoy queue.
+			spawnWalker()
 		end
 	end)
 
@@ -252,13 +253,29 @@ spawnWalker = function(startZ)
 		wi += 1
 	end
 
-	-- All walkers share the centre lane (x = 0), moving +z.
+	-- All walkers share the centre lane (x = 0), moving +z at a fixed convoy speed.
 	local laneX = 0
-	local speed = Config.Walkers.speeds[entry.rarity] or 5
-	local z = startZ or (rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
-	BrainrotModels.startWalker(model, laneX, z, speed, Config.CARPET_HALF)
 
-	-- Position the model at its starting spot so it doesn't flash at origin.
+	-- If no explicit start Z, position at the BACK of the convoy: lowest z among
+	-- active walkers minus one laneSpacing. On an empty lane start at -CARPET_HALF.
+	-- Reads each walker's LIVE z (the animation item's current position) so the
+	-- gap stays exact even after others have advanced/wrapped.
+	local z: number
+	if startZ ~= nil then
+		z = startZ
+	else
+		local lowest = -Config.CARPET_HALF
+		for _, rec in pairs(walkers) do
+			local lz = rec.item and rec.item.z or rec.z
+			if lz < lowest then
+				lowest = lz
+			end
+		end
+		z = lowest - Config.Walkers.laneSpacing
+	end
+	local animItem = BrainrotModels.startWalker(model, laneX, z, Config.Walkers.convoySpeed, Config.CARPET_HALF)
+
+	-- Position the model at its starting spot so it does not flash at origin.
 	model:PivotTo(CFrame.new(laneX, Config.Walkers.spawnY, z))
 	model.Parent = workspace
 
@@ -269,6 +286,8 @@ spawnWalker = function(startZ)
 		traits = traits,
 		walkerIndex = wi,
 		dead = false,
+		z = z,
+		item = animItem,
 	}
 	walkers[wi] = record
 
@@ -1036,9 +1055,11 @@ end)
 -- ---------------------------------------------------------------------------
 
 -- Seed the carpet with walkers so the lane is busy from the first frame.
--- Populate minAlive right away, spaced evenly.
-for _ = 1, Config.Walkers.minAlive do
-	spawnWalker(rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
+-- Populate minAlive right away, each one laneSpacing studs behind the previous,
+-- so the convoy starts evenly staggered instead of a random pile-up.
+for i = 1, Config.Walkers.minAlive do
+	local z = -Config.CARPET_HALF - (i - 1) * Config.Walkers.laneSpacing
+	spawnWalker(z)
 end
 
 for index = 1, Config.Capsule.padCount do
