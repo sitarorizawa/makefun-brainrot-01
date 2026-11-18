@@ -191,11 +191,11 @@ local function buildRoad()
 	local m = Instance.new("Model")
 	m.Name = "Road"
 
-	-- Green path slab: width 24, length 300, thickness 0.3, Y=0.2.
+	-- Dark grey asphalt slab: width 24, length 300, thickness 0.3, Y=0.2.
 	local road = part({
-		Name = "Path",
+		Name = "Asphalt",
 		Size = Vector3.new(ROAD_WIDTH, 0.3, ROAD_HALF * 2),
-		Color = PATH,
+		Color = ASPHALT,
 		Material = Enum.Material.Plastic,
 	})
 	road.CFrame = CFrame.new(0, 0.2, 0)
@@ -203,11 +203,11 @@ local function buildRoad()
 	road.CanCollide = true
 	road.Parent = m
 
-	-- Yellow center line: 1 stud wide, Y=0.35.
+	-- White center line: 1 stud wide, Y=0.35.
 	local line = part({
 		Name = "CenterLine",
 		Size = Vector3.new(1, 0.1, ROAD_HALF * 2),
-		Color = YELLOW_LINE,
+		Color = Color3.fromRGB(255, 255, 255),
 		Material = Enum.Material.SmoothPlastic,
 	})
 	line.CFrame = CFrame.new(0, 0.35, 0)
