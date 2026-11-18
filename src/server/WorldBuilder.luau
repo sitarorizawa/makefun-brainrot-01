@@ -138,6 +138,9 @@ end
 -- ---------------------------------------------------------------------------
 
 local function buildGround()
+	local template = workspace:FindFirstChild("Baseplate")
+	if template then template:Destroy() end
+
 	local half = 110
 	-- Green stud baseplate: Plastic material gives the classic stud texture.
 	local baseplate = part({
