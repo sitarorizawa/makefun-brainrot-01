@@ -118,8 +118,8 @@ Config.RareAnnounce = {
 -- the lane reads as an even convoy instead of fast walkers pile-driving slow ones.
 Config.CARPET_HALF = 72 -- exported so init.server can use it without hardcoding
 Config.Walkers = {
-	minAlive = 12,
-	maxAlive = 16,
+	minAlive = 0,
+	maxAlive = 0,
 	respawnDelay = 4, -- seconds before a replacement spawns after a catch
 	labelVOffset = 3.8, -- higher than capsule/carried/placed labels so they never overlap
 	spawnY = 3.5, -- studs above the carpet

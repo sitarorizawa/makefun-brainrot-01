@@ -15,7 +15,7 @@ local WorldBuilder = {}
 
 local ISLAND_SIZE = 300
 local OCEAN_SIZE = 700
-local ROAD_WIDTH = 14
+local ROAD_WIDTH = 24
 local ROAD_HALF = 150 -- road spans z = -150 .. +150
 
 -- ---------------------------------------------------------------------------
