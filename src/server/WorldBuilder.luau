@@ -727,7 +727,7 @@ local function buildStonePaths()
 
 	for _, bp in ipairs(basePositions) do
 		-- Carpet side toward base entrance
-		local carpetX = bp.x > 0 and CARPET_WIDTH / 2 else -CARPET_WIDTH / 2
+		local carpetX = bp.x > 0 and CARPET_WIDTH / 2 or -CARPET_WIDTH / 2
 		-- Entrance is on the carpet-facing side (north or south depending on row)
 		local entranceZ = bp.z + (bp.z > 0 and -1 or 1) * (23) -- halfW=13 for the new base, front wall
 		-- Actually entrance Z is bp.z - halfW (for north-facing) or bp.z + halfW (south)
@@ -738,7 +738,7 @@ local function buildStonePaths()
 		local entranceZ = bp.z + dir * 13
 		-- Path runs from (entranceX = bp.x, entranceZ) toward (carpetEdgeX, carpetEdgeZ at same z)
 		-- Actually let's do a simple path: from the edge of carpet toward the base entrance
-		local sx = bp.x > 0 and CARPET_WIDTH / 2 + 2 else -CARPET_WIDTH / 2 - 2
+		local sx = bp.x > 0 and CARPET_WIDTH / 2 + 2 or -CARPET_WIDTH / 2 - 2
 		local sz = entranceZ
 		local ex = bp.x
 		local ez = entranceZ
