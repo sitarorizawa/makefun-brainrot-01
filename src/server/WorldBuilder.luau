@@ -84,11 +84,23 @@ end
 local function buildBaseNameplate(parent, title, color)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "BaseSignGui"
-	gui.Size = UDim2.fromOffset(220, 56)
-	gui.StudsOffset = Vector3.new(0, 0, 0)
+	gui.Size = UDim2.fromOffset(240, 68)
+	gui.StudsOffset = Vector3.new(0, 0.5, 0)
 	gui.AlwaysOnTop = true
 	gui.MaxDistance = 220
 	gui.Parent = parent
+
+	-- Opaque-ish dark background panel so the sign reads over bright surfaces.
+	local bg = Instance.new("Frame")
+	bg.Name = "Background"
+	bg.Size = UDim2.fromScale(1, 1)
+	bg.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+	bg.BackgroundTransparency = 0.18
+	bg.BorderSizePixel = 0
+	bg.Parent = gui
+	local bgCorner = Instance.new("UICorner")
+	bgCorner.CornerRadius = UDim.new(0, 8)
+	bgCorner.Parent = bg
 
 	local main = Instance.new("TextLabel")
 	main.Name = "Title"
@@ -100,6 +112,7 @@ local function buildBaseNameplate(parent, title, color)
 	main.TextColor3 = color or Color3.new(1, 1, 1)
 	main.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
 	main.TextStrokeTransparency = 0.25
+	main.ZIndex = 2
 	main.Parent = gui
 
 	local sub = Instance.new("TextLabel")
@@ -113,6 +126,7 @@ local function buildBaseNameplate(parent, title, color)
 	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
 	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
 	sub.TextStrokeTransparency = 0.3
+	sub.ZIndex = 2
 	sub.Parent = gui
 
 	return gui
@@ -141,6 +155,17 @@ local function setupLighting()
 	-- also force them here in case the template baseplate overwrote them.
 	Lighting.GlobalShadows = true
 	Lighting.ShadowSoftness = 0.25
+
+	-- DirectionalLight: explicit late-afternoon sun, bright, shadows on.
+	-- (Lighting.Technology is intentionally never assigned.)
+	local oldSun = Lighting:FindFirstChild("MainSun")
+	if oldSun then oldSun:Destroy() end
+	local sun = Instance.new("DirectionalLight")
+	sun.Name = "MainSun"
+	sun.Brightness = 2.5
+	sun.Shadows = true
+	sun.CFrame = CFrame.new(Vector3.new(80, 60, -30), Vector3.new(0, 0, 0))
+	sun.Parent = Lighting
 
 	-- Remove any existing Sky so we always create a fresh one.
 	local oldSky = Lighting:FindFirstChildWhichIsA("Sky")
@@ -382,18 +407,19 @@ local function buildTree(rng)
 	local model = Instance.new("Model")
 	model.Name = "Tree"
 
-	local h = 4 + rng:NextNumber() * 4 -- trunk height varies
+	local h = 5 + rng:NextNumber() * 4 -- trunk height varies
+	local trunkRadius = 0.8 + rng:NextNumber() * 0.3
 	local trunk = part({
 		Name = "Trunk",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(h, 0.8, 0.8),
+		Size = Vector3.new(h, trunkRadius * 2, trunkRadius * 2),
 		Color = TRUNK_BROWN,
 		Material = Enum.Material.Wood,
 	})
 	trunk.CFrame = CFrame.new(x, h / 2, z) * CFrame.Angles(0, 0, math.rad(90))
 	trunk.Parent = model
 
-	local leafSize = 4 + rng:NextNumber() * 3
+	-- Pick a leaf palette for this tree (mix of light/dark green).
 	local raw = rng:NextNumber()
 	local leafColor: Color3
 	if raw < 0.5 then
@@ -401,15 +427,27 @@ local function buildTree(rng)
 	else
 		leafColor = LEAF_DARK
 	end
-	local leaves = part({
-		Name = "Leaves",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(leafSize, leafSize, leafSize),
-		Color = leafColor,
-		Material = Enum.Material.Grass,
-	})
-	leaves.CFrame = CFrame.new(x, h + 0.6, z)
-	leaves.Parent = model
+
+	-- 3-4 stacked leaf balls of decreasing size, slightly offset for fullness.
+	local layers = rng:NextInteger(3, 4)
+	local baseSize = 5.5 + rng:NextNumber() * 1.5
+	local y = h + baseSize * 0.35
+	for i = 1, layers do
+		local t = (i - 1) / math.max(1, layers - 1) -- 0 at bottom .. 1 at top
+		local size = baseSize * (1 - t * 0.45)
+		local ox = (rng:NextNumber() - 0.5) * 0.8
+		local oz = (rng:NextNumber() - 0.5) * 0.8
+		local leaves = part({
+			Name = "Leaves" .. i,
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(size, size, size),
+			Color = i % 2 == 0 and LEAF_DARK or leafColor,
+			Material = Enum.Material.Grass,
+		})
+		leaves.CFrame = CFrame.new(x + ox, y, z + oz)
+		leaves.Parent = model
+		y += size * 0.55
+	end
 
 	model.Parent = workspace
 end
@@ -477,8 +515,8 @@ local function buildLampPost(rng)
 
 	local pointLight = Instance.new("PointLight")
 	pointLight.Color = LAMP_GOLD
-	pointLight.Brightness = 1.6
-	pointLight.Range = 18
+	pointLight.Brightness = 3.2
+	pointLight.Range = 24
 	pointLight.Parent = head
 
 	model.Parent = workspace
@@ -1078,8 +1116,8 @@ function WorldBuilder.buildSpawnPad(index)
 		Name = "SpawnPadRing" .. index,
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(0.3, 10, 10),
-		Color = Color3.fromRGB(70, 58, 85),
-		Material = Enum.Material.Slate,
+		Color = Color3.fromRGB(160, 110, 230),
+		Material = Enum.Material.Neon,
 	})
 	ring.CFrame = CFrame.new(x, 0.1, z) * CFrame.Angles(0, 0, math.rad(90))
 	ring.Parent = workspace

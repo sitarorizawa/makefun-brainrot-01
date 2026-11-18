@@ -77,8 +77,29 @@ local instructionLine = label({
 instructionLine.Parent = gui
 
 -- ---------------------------------------------------------------------------
--- 2. Bottom-left: money counter
+-- 2. Bottom-left: money counter with a subtle dark rounded panel behind it
 -- ---------------------------------------------------------------------------
+
+local moneyPanel = Instance.new("Frame")
+moneyPanel.Name = "MoneyPanel"
+moneyPanel.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+moneyPanel.BackgroundTransparency = 0.25
+moneyPanel.BorderSizePixel = 0
+moneyPanel.Size = UDim2.fromOffset(260, 60)
+moneyPanel.Position = UDim2.new(0, 12, 1, -72)
+moneyPanel.ZIndex = 4
+moneyPanel.Parent = gui
+
+local moneyCorner = Instance.new("UICorner")
+moneyCorner.CornerRadius = UDim.new(0, 12)
+moneyCorner.Parent = moneyPanel
+
+local moneyPad = Instance.new("UIPadding")
+moneyPad.PaddingLeft = UDim.new(0, 14)
+moneyPad.PaddingRight = UDim.new(0, 14)
+moneyPad.PaddingTop = UDim.new(0, 4)
+moneyPad.PaddingBottom = UDim.new(0, 4)
+moneyPad.Parent = moneyPanel
 
 local moneyCounter = label({
 	Name = "Money",
@@ -87,41 +108,79 @@ local moneyCounter = label({
 	TextColor3 = GREEN,
 	TextStrokeColor3 = Color3.fromRGB(0, 45, 10),
 	TextStrokeTransparency = 0.3,
-	Size = UDim2.fromOffset(240, 44),
-	Position = UDim2.new(0, 16, 1, -60),
+	TextScaled = false,
+	TextSize = 32,
+	Size = UDim2.fromScale(1, 1),
 	ZIndex = 5,
 	TextXAlignment = Enum.TextXAlignment.Left,
+	TextYAlignment = Enum.TextYAlignment.Center,
 })
-moneyCounter.Parent = gui
+moneyCounter.Parent = moneyPanel
 
 -- ---------------------------------------------------------------------------
--- 3. Left edge: 4 icon buttons as coloured squares
+-- 3. Left edge: 4 icon buttons with icon glyph, label, rounded corners, padding
 -- ---------------------------------------------------------------------------
 
 local iconSpecs = {
-	{ name = "Shop",    color = Color3.fromRGB(45, 195, 95),  action = "none" }, -- opens shop (tbd)
-	{ name = "Rebirth", color = Color3.fromRGB(180, 95, 255), action = "rebirth" },
-	{ name = "Index",   color = Color3.fromRGB(60, 140, 255), action = "none" }, -- collection index
-	{ name = "Codes",   color = Color3.fromRGB(255, 145, 50),  action = "none" }, -- redeem codes
+	{ name = "Shop",    icon = "🛒", color = Color3.fromRGB(45, 195, 95),  action = "none" }, -- opens shop (tbd)
+	{ name = "Rebirth", icon = "♻",  color = Color3.fromRGB(180, 95, 255), action = "rebirth" },
+	{ name = "Index",   icon = "📘", color = Color3.fromRGB(60, 140, 255), action = "none" }, -- collection index
+	{ name = "Codes",   icon = "🎟",  color = Color3.fromRGB(255, 145, 50),  action = "none" }, -- redeem codes
 }
+
+local buttonWidth = 96
+local buttonHeight = 64
+local buttonStartY = 120
+local buttonSpacing = 72
 
 for i, spec in ipairs(iconSpecs) do
 	local btn = Instance.new("TextButton")
 	btn.Name = spec.name
 	btn.BackgroundColor3 = spec.color
 	btn.BorderSizePixel = 0
-	btn.Font = Enum.Font.GothamBold
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.TextScaled = true
-	btn.Text = spec.name
-	btn.Size = UDim2.fromOffset(64, 64)
-	btn.Position = UDim2.fromOffset(8, 114 + (i - 1) * 72)
+	btn.AutoButtonColor = true
+	btn.Text = ""
+	btn.Size = UDim2.fromOffset(buttonWidth, buttonHeight)
+	btn.Position = UDim2.fromOffset(12, buttonStartY + (i - 1) * buttonSpacing)
 	btn.ZIndex = 5
 	btn.Parent = gui
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
+	corner.CornerRadius = UDim.new(0, 12)
 	corner.Parent = btn
+
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 8)
+	pad.PaddingRight = UDim.new(0, 8)
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.PaddingBottom = UDim.new(0, 4)
+	pad.Parent = btn
+
+	local iconLabel = label({
+		Name = "Icon",
+		Text = spec.icon,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextScaled = false,
+		TextSize = 22,
+		Size = UDim2.new(1, 0, 0.55, 0),
+		Position = UDim2.fromScale(0, 0),
+		ZIndex = 6,
+	})
+	iconLabel.Parent = btn
+
+	local textLabel = label({
+		Name = "Label",
+		Text = spec.name,
+		Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextScaled = false,
+		TextSize = 14,
+		Size = UDim2.new(1, 0, 0.45, 0),
+		Position = UDim2.fromScale(0, 0.52),
+		ZIndex = 6,
+	})
+	textLabel.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
 		if spec.action ~= "none" then
@@ -149,8 +208,23 @@ local yourBaseArrow = label({
 yourBaseArrow.Parent = gui
 
 -- ---------------------------------------------------------------------------
--- Wave / tsunami banner — top-centre, just below the instruction line
+-- Wave / tsunami banner — translucent dark rounded panel so it reads over any
+-- background. Centered just below the instruction line.
 -- ---------------------------------------------------------------------------
+
+local wavePanel = Instance.new("Frame")
+wavePanel.Name = "WavePanel"
+wavePanel.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+wavePanel.BackgroundTransparency = 0.22
+wavePanel.BorderSizePixel = 0
+wavePanel.Size = UDim2.fromOffset(340, 46)
+wavePanel.Position = UDim2.new(0.5, -170, 0, 48)
+wavePanel.ZIndex = 3
+wavePanel.Parent = gui
+
+local waveCorner = Instance.new("UICorner")
+waveCorner.CornerRadius = UDim.new(0, 10)
+waveCorner.Parent = wavePanel
 
 local waveBanner = label({
 	Name = "WaveBanner",
@@ -159,11 +233,12 @@ local waveBanner = label({
 	TextColor3 = YELLOW,
 	TextStrokeColor3 = Color3.fromRGB(30, 20, 0),
 	TextStrokeTransparency = 0.3,
-	Size = UDim2.fromOffset(620, 38),
-	Position = UDim2.new(0.5, -310, 0, 48),
+	TextScaled = false,
+	TextSize = 18,
+	Size = UDim2.fromScale(1, 1),
 	ZIndex = 4,
 })
-waveBanner.Parent = gui
+waveBanner.Parent = wavePanel
 
 -- ---------------------------------------------------------------------------
 -- Danger flash: soft red pulse when tsunami is on
