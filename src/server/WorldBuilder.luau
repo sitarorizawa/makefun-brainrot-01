@@ -1,13 +1,8 @@
--- WorldBuilder: clean tycoon layout matching the operator's reference.
--- Green stud baseplate, wide red carpet down the center, 4 base buildings
--- (2 per side) with grey walls, white-framed windows, red interiors and
--- "YOUR BASE" BillboardGuis. Golden statues along the carpet, capsule
--- pads on both sides, a small vault sign at the far end. Phase 7 adds
--- base-interior machine clusters, environment props (trees, rocks, lamps,
--- benches, bushes), ground detail (plaza tiles, hedge fencing) and
--- hardened lighting with shadows and atmosphere.
--- Phase 8a: bigger bases, doorway openings, roof slabs, perimeter wall,
--- statue repositioning, neat grid interiors, stone paths.
+-- WorldBuilder: Crypto Island — a futuristic island combining cryptocurrency
+-- aesthetics with Roblox Brainrot style. Colorful, bright, blocky/geometric
+-- architecture. NOT realistic, NOT dark, NOT a plain modern city.
+--
+-- Phase 11a: terrain, ocean, roads, central spawn plaza, base district.
 --
 -- Keep the interface init.server.luau depends on:
 --   build() → { pads = array<Part>, bases = array<Model> }
@@ -24,42 +19,50 @@ local WorldBuilder = {}
 -- Layout constants
 -- ---------------------------------------------------------------------------
 
-local CARPET_HALF = 72 -- carpet runs Z = -72 .. +72
-local CARPET_WIDTH = 22
-local BASE_GAP = 64  -- Z-distance between front-row and back-row bases
-local BASE_X = 34    -- absolute X of each base's center
+local ISLAND_HALF = 150
+local ROAD_WIDTH = 12
+local SIDEWALK_WIDTH = 3
+local SECONDARY_ROAD_WIDTH = 8
+local BASE_SIZE = 26
+local BASE_HALF = 13
 local PEDESTAL_SPACING = 5.2
-local MAP_HALF = 110 -- ground extends ±110 on X and Z
+local PLAZA_HALF = 20
 
--- Colors
+-- Base district: 2×2 grid north of spawn.
+local BASE_ROW1_Z = 55 -- front row
+local BASE_ROW2_Z = 85 -- back row
+local BASE_COL1_X = -15 -- left column
+local BASE_COL2_X = 15 -- right column
+
+-- ---------------------------------------------------------------------------
+-- Colour palette
+-- ---------------------------------------------------------------------------
+
 local GRASS_GREEN = Color3.fromRGB(98, 178, 72)
-local CARPET_RED = Color3.fromRGB(195, 48, 48)
+local GRASS_DARK = Color3.fromRGB(74, 142, 52)
+local BITCOIN_GOLD = Color3.fromRGB(255, 200, 40)
+local STATUE_GOLD = Color3.fromRGB(255, 210, 48)
+local CYAN_BLUE = Color3.fromRGB(80, 200, 255)
+local OCEAN_CYAN = Color3.fromRGB(60, 160, 220)
+local WHITE = Color3.fromRGB(245, 245, 250)
+local DARK_GREY = Color3.fromRGB(50, 52, 60)
+local ROAD_GREY = Color3.fromRGB(55, 55, 65)
+local SIDEWALK_GREY = Color3.fromRGB(120, 120, 130)
+local YELLOW_LINE = Color3.fromRGB(255, 210, 40)
+local BEACH_SAND = Color3.fromRGB(230, 210, 160)
 local WALL_GREY = Color3.fromRGB(160, 165, 175)
 local WINDOW_WHITE = Color3.fromRGB(245, 245, 250)
 local INTERIOR_RED = Color3.fromRGB(188, 52, 52)
-local STATUE_GOLD = Color3.fromRGB(255, 210, 48)
 local SIGN_DARK = Color3.fromRGB(32, 36, 44)
-local DARK_METAL = Color3.fromRGB(52, 56, 66)
-local ACCENT_CYAN = Color3.fromRGB(64, 210, 210)
-local ACCENT_ORANGE = Color3.fromRGB(255, 155, 65)
-local TRUNK_BROWN = Color3.fromRGB(110, 78, 48)
-local LEAF_GREEN = Color3.fromRGB(68, 148, 56)
-local LEAF_DARK = Color3.fromRGB(48, 110, 38)
-local ROCK_GREY = Color3.fromRGB(130, 135, 140)
-local LAMP_BLACK = Color3.fromRGB(38, 40, 48)
-local LAMP_GOLD = Color3.fromRGB(240, 215, 70)
-local BENCH_WOOD = Color3.fromRGB(145, 110, 70)
-local HEDGE_GREEN = Color3.fromRGB(52, 128, 42)
-local PATH_TILE = Color3.fromRGB(195, 185, 165)
 local ROOF_DARK = Color3.fromRGB(42, 44, 54)
 local ROOF_TRIM = Color3.fromRGB(255, 210, 48)
-local PERIM_WALL = Color3.fromRGB(120, 122, 130)
-local PERIM_TRIM = Color3.fromRGB(255, 210, 48)
 local DOOR_FRAME = Color3.fromRGB(255, 210, 48)
-local GRASS_DARK = Color3.fromRGB(74, 142, 52)
-local PATH_STONE = Color3.fromRGB(150, 140, 122)
-local COUNTER_WOOD = Color3.fromRGB(120, 88, 56)
-local NEON_STRIPE = Color3.fromRGB(64, 210, 210)
+local CLIFF_GREY = Color3.fromRGB(120, 125, 130)
+local LAMP_POLE = Color3.fromRGB(38, 40, 48)
+local LAMP_GLOW = Color3.fromRGB(240, 215, 70)
+local COIN_ORNAMENT = Color3.fromRGB(255, 195, 40)
+local PLAZA_TILE_A = Color3.fromRGB(235, 235, 240)
+local PLAZA_TILE_B = Color3.fromRGB(210, 210, 220)
 
 -- ---------------------------------------------------------------------------
 -- Part helper
@@ -90,7 +93,6 @@ local function buildBaseNameplate(parent, title, color)
 	gui.MaxDistance = 220
 	gui.Parent = parent
 
-	-- Opaque-ish dark background panel so the sign reads over bright surfaces.
 	local bg = Instance.new("Frame")
 	bg.Name = "Background"
 	bg.Size = UDim2.fromScale(1, 1)
@@ -133,13 +135,10 @@ local function buildBaseNameplate(parent, title, color)
 end
 
 -- ---------------------------------------------------------------------------
--- Lighting: bright afternoon with hard-set shadows, sky and atmosphere.
--- Phase 7: every property is set explicitly so a missing shadow/atmosphere
--- is impossible.
+-- Lighting: bright afternoon with shadows, sky and atmosphere. Safe.
 -- ---------------------------------------------------------------------------
 
 local function setupLighting()
-	-- Hard-set every lighting property so nothing silently fails.
 	Lighting.Brightness = 3
 	Lighting.ClockTime = 14
 	Lighting.GeographicLatitude = 15
@@ -150,16 +149,10 @@ local function setupLighting()
 	Lighting.ExposureCompensation = 0.25
 	Lighting.FogStart = 900000
 	Lighting.FogEnd = 1000000
-
-	-- Shadows: the project.json sets GlobalShadows and ShadowMap, but we
-	-- also force them here in case the template baseplate overwrote them.
 	Lighting.GlobalShadows = true
 	Lighting.ShadowSoftness = 0.25
 
-	-- DirectionalLight: explicit late-afternoon sun, bright, shadows on.
-	-- (Lighting.Technology is intentionally never assigned.)
-	-- Destroy ALL existing DirectionalLight children (the template Baseplate may
-	-- have created one under a name other than "MainSun").
+	-- Destroy all existing DirectionalLight children.
 	while true do
 		local old = Lighting:FindFirstChildWhichIsA("DirectionalLight")
 		if not old then break end
@@ -177,11 +170,9 @@ local function setupLighting()
 	end)
 	if not ok then
 		warn("[WorldBuilder] DirectionalLight creation failed: " .. tostring(sunResult))
-	else
-		-- sunResult holds the created instance
 	end
 
-	-- Remove any existing Sky so we always create a fresh one.
+	-- Remove any existing Sky.
 	local oldSky = Lighting:FindFirstChildWhichIsA("Sky")
 	if oldSky then oldSky:Destroy() end
 	local okSky, skyResult = pcall(function()
@@ -201,7 +192,7 @@ local function setupLighting()
 		warn("[WorldBuilder] Sky creation failed: " .. tostring(skyResult))
 	end
 
-	-- Remove any existing Atmosphere so we always create a fresh one.
+	-- Remove any existing Atmosphere.
 	local oldAtmo = Lighting:FindFirstChildWhichIsA("Atmosphere")
 	if oldAtmo then oldAtmo:Destroy() end
 	local okAtmo, atmoResult = pcall(function()
@@ -222,563 +213,538 @@ local function setupLighting()
 end
 
 -- ---------------------------------------------------------------------------
--- Green stud baseplate + red carpet
+-- Terrain: multi-part island with grass, hills, beach, cliffs.
 -- ---------------------------------------------------------------------------
 
-local function buildGround()
-	local template = workspace:FindFirstChild("Baseplate")
-	if template then template:Destroy() end
+local function buildTerrain()
+	local terrainModel = Instance.new("Model")
+	terrainModel.Name = "Terrain"
 
-	local half = 110
-	-- Green stud baseplate: Plastic material gives the classic stud texture.
-	local baseplate = part({
-		Name = "Ground",
-		Size = Vector3.new(half * 2 + 4, 0.4, half * 2 + 4),
+	-- Main grass base: large flat slab at Y=0.
+	local grassBase = part({
+		Name = "GrassBase",
+		Size = Vector3.new(ISLAND_HALF * 2, 0.4, ISLAND_HALF * 2),
 		Color = GRASS_GREEN,
-		Material = Enum.Material.Plastic,
+		Material = Enum.Material.Grass,
 	})
-	baseplate.CFrame = CFrame.new(0, -0.15, 0)
-	baseplate.Parent = workspace
+	grassBase.CFrame = CFrame.new(0, 0, 0)
+	grassBase.Parent = terrainModel
 
-	-- Varied grass patches: slightly darker strips for visual variation.
-	for _, gx in ipairs({ -70, -30, 30, 70 }) do
-		local grassPatch = part({
+	-- Varied grass patches for visual interest.
+	for _, gx in ipairs({ -100, -50, 50, 100 }) do
+		local patch = part({
 			Name = "GrassPatch",
-			Size = Vector3.new(18, 0.15, MAP_HALF * 2 + 4),
+			Size = Vector3.new(22, 0.15, ISLAND_HALF * 2 - 8),
 			Color = GRASS_DARK,
-			Material = Enum.Material.Plastic,
-		})
-		grassPatch.CFrame = CFrame.new(gx, 0.08, 0)
-		grassPatch.Parent = workspace
-	end
-
-	-- Red carpet: wide, runs Z = -CARPET_HALF .. +CARPET_HALF
-	local carpet = part({
-		Name = "Carpet",
-		Size = Vector3.new(CARPET_WIDTH, 0.22, CARPET_HALF * 2),
-		Color = CARPET_RED,
-		Material = Enum.Material.SmoothPlastic,
-	})
-	carpet.CFrame = CFrame.new(0, 0.11, 0)
-	carpet.Parent = workspace
-
-	-- Thin gold trim on each side of the carpet so it pops against the green.
-	for _, side in ipairs({ -CARPET_WIDTH / 2, CARPET_WIDTH / 2 }) do
-		local trim = part({
-			Name = "CarpetTrim",
-			Size = Vector3.new(0.6, 0.12, CARPET_HALF * 2),
-			Color = STATUE_GOLD,
-			Material = Enum.Material.Metal,
-		})
-		trim.CFrame = CFrame.new(side, 0.22, 0)
-		trim.CanCollide = false
-		trim.Parent = workspace
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Base interior machine cluster: a cash generator box, a conveyor strip,
--- an upgrade console, a shelf, a counter desk, and a neon
--- accent stripe. All placed on a tidy grid.
--- ---------------------------------------------------------------------------
-
-local function buildBaseInterior(model, cx, cz, facingDir)
-	local halfW = 13
-	local wallH = 10
-
-	-- Counter / cash desk: wooden slab in the front-right area.
-	local counter = part({
-		Name = "Counter",
-		Size = Vector3.new(6, 1.2, 2.8),
-		Color = COUNTER_WOOD,
-		Material = Enum.Material.Wood,
-	})
-	counter.CFrame = CFrame.new(cx + 6, 0.6, cz + facingDir * (-halfW + 5))
-	counter.Parent = model
-
-	-- Cash generator: dark-metal box with a cyan accent bar, back-left corner.
-	local gen = part({
-		Name = "CashGenerator",
-		Size = Vector3.new(3, 2.6, 2),
-		Color = DARK_METAL,
-		Material = Enum.Material.Metal,
-	})
-	gen.CFrame = CFrame.new(cx - 8, 1.5, cz + facingDir * 6)
-	gen.Parent = model
-	local genAccent = part({
-		Name = "GenLight",
-		Size = Vector3.new(2.6, 0.3, 0.3),
-		Color = ACCENT_CYAN,
-		Material = Enum.Material.Neon,
-	})
-	genAccent.CFrame = CFrame.new(cx - 8, 3.0, cz + facingDir * 5)
-	genAccent.Parent = model
-
-	-- Upgrade console: thin angled slab with an orange screen, back-center.
-	local console = part({
-		Name = "UpgradeConsole",
-		Size = Vector3.new(1.6, 2.8, 0.6),
-		Color = DARK_METAL,
-		Material = Enum.Material.Metal,
-	})
-	console.CFrame = CFrame.new(cx, 1.6, cz + facingDir * 6)
-	console.Parent = model
-	local screen = part({
-		Name = "Screen",
-		Size = Vector3.new(1.2, 1.6, 0.2),
-		Color = ACCENT_ORANGE,
-		Material = Enum.Material.Neon,
-	})
-	screen.CFrame = CFrame.new(cx, 2.7, cz + facingDir * 5.7)
-	screen.Parent = model
-
-	-- Conveyor strip: low flat rectangles across the back, near the wall.
-	local conv = part({
-		Name = "Conveyor",
-		Size = Vector3.new(8, 0.4, 1.2),
-		Color = Color3.fromRGB(72, 76, 86),
-		Material = Enum.Material.Metal,
-	})
-	conv.CFrame = CFrame.new(cx + 4, 0.55, cz + facingDir * (halfW - 2.6))
-	conv.Parent = model
-	for _, rollX in ipairs({ -2.6, 0, 2.6 }) do
-		local roller = part({
-			Name = "Roller",
-			Shape = Enum.PartType.Cylinder,
-			Size = Vector3.new(1.4, 0.5, 0.5),
-			Color = Color3.fromRGB(100, 105, 115),
-			Material = Enum.Material.Metal,
-		})
-		roller.CFrame = CFrame.new(cx + 4 + rollX, 0.72, cz + facingDir * (halfW - 2.6)) * CFrame.Angles(0, 0, math.rad(90))
-		roller.Parent = model
-	end
-
-	-- Shelf: three shelves against one side wall, back of the room.
-	for shelfRow = 0, 2 do
-		local shelf = part({
-			Name = "Shelf" .. shelfRow,
-			Size = Vector3.new(2.8, 0.25, 1.6),
-			Color = BENCH_WOOD,
-			Material = Enum.Material.Wood,
-		})
-		shelf.CFrame = CFrame.new(cx - halfW + 3.0, 1.0 + shelfRow * 1.5, cz + facingDir * 8)
-		shelf.Parent = model
-	end
-
-	-- Neon accent stripe along the back wall (was on the inner wall; moved here
-	-- when the inner partition wall was removed to open up the interior).
-	local neon = part({
-		Name = "NeonStripe",
-		Size = Vector3.new(halfW * 2 - 2, 0.3, 0.3),
-		Color = NEON_STRIPE,
-		Material = Enum.Material.Neon,
-	})
-	neon.CFrame = CFrame.new(cx, 3.6, cz - facingDir * (halfW - 0.4))
-	neon.Parent = model
-end
-
--- ---------------------------------------------------------------------------
--- Environment props: trees, rocks, lamp posts, benches, bushes — spread
--- around the carpet but outside every base footprint so nothing clips.
--- ---------------------------------------------------------------------------
-
-local BASE_FOOTPRINT_RADIUS = 14 -- safety margin around each base center (bumped for bigger bases)
-
-local function inBaseFootprint(x, z)
-	for _, bp in ipairs({
-		{ x = -BASE_X, z = -BASE_GAP / 2 },
-		{ x =  BASE_X, z = -BASE_GAP / 2 },
-		{ x =  BASE_X, z =  BASE_GAP / 2 },
-		{ x = -BASE_X, z =  BASE_GAP / 2 },
-	}) do
-		if math.abs(x - bp.x) < BASE_FOOTPRINT_RADIUS and math.abs(z - bp.z) < BASE_FOOTPRINT_RADIUS then
-			return true
-		end
-	end
-	return false
-end
-
--- Random position on the grass, off the carpet, outside bases.
-local function randomPropPos(rng, minDist, maxDist)
-	for _ = 1, 40 do
-		local ang = rng:NextNumber() * math.pi * 2
-		local dist = minDist + rng:NextNumber() * (maxDist - minDist)
-		local x = math.cos(ang) * dist
-		local z = math.sin(ang) * dist
-		-- Keep off the centre carpet.
-		if math.abs(x) < CARPET_WIDTH / 2 + 3 and math.abs(z) < CARPET_HALF + 2 then
-			continue
-		end
-		if not inBaseFootprint(x, z) and math.abs(x) < MAP_HALF - 6 and math.abs(z) < MAP_HALF - 6 then
-			return x, z
-		end
-	end
-	return nil, nil
-end
-
-local function buildTree(rng)
-	local x, z = randomPropPos(rng, 14, MAP_HALF - 10)
-	if x == nil then return end
-
-	local model = Instance.new("Model")
-	model.Name = "Tree"
-
-	local h = 5 + rng:NextNumber() * 4 -- trunk height varies
-	local trunkRadius = 0.8 + rng:NextNumber() * 0.3
-	local trunk = part({
-		Name = "Trunk",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(h, trunkRadius * 2, trunkRadius * 2),
-		Color = TRUNK_BROWN,
-		Material = Enum.Material.Wood,
-	})
-	trunk.CFrame = CFrame.new(x, h / 2, z) * CFrame.Angles(0, 0, math.rad(90))
-	trunk.Parent = model
-
-	-- Pick a leaf palette for this tree (mix of light/dark green).
-	local raw = rng:NextNumber()
-	local leafColor: Color3
-	if raw < 0.5 then
-		leafColor = LEAF_GREEN
-	else
-		leafColor = LEAF_DARK
-	end
-
-	-- 3-4 stacked leaf balls of decreasing size, slightly offset for fullness.
-	local layers = rng:NextInteger(3, 4)
-	local baseSize = 5.5 + rng:NextNumber() * 1.5
-	local y = h + baseSize * 0.35
-	for i = 1, layers do
-		local t = (i - 1) / math.max(1, layers - 1) -- 0 at bottom .. 1 at top
-		local size = baseSize * (1 - t * 0.45)
-		local ox = (rng:NextNumber() - 0.5) * 0.8
-		local oz = (rng:NextNumber() - 0.5) * 0.8
-		local leaves = part({
-			Name = "Leaves" .. i,
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(size, size, size),
-			Color = i % 2 == 0 and LEAF_DARK or leafColor,
 			Material = Enum.Material.Grass,
 		})
-		leaves.CFrame = CFrame.new(x + ox, y, z + oz)
-		leaves.Parent = model
-		y += size * 0.55
+		patch.CFrame = CFrame.new(gx, 0.08, 0)
+		patch.Parent = terrainModel
 	end
 
-	model.Parent = workspace
-end
-
-local function buildRock(rng)
-	local x, z = randomPropPos(rng, 10, MAP_HALF - 14)
-	if x == nil then return end
-
-	local model = Instance.new("Model")
-	model.Name = "Rock"
-
-	local sx = 1.8 + rng:NextNumber() * 2.5
-	local sy = 1.2 + rng:NextNumber() * 2
-	local sz = 1.4 + rng:NextNumber() * 2.2
-	local body = part({
-		Name = "Body",
-		Size = Vector3.new(sx, sy, sz),
-		Color = ROCK_GREY,
-		Material = Enum.Material.Slate,
-	})
-	body.CFrame = CFrame.new(x, sy / 2, z) * CFrame.Angles(0, math.rad(rng:NextNumber() * 360), 0)
-	body.Parent = model
-
-	-- A second smaller chunk on top
-	local top = part({
-		Name = "Top",
-		Size = Vector3.new(sx * 0.55, sy * 0.5, sz * 0.55),
-		Color = ROCK_GREY,
-		Material = Enum.Material.Slate,
-	})
-	top.CFrame = CFrame.new(x + 0.4, sy + 0.25, z - 0.2) * CFrame.Angles(math.rad(5), math.rad(15), 0)
-	top.Parent = model
-
-	model.Parent = workspace
-end
-
-local function buildLampPost(rng)
-	local x, z = randomPropPos(rng, 16, MAP_HALF - 16)
-	if x == nil then return end
-
-	local model = Instance.new("Model")
-	model.Name = "LampPost"
-
-	local poleH = 9
-	local pole = part({
-		Name = "Pole",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(poleH, 0.45, 0.45),
-		Color = LAMP_BLACK,
-		Material = Enum.Material.Metal,
-	})
-	pole.CFrame = CFrame.new(x, poleH / 2, z) * CFrame.Angles(0, 0, math.rad(90))
-	pole.Parent = model
-
-	-- Lamp head: a glowing warm-yellow sphere on top.
-	local head = part({
-		Name = "LampHead",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.6, 1.6, 1.6),
-		Color = LAMP_GOLD,
-		Material = Enum.Material.Neon,
-	})
-	head.CFrame = CFrame.new(x, poleH + 0.8, z)
-	head.Parent = model
-
-	local pointLight = Instance.new("PointLight")
-	pointLight.Color = LAMP_GOLD
-	pointLight.Brightness = 3.2
-	pointLight.Range = 24
-	pointLight.Parent = head
-
-	model.Parent = workspace
-end
-
-local function buildBench(rng)
-	local x, z = randomPropPos(rng, 12, MAP_HALF - 12)
-	if x == nil then return end
-
-	local model = Instance.new("Model")
-	model.Name = "Bench"
-
-	local seat = part({
-		Name = "Seat",
-		Size = Vector3.new(3.6, 0.3, 1.0),
-		Color = BENCH_WOOD,
-		Material = Enum.Material.Wood,
-	})
-	seat.CFrame = CFrame.new(x, 1.1, z) * CFrame.Angles(0, math.rad(rng:NextNumber() * 360), 0)
-	seat.Parent = model
-
-	for _, side in ipairs({ -1, 1 }) do
-		local leg = part({
-			Name = "Leg",
-			Size = Vector3.new(0.4, 1.0, 1.0),
-			Color = BENCH_WOOD,
-			Material = Enum.Material.Wood,
-		})
-		leg.CFrame = CFrame.new(x + side * 1.3, 0.5, z)
-		leg.Parent = model
-	end
-
-	-- Back rest
-	local back = part({
-		Name = "Back",
-		Size = Vector3.new(3.6, 0.3, 0.8),
-		Color = BENCH_WOOD,
-		Material = Enum.Material.Wood,
-	})
-	back.CFrame = CFrame.new(x, 1.55, z - 0.9) * CFrame.Angles(math.rad(-15), 0, 0)
-	back.Parent = model
-
-	model.Parent = workspace
-end
-
-local function buildBush(rng)
-	local x, z = randomPropPos(rng, 8, MAP_HALF - 6)
-	if x == nil then return end
-
-	local model = Instance.new("Model")
-	model.Name = "Bush"
-	local count = rng:NextInteger(2, 4)
-	for _ = 1, count do
-		local bx = x + (rng:NextNumber() - 0.5) * 1.5
-		local bz = z + (rng:NextNumber() - 0.5) * 1.5
-		local sz = 0.8 + rng:NextNumber() * 1.2
-		local ball = part({
-			Name = "Leaf",
+	-- Small hills: 3 elevated areas using rounded parts.
+	local hills = {
+		{ cx = -100, cz = -80, h = 6, r = 18 },
+		{ cx = 90, cz = 100, h = 8, r = 22 },
+		{ cx = -80, cz = 100, h = 4, r = 14 },
+	}
+	for _, hill in ipairs(hills) do
+		local mound = part({
+			Name = "Hill",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(sz, sz, sz),
-			Color = LEAF_DARK,
+			Size = Vector3.new(hill.r * 2, hill.h * 2, hill.r * 2),
+			Color = GRASS_GREEN,
 			Material = Enum.Material.Grass,
 		})
-		ball.CFrame = CFrame.new(bx, sz * 0.5, bz)
-		ball.Parent = model
-	end
-	model.Parent = workspace
-end
+		mound.CFrame = CFrame.new(hill.cx, hill.h * 0.5, hill.cz)
+		mound.Parent = terrainModel
 
-local function buildEnvironmentProps()
-	local rng = Random.new(42)
-
-	-- 8 trees (aim for 6-10)
-	for _ = 1, 8 do
-		buildTree(rng)
-	end
-
-	-- 5 rocks (aim for 4-6)
-	for _ = 1, 5 do
-		buildRock(rng)
+		-- Darker cap for visual depth.
+		local cap = part({
+			Name = "HillCap",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(hill.r * 1.3, hill.h * 0.7, hill.r * 1.3),
+			Color = GRASS_DARK,
+			Material = Enum.Material.Grass,
+		})
+		cap.CFrame = CFrame.new(hill.cx, hill.h * 0.7, hill.cz)
+		cap.Parent = terrainModel
 	end
 
-	-- 4 lamp posts
-	for _ = 1, 4 do
-		buildLampPost(rng)
-	end
-
-	-- 2 benches
-	for _ = 1, 2 do
-		buildBench(rng)
-	end
-
-	-- 6 bushes
-	for _ = 1, 6 do
-		buildBush(rng)
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Perimeter wall: solid wall on all four map edges, grey concrete with gold
--- trim along the top and thicker pillar blocks at the four corners.
--- ---------------------------------------------------------------------------
-
-local function buildPerimeterWall()
-	local h = 28
-	local half = MAP_HALF
-	local thick = 2
-
-	-- Four wall slabs: one per edge.
-	local wallLength = half * 2 + thick -- full edge length corner-to-corner
-
-	-- North edge (z = -half)
-	local nWall = part({
-		Name = "PerimeterN",
-		Size = Vector3.new(wallLength, h, thick),
-		Color = PERIM_WALL,
-		Material = Enum.Material.Concrete,
-	})
-	nWall.CFrame = CFrame.new(0, h / 2, -half)
-	nWall.Parent = workspace
-
-	-- South edge (z = +half)
-	local sWall = part({
-		Name = "PerimeterS",
-		Size = Vector3.new(wallLength, h, thick),
-		Color = PERIM_WALL,
-		Material = Enum.Material.Concrete,
-	})
-	sWall.CFrame = CFrame.new(0, h / 2, half)
-	sWall.Parent = workspace
-
-	-- East edge (x = +half)
-	local eWall = part({
-		Name = "PerimeterE",
-		Size = Vector3.new(thick, h, wallLength),
-		Color = PERIM_WALL,
-		Material = Enum.Material.Concrete,
-	})
-	eWall.CFrame = CFrame.new(half, h / 2, 0)
-	eWall.Parent = workspace
-
-	-- West edge (x = -half)
-	local wWall = part({
-		Name = "PerimeterW",
-		Size = Vector3.new(thick, h, wallLength),
-		Color = PERIM_WALL,
-		Material = Enum.Material.Concrete,
-	})
-	wWall.CFrame = CFrame.new(-half, h / 2, 0)
-	wWall.Parent = workspace
-
-	-- Gold trim along the top of each edge.
+	-- Beach edges: sandy parts around the island perimeter, slightly lower than grass.
+	local beachHalf = ISLAND_HALF - 4
 	for _, edge in ipairs({
-		{ name = "TrimN", cf = CFrame.new(0, h, -half), size = Vector3.new(wallLength, 1.2, 2.6) },
-		{ name = "TrimS", cf = CFrame.new(0, h, half), size = Vector3.new(wallLength, 1.2, 2.6) },
-		{ name = "TrimE", cf = CFrame.new(half, h, 0), size = Vector3.new(2.6, 1.2, wallLength) },
-		{ name = "TrimW", cf = CFrame.new(-half, h, 0), size = Vector3.new(2.6, 1.2, wallLength) },
+		{ name = "BeachN", cf = CFrame.new(0, -0.15, -beachHalf), size = Vector3.new(ISLAND_HALF * 2, 0.3, 10) },
+		{ name = "BeachS", cf = CFrame.new(0, -0.15, beachHalf), size = Vector3.new(ISLAND_HALF * 2, 0.3, 10) },
+		{ name = "BeachE", cf = CFrame.new(beachHalf, -0.15, 0), size = Vector3.new(10, 0.3, ISLAND_HALF * 2) },
+		{ name = "BeachW", cf = CFrame.new(-beachHalf, -0.15, 0), size = Vector3.new(10, 0.3, ISLAND_HALF * 2) },
 	}) do
-		local trim = part({
+		local beach = part({
 			Name = edge.name,
 			Size = edge.size,
-			Color = PERIM_TRIM,
-			Material = Enum.Material.Metal,
+			Color = BEACH_SAND,
+			Material = Enum.Material.Sand,
 		})
-		trim.CFrame = edge.cf
-		trim.Parent = workspace
+		beach.CFrame = edge.cf
+		beach.Parent = terrainModel
 	end
 
-	-- Thicker pillar blocks at the four corners.
+	-- Corner beach fills (rounded squares at the four corners).
 	for _, corner in ipairs({
-		{ x = -half, z = -half },
-		{ x =  half, z = -half },
-		{ x =  half, z =  half },
-		{ x = -half, z =  half },
+		{ x = -beachHalf, z = -beachHalf },
+		{ x = beachHalf, z = -beachHalf },
+		{ x = beachHalf, z = beachHalf },
+		{ x = -beachHalf, z = beachHalf },
 	}) do
-		local pillar = part({
-			Name = "CornerPillar",
-			Size = Vector3.new(4, h + 2, 4),
-			Color = PERIM_WALL,
+		local cb = part({
+			Name = "BeachCorner",
+			Size = Vector3.new(14, 0.25, 14),
+			Color = BEACH_SAND,
+			Material = Enum.Material.Sand,
+		})
+		cb.CFrame = CFrame.new(corner.x, -0.15, corner.z)
+		cb.Parent = terrainModel
+	end
+
+	-- Geometric cliffs: WedgePart slopes where island drops to ocean (N and E edges).
+	local cliffPositions = {
+		-- North cliff: wedge sloping down from z=-ISLAND_HALF toward z=-ISLAND_HALF-10
+		{ cf = CFrame.new(0, 3, -ISLAND_HALF + 1) * CFrame.Angles(0, math.rad(180), 0), size = Vector3.new(ISLAND_HALF * 2 - 20, 6, 10) },
+		-- East cliff: wedge sloping down from x=+ISLAND_HALF toward x=+ISLAND_HALF+10
+		{ cf = CFrame.new(ISLAND_HALF - 1, 3, 40) * CFrame.Angles(0, math.rad(-90), 0), size = Vector3.new(60, 6, 10) },
+	}
+	for _, cp in ipairs(cliffPositions) do
+		local cliff = part({
+			Name = "Cliff",
+			Shape = Enum.PartType.Wedge,
+			Size = cp.size,
+			Color = CLIFF_GREY,
+			Material = Enum.Material.Slate,
+		})
+		cliff.CFrame = cp.cf
+		cliff.Parent = terrainModel
+	end
+
+	-- Flat clearings: ensure the buildable zones (plaza, base district) are flat.
+	-- Plaza area: clear any terrain protrusions at origin.
+	local plazaClear = part({
+		Name = "PlazaClearing",
+		Size = Vector3.new(PLAZA_HALF * 2 + 10, 0.15, PLAZA_HALF * 2 + 10),
+		Color = GRASS_GREEN,
+		Material = Enum.Material.Grass,
+	})
+	plazaClear.CFrame = CFrame.new(0, 0.08, 0)
+	plazaClear.Parent = terrainModel
+
+	-- Base district clearing: flat area north of spawn for the 2×2 base grid.
+	local baseDistrictClear = part({
+		Name = "BaseDistrictClearing",
+		Size = Vector3.new(50, 0.15, 60),
+		Color = GRASS_GREEN,
+		Material = Enum.Material.Grass,
+	})
+	baseDistrictClear.CFrame = CFrame.new(0, 0.08, 70)
+	baseDistrictClear.Parent = terrainModel
+
+	terrainModel.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Ocean boundary: large blue plane surrounding the island at Y=-2.
+-- ---------------------------------------------------------------------------
+
+local function buildOcean()
+	local oceanModel = Instance.new("Model")
+	oceanModel.Name = "Ocean"
+
+	local water = part({
+		Name = "OceanPlane",
+		Size = Vector3.new(600, 0.2, 600),
+		Color = OCEAN_CYAN,
+		Material = Enum.Material.SmoothPlastic,
+		Transparency = 0.3,
+	})
+	water.CFrame = CFrame.new(0, -2, 0)
+	water.CanCollide = false
+	water.Parent = oceanModel
+
+	-- Subtle wave ripple: a second semi-transparent layer slightly higher.
+	local ripple = part({
+		Name = "OceanRipple",
+		Size = Vector3.new(580, 0.1, 580),
+		Color = Color3.fromRGB(100, 200, 240),
+		Material = Enum.Material.SmoothPlastic,
+		Transparency = 0.5,
+	})
+	ripple.CFrame = CFrame.new(0, -1.6, 0)
+	ripple.CanCollide = false
+	ripple.Parent = oceanModel
+
+	oceanModel.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Roads: main N-S road, secondary roads, sidewalks, markings, street lamps.
+-- ---------------------------------------------------------------------------
+
+local function buildRoads()
+	local roadsModel = Instance.new("Model")
+	roadsModel.Name = "Roads"
+
+	-- Main N-S road: x=0, z from -120 to +120, 12 studs wide.
+	local mainRoad = part({
+		Name = "MainRoad",
+		Size = Vector3.new(ROAD_WIDTH, 0.22, 240),
+		Color = ROAD_GREY,
+		Material = Enum.Material.Asphalt,
+	})
+	mainRoad.CFrame = CFrame.new(0, 0.11, 0)
+	mainRoad.Parent = roadsModel
+
+	-- Main E-W road: z=0, x from -80 to +80, 12 studs wide.
+	local mainRoadEW = part({
+		Name = "MainRoadEW",
+		Size = Vector3.new(160, 0.22, ROAD_WIDTH),
+		Color = ROAD_GREY,
+		Material = Enum.Material.Asphalt,
+	})
+	mainRoadEW.CFrame = CFrame.new(0, 0.11, 0)
+	mainRoadEW.Parent = roadsModel
+
+	-- Sidewalks: lighter grey strips on each side of main N-S road.
+	for _, side in ipairs({ -ROAD_WIDTH / 2 - SIDEWALK_WIDTH / 2, ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2 }) do
+		local sw = part({
+			Name = "SidewalkNS",
+			Size = Vector3.new(SIDEWALK_WIDTH, 0.24, 240),
+			Color = SIDEWALK_GREY,
 			Material = Enum.Material.Concrete,
 		})
-		pillar.CFrame = CFrame.new(corner.x, h / 2 + 1, corner.z)
-		pillar.Parent = workspace
-
-		-- Gold cap on top of pillar
-		local cap = part({
-			Name = "PillarCap",
-			Size = Vector3.new(4.8, 1.6, 4.8),
-			Color = PERIM_TRIM,
-			Material = Enum.Material.Metal,
-		})
-		cap.CFrame = CFrame.new(corner.x, h + 1.8, corner.z)
-		cap.Parent = workspace
+		sw.CFrame = CFrame.new(side, 0.12, 0)
+		sw.Parent = roadsModel
 	end
-end
 
--- ---------------------------------------------------------------------------
--- Stone/brick path from spawn area to each base entrance.
--- ---------------------------------------------------------------------------
+	-- Sidewalks on E-W road.
+	for _, side in ipairs({ -ROAD_WIDTH / 2 - SIDEWALK_WIDTH / 2, ROAD_WIDTH / 2 + SIDEWALK_WIDTH / 2 }) do
+		local sw = part({
+			Name = "SidewalkEW",
+			Size = Vector3.new(160, 0.24, SIDEWALK_WIDTH),
+			Color = SIDEWALK_GREY,
+			Material = Enum.Material.Concrete,
+		})
+		sw.CFrame = CFrame.new(0, 0.12, side)
+		sw.Parent = roadsModel
+	end
 
-local function buildStonePaths()
-	local basePositions = {
-		{ x = -BASE_X, z = -BASE_GAP / 2 },
-		{ x =  BASE_X, z = -BASE_GAP / 2 },
-		{ x =  BASE_X, z =  BASE_GAP / 2 },
-		{ x = -BASE_X, z =  BASE_GAP / 2 },
+	-- Road markings: thin yellow centre line on main N-S road.
+	for _, segZ in ipairs({ -80, -40, 0, 40, 80 }) do
+		local line = part({
+			Name = "RoadLineNS",
+			Size = Vector3.new(0.4, 0.06, 30),
+			Color = YELLOW_LINE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		line.CFrame = CFrame.new(0, 0.28, segZ)
+		line.CanCollide = false
+		line.Parent = roadsModel
+	end
+
+	-- Road markings on E-W road.
+	for _, segX in ipairs({ -60, -20, 20, 60 }) do
+		local line = part({
+			Name = "RoadLineEW",
+			Size = Vector3.new(30, 0.06, 0.4),
+			Color = YELLOW_LINE,
+			Material = Enum.Material.SmoothPlastic,
+		})
+		line.CFrame = CFrame.new(segX, 0.28, 0)
+		line.CanCollide = false
+		line.Parent = roadsModel
+	end
+
+	-- Secondary E-W roads in the base district.
+	local secondaryRoads = {
+		{ z = BASE_ROW1_Z, name = "BaseRoadFront" },
+		{ z = BASE_ROW2_Z, name = "BaseRoadBack" },
 	}
+	for _, sr in ipairs(secondaryRoads) do
+		local secRoad = part({
+			Name = sr.name,
+			Size = Vector3.new(50, 0.2, SECONDARY_ROAD_WIDTH),
+			Color = ROAD_GREY,
+			Material = Enum.Material.Asphalt,
+		})
+		secRoad.CFrame = CFrame.new(0, 0.1, sr.z)
+		secRoad.Parent = roadsModel
+	end
 
-	for _, bp in ipairs(basePositions) do
-		-- Carpet side toward base entrance
-		local carpetX = bp.x > 0 and CARPET_WIDTH / 2 or -CARPET_WIDTH / 2
-		-- Entrance is on the carpet-facing side (north or south depending on row)
-		local entranceZ = bp.z + (bp.z > 0 and -1 or 1) * (23) -- halfW=13 for the new base, front wall
-		-- Actually entrance Z is bp.z - halfW (for north-facing) or bp.z + halfW (south)
-		-- For front row (z < 0, index 1,2): front wall is WallN at bp.z - halfW, facing carpet at larger z
-		-- For back row (z > 0, index 3,4): front wall is WallS at bp.z + halfW, facing carpet at smaller z
-		-- Carpet is in the middle, so:
-		local dir = bp.z > 0 and -1 or 1 -- front row faces +z, back row faces -z
-		local entranceZ = bp.z + dir * 13
-		-- Path runs from (entranceX = bp.x, entranceZ) toward (carpetEdgeX, carpetEdgeZ at same z)
-		-- Actually let's do a simple path: from the edge of carpet toward the base entrance
-		local sx = bp.x > 0 and CARPET_WIDTH / 2 + 2 or -CARPET_WIDTH / 2 - 2
-		local sz = entranceZ
-		local ex = bp.x
-		local ez = entranceZ
+	-- Secondary N-S roads connecting front and back base rows.
+	local secNS = part({
+		Name = "BaseRoadNS",
+		Size = Vector3.new(SECONDARY_ROAD_WIDTH, 0.2, BASE_ROW2_Z - BASE_ROW1_Z + SECONDARY_ROAD_WIDTH),
+		Color = ROAD_GREY,
+		Material = Enum.Material.Asphalt,
+	})
+	secNS.CFrame = CFrame.new(BASE_COL1_X - BASE_HALF - 4, 0.1, (BASE_ROW1_Z + BASE_ROW2_Z) / 2)
+	secNS.Parent = roadsModel
 
-		-- Draw stepping stones along the line from (sx, sz) to (ex, ez)
-		local steps = math.max(1, math.floor(math.abs(ex - sx) / 4))
-		for i = 1, steps do
-			local t = i / (steps + 1)
-			local px = sx + (ex - sx) * t
-			local pz = sz -- keep same z, just walk along X
-			local stone = part({
-				Name = "PathStone",
-				Size = Vector3.new(2.6, 0.12, 3.0),
-				Color = PATH_STONE,
-				Material = Enum.Material.Slate,
+	local secNS2 = part({
+		Name = "BaseRoadNS2",
+		Size = Vector3.new(SECONDARY_ROAD_WIDTH, 0.2, BASE_ROW2_Z - BASE_ROW1_Z + SECONDARY_ROAD_WIDTH),
+		Color = ROAD_GREY,
+		Material = Enum.Material.Asphalt,
+	})
+	secNS2.CFrame = CFrame.new(BASE_COL2_X + BASE_HALF + 4, 0.1, (BASE_ROW1_Z + BASE_ROW2_Z) / 2)
+	secNS2.Parent = roadsModel
+
+	-- Street lamps along main N-S road: cylinder pole + neon ball head, every 20 studs.
+	for _, z in ipairs({ -100, -80, -60, -40, -20, 20, 40, 60, 80, 100 }) do
+		for _, sx in ipairs({ ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 0.5, -(ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 0.5) }) do
+			local lampModel = Instance.new("Model")
+			lampModel.Name = "StreetLamp"
+
+			local poleH = 9
+			local pole = part({
+				Name = "Pole",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(poleH, 0.35, 0.35),
+				Color = LAMP_POLE,
+				Material = Enum.Material.Metal,
 			})
-			stone.CFrame = CFrame.new(px, 0.18, pz)
-			stone.Parent = workspace
+			pole.CFrame = CFrame.new(sx, poleH / 2 + 0.2, z) * CFrame.Angles(0, 0, math.rad(90))
+			pole.Parent = lampModel
+
+			local head = part({
+				Name = "LampHead",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(1.6, 1.6, 1.6),
+				Color = LAMP_GLOW,
+				Material = Enum.Material.Neon,
+			})
+			head.CFrame = CFrame.new(sx, poleH + 1.0, z)
+			head.Parent = lampModel
+
+			local pointLight = Instance.new("PointLight")
+			pointLight.Color = LAMP_GLOW
+			pointLight.Brightness = 3.2
+			pointLight.Range = 24
+			pointLight.Parent = head
+
+			lampModel.Parent = roadsModel
 		end
 	end
+
+	roadsModel.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
--- Single base building (Phase 8a overhaul).
+-- Central Spawn Plaza: large paved area at origin with Bitcoin landmark.
+-- ---------------------------------------------------------------------------
+
+local function buildSpawnPlaza()
+	local plazaModel = Instance.new("Model")
+	plazaModel.Name = "SpawnPlaza"
+
+	-- Plaza floor: alternating tile pattern (checkerboard of Box parts).
+	local tileCount = 4
+	local tileSize = PLAZA_HALF * 2 / tileCount
+	for ix = 0, tileCount - 1 do
+		for iz = 0, tileCount - 1 do
+			local isLight = (ix + iz) % 2 == 0
+			local tile = part({
+				Name = "PlazaTile",
+				Size = Vector3.new(tileSize - 0.2, 0.18, tileSize - 0.2),
+				Color = isLight and PLAZA_TILE_A or PLAZA_TILE_B,
+				Material = Enum.Material.SmoothPlastic,
+			})
+			local tx = -PLAZA_HALF + tileSize / 2 + ix * tileSize
+			local tz = -PLAZA_HALF + tileSize / 2 + iz * tileSize
+			tile.CFrame = CFrame.new(tx, 0.2, tz)
+			tile.Parent = plazaModel
+		end
+	end
+
+	-- Plaza border trim: gold edge around the plaza perimeter.
+	for _, edge in ipairs({
+		{ name = "PlazaBorderN", cf = CFrame.new(0, 0.15, -PLAZA_HALF), size = Vector3.new(PLAZA_HALF * 2, 0.16, 0.6) },
+		{ name = "PlazaBorderS", cf = CFrame.new(0, 0.15, PLAZA_HALF), size = Vector3.new(PLAZA_HALF * 2, 0.16, 0.6) },
+		{ name = "PlazaBorderE", cf = CFrame.new(PLAZA_HALF, 0.15, 0), size = Vector3.new(0.6, 0.16, PLAZA_HALF * 2) },
+		{ name = "PlazaBorderW", cf = CFrame.new(-PLAZA_HALF, 0.15, 0), size = Vector3.new(0.6, 0.16, PLAZA_HALF * 2) },
+	}) do
+		local border = part({
+			Name = edge.name,
+			Size = edge.size,
+			Color = BITCOIN_GOLD,
+			Material = Enum.Material.Metal,
+		})
+		border.CFrame = edge.cf
+		border.Parent = plazaModel
+	end
+
+	-- Bitcoin Statue: large gold Cylinder with ₿ mark, standing in the plaza centre.
+	local statueBase = part({
+		Name = "StatueBase",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(1.5, 6, 6),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	statueBase.CFrame = CFrame.new(0, 0.75, -8) * CFrame.Angles(0, 0, math.rad(90))
+	statueBase.Parent = plazaModel
+
+	local statuePillar = part({
+		Name = "StatuePillar",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(12, 4, 4),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	statuePillar.CFrame = CFrame.new(0, 7.5, -8) * CFrame.Angles(0, 0, math.rad(90))
+	statuePillar.Parent = plazaModel
+
+	-- ₿ symbol as a large flat box on top of the pillar.
+	local bitcoinSymbol = part({
+		Name = "BitcoinSymbol",
+		Size = Vector3.new(3.5, 3.5, 0.4),
+		Color = STATUE_GOLD,
+		Material = Enum.Material.Metal,
+	})
+	bitcoinSymbol.CFrame = CFrame.new(0, 14, -8)
+	bitcoinSymbol.Parent = plazaModel
+
+	-- BillboardGui for the ₿ symbol text.
+	local symbolGui = Instance.new("BillboardGui")
+	symbolGui.Size = UDim2.fromOffset(200, 80)
+	symbolGui.AlwaysOnTop = true
+	symbolGui.MaxDistance = 200
+	symbolGui.Parent = bitcoinSymbol
+
+	local symbolLabel = Instance.new("TextLabel")
+	symbolLabel.Size = UDim2.fromScale(1, 1)
+	symbolLabel.BackgroundTransparency = 1
+	symbolLabel.Font = Enum.Font.GothamBold
+	symbolLabel.TextScaled = true
+	symbolLabel.Text = "₿"
+	symbolLabel.TextColor3 = BITCOIN_GOLD
+	symbolLabel.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	symbolLabel.TextStrokeTransparency = 0.3
+	symbolLabel.Parent = symbolGui
+
+	-- Glowing ring around the statue base.
+	local glowRing = part({
+		Name = "StatueGlowRing",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.6, 7, 7),
+		Color = CYAN_BLUE,
+		Material = Enum.Material.Neon,
+	})
+	glowRing.CFrame = CFrame.new(0, 0.3, -8) * CFrame.Angles(0, 0, math.rad(90))
+	glowRing.CanCollide = false
+	glowRing.Parent = plazaModel
+
+	-- Leaderboard board: tall dark panel with BillboardGui.
+	local leaderboardPanel = part({
+		Name = "LeaderboardSign",
+		Size = Vector3.new(10, 8, 0.6),
+		Color = SIGN_DARK,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	leaderboardPanel.CFrame = CFrame.new(10, 4.4, -PLAZA_HALF + 2)
+	leaderboardPanel.CanCollide = false
+	leaderboardPanel.Parent = plazaModel
+
+	local leaderGui = Instance.new("BillboardGui")
+	leaderGui.Size = UDim2.fromOffset(260, 60)
+	leaderGui.AlwaysOnTop = true
+	leaderGui.MaxDistance = 200
+	leaderGui.Parent = leaderboardPanel
+
+	local leaderTitle = Instance.new("TextLabel")
+	leaderTitle.Size = UDim2.fromScale(1, 0.65)
+	leaderTitle.BackgroundTransparency = 1
+	leaderTitle.Font = Enum.Font.GothamBold
+	leaderTitle.TextScaled = true
+	leaderTitle.Text = "🏆 LEADERBOARD"
+	leaderTitle.TextColor3 = BITCOIN_GOLD
+	leaderTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	leaderTitle.TextStrokeTransparency = 0.25
+	leaderTitle.Parent = leaderGui
+
+	-- Info board: smaller panel with instructions.
+	local infoPanel = part({
+		Name = "InfoBoard",
+		Size = Vector3.new(8, 5, 0.6),
+		Color = SIGN_DARK,
+		Material = Enum.Material.SmoothPlastic,
+	})
+	infoPanel.CFrame = CFrame.new(-10, 3.0, -PLAZA_HALF + 2)
+	infoPanel.CanCollide = false
+	infoPanel.Parent = plazaModel
+
+	local infoGui = Instance.new("BillboardGui")
+	infoGui.Size = UDim2.fromOffset(240, 50)
+	infoGui.AlwaysOnTop = true
+	infoGui.MaxDistance = 200
+	infoGui.Parent = infoPanel
+
+	local infoTitle = Instance.new("TextLabel")
+	infoTitle.Size = UDim2.fromScale(1, 1)
+	infoTitle.BackgroundTransparency = 1
+	infoTitle.Font = Enum.Font.GothamBold
+	infoTitle.TextScaled = true
+	infoTitle.Text = "📦 COLLECT · 💰 EARN · 🏗️ BUILD"
+	infoTitle.TextColor3 = Color3.fromRGB(200, 220, 255)
+	infoTitle.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	infoTitle.TextStrokeTransparency = 0.3
+	infoTitle.Parent = infoGui
+
+	-- Decorative coin ornaments around the plaza edge: small gold Cylinders.
+	local coinRadius = PLAZA_HALF + 1
+	for i = 0, 7 do
+		local angle = math.rad(i * 45)
+		local cx = math.cos(angle) * coinRadius
+		local cz = math.sin(angle) * coinRadius
+
+		-- Skip coins in the road paths (N/S/E/W at angles 0°, 90°, 180°, 270°).
+		local absAngle = (i * 45) % 180
+		if math.abs(absAngle - 90) < 5 then
+			-- E/W road — skip but still place smaller coins further out.
+		end
+
+		local coin = part({
+			Name = "CoinOrnament",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.6, 3, 3),
+			Color = COIN_ORNAMENT,
+			Material = Enum.Material.Metal,
+		})
+		coin.CFrame = CFrame.new(cx, 0.3, cz) * CFrame.Angles(0, 0, math.rad(90))
+		coin.CanCollide = false
+		coin.Parent = plazaModel
+	end
+
+	-- 4 radiating path markers: gold strips pointing N/S/E/W.
+	local paths = {
+		{ name = "PathN", cf = CFrame.new(0, 0.13, -PLAZA_HALF - 2), size = Vector3.new(ROAD_WIDTH, 0.1, 4) },
+		{ name = "PathS", cf = CFrame.new(0, 0.13, PLAZA_HALF + 2), size = Vector3.new(ROAD_WIDTH, 0.1, 4) },
+		{ name = "PathE", cf = CFrame.new(PLAZA_HALF + 2, 0.13, 0), size = Vector3.new(4, 0.1, ROAD_WIDTH) },
+		{ name = "PathW", cf = CFrame.new(-PLAZA_HALF - 2, 0.13, 0), size = Vector3.new(4, 0.1, ROAD_WIDTH) },
+	}
+	for _, p in ipairs(paths) do
+		local marker = part({
+			Name = p.name,
+			Size = p.size,
+			Color = BITCOIN_GOLD,
+			Material = Enum.Material.Metal,
+		})
+		marker.CFrame = p.cf
+		marker.Parent = plazaModel
+	end
+
+	plazaModel.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
+-- Single base building: structure for one player's base.
 -- ---------------------------------------------------------------------------
 
 local function buildSingleBase(cx, cz, index)
@@ -786,7 +752,7 @@ local function buildSingleBase(cx, cz, index)
 	model.Name = "Base" .. index
 
 	local wallH = 10
-	local halfW = 13 -- half-width of the building
+	local halfW = BASE_HALF
 
 	-- Red interior floor — also the "Island" part the server hooks .Touched on.
 	local floor = part({
@@ -798,61 +764,32 @@ local function buildSingleBase(cx, cz, index)
 	floor.CFrame = CFrame.new(cx, 0.2, cz)
 	floor.Parent = model
 
-	-- Grey walls: four slabs around the floor, each 0.6 thick.
-	-- Front wall (carpet-facing) gets a 5-stud doorway opening.
-	-- Determine which wall faces the carpet:
-	-- Row A (cz < 0, index 1,2): carpet is south (+z), front wall is WallS (cz + halfW)
-	-- Row B (cz > 0, index 3,4): carpet is north (-z), front wall is WallN (cz - halfW)
-	local carpetDir = cz > 0 and -1 or 1 -- direction from base center toward carpet
+	-- All bases have their doorway facing south (toward spawn / the road).
+	-- South wall (WallS at cz + halfW): doorway in the middle 6 studs.
+	local doorHalf = 3.0
 
-	-- Build all four walls as segments around the doorway.
-	if carpetDir == 1 then
-		-- Front wall (WallS at cz + halfW): doorway in the middle 5 studs.
-		local doorHalf = 2.5
-		-- Left segment
-		local segL = part({
-			Name = "WallS_L",
-			Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-			Color = WALL_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		segL.CFrame = CFrame.new(cx - (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
-		segL.Parent = model
-		-- Right segment
-		local segR = part({
-			Name = "WallS_R",
-			Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-			Color = WALL_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		segR.CFrame = CFrame.new(cx + (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
-		segR.Parent = model
-	else
-		-- Front wall (WallN at cz - halfW): doorway in the middle 5 studs.
-		local doorHalf = 2.5
-		-- Left segment
-		local segL = part({
-			Name = "WallN_L",
-			Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-			Color = WALL_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		segL.CFrame = CFrame.new(cx - (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz - halfW)
-		segL.Parent = model
-		-- Right segment
-		local segR = part({
-			Name = "WallN_R",
-			Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
-			Color = WALL_GREY,
-			Material = Enum.Material.Concrete,
-		})
-		segR.CFrame = CFrame.new(cx + (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz - halfW)
-		segR.Parent = model
-	end
+	-- Left segment of south wall.
+	local segL = part({
+		Name = "WallS_L",
+		Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
+		Color = WALL_GREY,
+		Material = Enum.Material.Concrete,
+	})
+	segL.CFrame = CFrame.new(cx - (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
+	segL.Parent = model
+
+	-- Right segment of south wall.
+	local segR = part({
+		Name = "WallS_R",
+		Size = Vector3.new(halfW - doorHalf, wallH, 0.6),
+		Color = WALL_GREY,
+		Material = Enum.Material.Concrete,
+	})
+	segR.CFrame = CFrame.new(cx + (halfW + doorHalf) / 2, wallH / 2 + 0.2, cz + halfW)
+	segR.Parent = model
 
 	-- Doorframe: gold pillars on each side of the opening and a threshold.
-	local doorZ = cz + carpetDir * halfW
-	local doorHalf = 2.5
+	local doorZ = cz + halfW
 	for _, dx in ipairs({ -doorHalf, doorHalf }) do
 		local framePost = part({
 			Name = "DoorFrame",
@@ -864,7 +801,7 @@ local function buildSingleBase(cx, cz, index)
 		framePost.Parent = model
 	end
 
-	-- Threshold: a low gold block across the bottom of the doorway.
+	-- Threshold: low gold block across the doorway bottom.
 	local threshold = part({
 		Name = "Threshold",
 		Size = Vector3.new(doorHalf * 2 + 0.8, 0.4, 1.0),
@@ -874,18 +811,12 @@ local function buildSingleBase(cx, cz, index)
 	threshold.CFrame = CFrame.new(cx, 0.4, doorZ)
 	threshold.Parent = model
 
-	-- Solid side walls and back wall.
+	-- Solid walls: west, east, north.
 	local solidWalls = {
 		{ name = "WallW", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx - halfW, wallH / 2 + 0.2, cz) },
 		{ name = "WallE", size = Vector3.new(0.6, wallH, halfW * 2), cf = CFrame.new(cx + halfW, wallH / 2 + 0.2, cz) },
+		{ name = "WallN", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz - halfW) },
 	}
-	if carpetDir == 1 then
-		-- Back wall is WallN
-		table.insert(solidWalls, { name = "WallN", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz - halfW) })
-	else
-		-- Back wall is WallS
-		table.insert(solidWalls, { name = "WallS", size = Vector3.new(halfW * 2 + 1.2, wallH, 0.6), cf = CFrame.new(cx, wallH / 2 + 0.2, cz + halfW) })
-	end
 	for _, w in ipairs(solidWalls) do
 		local wall = part({
 			Name = w.name,
@@ -897,7 +828,7 @@ local function buildSingleBase(cx, cz, index)
 		wall.Parent = model
 	end
 
-	-- Roof slab: dark colour with gold accent trim, sized to the new footprint.
+	-- Roof slab: dark colour with gold accent trim.
 	local roofSlab = part({
 		Name = "Roof",
 		Size = Vector3.new(halfW * 2 + 1.8, 1.2, halfW * 2 + 1.8),
@@ -907,7 +838,7 @@ local function buildSingleBase(cx, cz, index)
 	roofSlab.CFrame = CFrame.new(cx, wallH + 1.2, cz)
 	roofSlab.Parent = model
 
-	-- Gold roof trim around the edge.
+	-- Gold roof trim.
 	local roofOverhang = halfW + 1.2
 	for _, rt in ipairs({
 		{ name = "RoofTrimN", cf = CFrame.new(cx, wallH + 2.0, cz - roofOverhang), size = Vector3.new(halfW * 2 + 2.2, 0.6, 0.6) },
@@ -925,7 +856,7 @@ local function buildSingleBase(cx, cz, index)
 		trimPart.Parent = model
 	end
 
-	-- White-framed windows on the side walls and back wall only.
+	-- White-framed windows on the side walls (west, east) and back wall (north).
 	local function addWindow(fx, fz, rotY, sx)
 		local frame = part({
 			Name = "Window",
@@ -938,34 +869,29 @@ local function buildSingleBase(cx, cz, index)
 		frame.Parent = model
 	end
 
-	-- Left wall (west): two windows
+	-- West wall: two windows.
 	addWindow(-halfW - 0.1, -5, 0, 4)
 	addWindow(-halfW - 0.1, 5, 0, 4)
-	-- Right wall (east): two windows
+	-- East wall: two windows.
 	addWindow(halfW + 0.1, -5, 0, 4)
 	addWindow(halfW + 0.1, 5, 0, 4)
-	-- Back wall: two windows
-	if carpetDir == 1 then
-		addWindow(-5, -halfW - 0.1, 90, 4)
-		addWindow(5, -halfW - 0.1, 90, 4)
-	else
-		addWindow(-5, halfW + 0.1, 90, 4)
-		addWindow(5, halfW + 0.1, 90, 4)
-	end
+	-- North (back) wall: two windows.
+	addWindow(-5, -halfW - 0.1, 90, 4)
+	addWindow(5, -halfW - 0.1, 90, 4)
 
-	-- Base sign: a dark slab hovering above the front wall with the BillboardGui.
+	-- Base sign: dark slab above the front (south) wall with BillboardGui.
 	local sign = part({
 		Name = "BaseSign",
 		Size = Vector3.new(16, 2.4, 0.6),
 		Color = SIGN_DARK,
 		Material = Enum.Material.SmoothPlastic,
 	})
-	sign.CFrame = CFrame.new(cx, wallH + 3.6, cz + carpetDir * halfW)
+	sign.CFrame = CFrame.new(cx, wallH + 3.6, cz + halfW)
 	sign.CanCollide = false
 	sign.Parent = model
 	buildBaseNameplate(sign, "YOUR BASE", Color3.fromRGB(120, 255, 150))
 
-	-- ProximityPrompt on the floor so a player sees "Claim Base" when close.
+	-- ProximityPrompt on the floor for "Claim Base".
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "ClaimPrompt"
 	prompt.ActionText = "Claim Base"
@@ -975,13 +901,12 @@ local function buildSingleBase(cx, cz, index)
 	prompt.MaxActivationDistance = 18
 	prompt.Parent = floor
 
-	-- Pedestal rows: 2 rows of 5, arranged inside the building.
-	local facingDir = cz > 0 and -1 or 1 -- pedestals face the carpet
+	-- Pedestal rows: 2 rows of 5 inside the building, facing south.
 	for slot = 1, Config.Economy.maxSlots do
 		local row = math.floor((slot - 1) / 5)
 		local col = (slot - 1) % 5
 		local px = cx + (col - 2) * PEDESTAL_SPACING
-		local pz = cz + (row - 0.5) * 6 * facingDir + 1.5 * facingDir
+		local pz = cz + (row - 0.5) * 6 + 3
 		local pedestal = part({
 			Name = "Pedestal" .. slot,
 			Shape = Enum.PartType.Cylinder,
@@ -1000,122 +925,83 @@ local function buildSingleBase(cx, cz, index)
 	model:SetAttribute("CenterZ", cz)
 	model:SetAttribute("TopY", 0.4) -- floor height for tsunami teleport
 
-	-- Phase 8a: neat grid interior with counter, machines, and neon stripe.
-	buildBaseInterior(model, cx, cz, facingDir)
-
 	model.Parent = workspace
 	return model
 end
 
 -- ---------------------------------------------------------------------------
--- Golden statue: a simple trophy shape along the carpet.
+-- Player Base District: 4 base plots in a 2×2 grid north of spawn.
 -- ---------------------------------------------------------------------------
 
-local function buildGoldStatue(x, z)
-	local model = Instance.new("Model")
-	model.Name = "GoldStatue"
+local function buildBaseDistrict()
+	local districtModel = Instance.new("Model")
+	districtModel.Name = "BaseDistrict"
 
-	local base = part({
-		Name = "Base",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(1.2, 4.5, 4.5),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	base.CFrame = CFrame.new(x, 0.6, z) * CFrame.Angles(0, 0, math.rad(90))
-	base.Parent = model
+	-- 2×2 grid layout (read row-major from south):
+	--   Base 1 (front-left):  x=-15, z=55
+	--   Base 2 (front-right): x=+15, z=55
+	--   Base 3 (back-right):  x=+15, z=85
+	--   Base 4 (back-left):   x=-15, z=85
+	local basePositions = {
+		{ x = BASE_COL1_X, z = BASE_ROW1_Z, index = 1 },
+		{ x = BASE_COL2_X, z = BASE_ROW1_Z, index = 2 },
+		{ x = BASE_COL2_X, z = BASE_ROW2_Z, index = 3 },
+		{ x = BASE_COL1_X, z = BASE_ROW2_Z, index = 4 },
+	}
 
-	local pillar = part({
-		Name = "Pillar",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(5.2, 1.8, 1.8),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	pillar.CFrame = CFrame.new(x, 3.8, z) * CFrame.Angles(0, 0, math.rad(90))
-	pillar.Parent = model
-
-	local head = part({
-		Name = "Head",
-		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.8, 2.8, 2.8),
-		Color = STATUE_GOLD,
-		Material = Enum.Material.Metal,
-	})
-	head.CFrame = CFrame.new(x, 7.4, z)
-	head.Parent = model
-
-	model.Parent = workspace
-	return model
-end
-
--- ---------------------------------------------------------------------------
--- Small vault sign at the far end of the carpet.
--- ---------------------------------------------------------------------------
-
-local function buildVaultSign()
-	local z = CARPET_HALF + 4
-	local board = part({
-		Name = "VaultSign",
-		Size = Vector3.new(12, 5, 0.8),
-		Color = Color3.fromRGB(50, 48, 62),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	board.CFrame = CFrame.new(0, 4.5, z)
-	board.Parent = workspace
-
-	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(300, 60)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = 200
-	gui.Parent = board
-
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.fromScale(1, 0.65)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.TextScaled = true
-	title.Text = "BRAINROT VAULT"
-	title.TextColor3 = Color3.fromRGB(255, 210, 90)
-	title.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	title.TextStrokeTransparency = 0.25
-	title.Parent = gui
-
-	local sub = Instance.new("TextLabel")
-	sub.Position = UDim2.fromScale(0, 0.65)
-	sub.Size = UDim2.fromScale(1, 0.35)
-	sub.BackgroundTransparency = 1
-	sub.Font = Enum.Font.GothamBold
-	sub.TextScaled = true
-	sub.Text = "TYCOON"
-	sub.TextColor3 = Color3.fromRGB(255, 255, 255)
-	sub.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
-	sub.TextStrokeTransparency = 0.3
-	sub.Parent = gui
-
-	-- Two posts
-	for _, sx in ipairs({ -5.5, 5.5 }) do
-		local post = part({
-			Name = "Post",
-			Size = Vector3.new(1, 8, 1),
-			Color = Color3.fromRGB(60, 56, 74),
-			Material = Enum.Material.Metal,
-		})
-		post.CFrame = CFrame.new(sx, 4, z)
-		post.Parent = workspace
+	local bases = {}
+	for _, bp in ipairs(basePositions) do
+		bases[bp.index] = buildSingleBase(bp.x, bp.z, bp.index)
 	end
+
+	-- Connecting paths between plots: stone walkways.
+	local function addPath(sx, sz, ex, ez)
+		local dx = ex - sx
+		local dz = ez - sz
+		local dist = math.sqrt(dx * dx + dz * dz)
+		local steps = math.max(2, math.floor(dist / 4))
+		for i = 1, steps do
+			local t = i / (steps + 1)
+			local px = sx + dx * t
+			local pz = sz + dz * t
+			local stone = part({
+				Name = "PathStone",
+				Size = Vector3.new(2.4, 0.1, 2.4),
+				Color = SIDEWALK_GREY,
+				Material = Enum.Material.Slate,
+			})
+			stone.CFrame = CFrame.new(px, 0.18, pz)
+			stone.Parent = districtModel
+		end
+	end
+
+	-- Paths from main road to each base doorway (south side of each base).
+	for _, bp in ipairs(basePositions) do
+		local doorX = bp.x
+		local doorZ = bp.z + BASE_HALF
+		local roadX = 0
+		local roadZ = bp.z
+		addPath(roadX, roadZ, doorX, doorZ)
+	end
+
+	-- Paths between front and back row bases (north-south connectors).
+	addPath(BASE_COL1_X, BASE_ROW1_Z, BASE_COL1_X, BASE_ROW2_Z)
+	addPath(BASE_COL2_X, BASE_ROW1_Z, BASE_COL2_X, BASE_ROW2_Z)
+
+	districtModel.Parent = workspace
+	return bases
 end
 
 -- ---------------------------------------------------------------------------
--- Capsule spawn pad: glowing disc (public API — init.server uses it).
+-- Capsule spawn pad: glowing disc along the main road.
 -- ---------------------------------------------------------------------------
 
 function WorldBuilder.buildSpawnPad(index)
-	-- 4 pads on each side of the carpet, alternating Z.
+	-- 8 pads, 4 on each side of the main N-S road, spread along Z.
 	local side = index % 2 == 1 and -1 or 1
-	local row = math.floor((index - 1) / 2)   -- 0..3
-	local z = -45 + row * 30
-	local x = side * 32
+	local row = math.floor((index - 1) / 2) -- 0..3
+	local z = -60 + row * 40
+	local x = side * (ROAD_WIDTH / 2 + SIDEWALK_WIDTH + 6)
 
 	local pad = part({
 		Name = "SpawnPad" .. index,
@@ -1142,7 +1028,7 @@ function WorldBuilder.buildSpawnPad(index)
 end
 
 -- ---------------------------------------------------------------------------
--- setBaseSign: update a claimed base's nameplate.  Called by init.server.
+-- setBaseSign: update a claimed base's nameplate. Called by init.server.
 -- ---------------------------------------------------------------------------
 
 function WorldBuilder.setBaseSign(baseModel, title, subtitle, color)
@@ -1166,7 +1052,7 @@ function WorldBuilder.setBaseSign(baseModel, title, subtitle, color)
 end
 
 -- ---------------------------------------------------------------------------
--- Build everything.  Returns { pads, bases }.
+-- Build everything. Returns { pads, bases }.
 -- ---------------------------------------------------------------------------
 
 function WorldBuilder.build()
@@ -1177,39 +1063,17 @@ function WorldBuilder.build()
 		end
 	end
 
+	-- Destroy old template Baseplate if present.
+	local template = workspace:FindFirstChild("Baseplate")
+	if template then template:Destroy() end
+
 	safeStep("setupLighting", setupLighting)
-	safeStep("buildGround", buildGround)
+	safeStep("buildTerrain", buildTerrain)
+	safeStep("buildOcean", buildOcean)
+	safeStep("buildRoads", buildRoads)
+	safeStep("buildSpawnPlaza", buildSpawnPlaza)
 
-	-- 4 bases: row A at Z = -BASE_GAP/2, row B at Z = +BASE_GAP/2.
-	-- Indices 1-4: front-left, front-right, back-right, back-left (clockwise).
-	local basePositions = {
-		{ x = -BASE_X, z = -BASE_GAP / 2, index = 1 },
-		{ x =  BASE_X, z = -BASE_GAP / 2, index = 2 },
-		{ x =  BASE_X, z =  BASE_GAP / 2, index = 3 },
-		{ x = -BASE_X, z =  BASE_GAP / 2, index = 4 },
-	}
-
-	local bases = {}
-	for _, bp in ipairs(basePositions) do
-		bases[bp.index] = buildSingleBase(bp.x, bp.z, bp.index)
-	end
-
-	-- Golden statues off the carpet at x = -14 and x = +14.
-	safeStep("buildGoldStatue1", function() buildGoldStatue(-14, -28) end)
-	safeStep("buildGoldStatue2", function() buildGoldStatue(14, 0) end)
-	safeStep("buildGoldStatue3", function() buildGoldStatue(-14, 28) end)
-
-	-- Small vault sign at the far end.
-	safeStep("buildVaultSign", buildVaultSign)
-
-	-- Perimeter wall around all four map edges.
-	safeStep("buildPerimeterWall", buildPerimeterWall)
-
-	-- Stone/brick paths from spawn area to each base entrance.
-	safeStep("buildStonePaths", buildStonePaths)
-
-	-- Environment props: trees, rocks, lamps, benches, bushes.
-	safeStep("buildEnvironmentProps", buildEnvironmentProps)
+	local bases = buildBaseDistrict()
 
 	-- Spawn pads.
 	local pads = {}
