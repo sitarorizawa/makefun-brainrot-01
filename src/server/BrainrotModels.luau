@@ -472,7 +472,64 @@ function BrainrotModels.buildCarried(entry, mutation, traits)
 	return model
 end
 
--- The unit resting on a pedestal: label shows name and rate, just above the
+-- A walking brainrot on the red carpet: the body from build(), a non-colliding
+-- touch hitbox the catch flow listens on, and a label at a high vertical offset
+-- so the walker labels never overlap the capsule/carried/placed labels.
+-- Returns the model plus the hitbox part (PrimaryPart) the server hooks .Touched on.
+function BrainrotModels.buildWalker(entry, mutation, traits)
+	local model = BrainrotModels.build(entry, mutation, nil, traits)
+	local rarity = Config.rarity(entry.rarity)
+
+	-- A non-colliding hitbox wraps the body: CanCollide=false so walkers never
+	-- block the player or the tsunami, but .Touched still fires for a catch.
+	local hitbox = makePart({
+		Name = "WalkerHitbox",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(4.2, 4.2, 4.2),
+		Color = rarity.color,
+		Material = Enum.Material.Neon,
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+		CastShadow = false,
+	})
+	hitbox.CFrame = model:GetPivot()
+	hitbox.Parent = model
+	model.PrimaryPart = hitbox
+
+	-- Label sits highest of all the unit labels so it never stacks on a
+	-- capsule, carried or placed label sharing the screen.
+	addLabel(model, entry.name, nil, rarity.color, Config.Walkers.labelVOffset)
+	return model, hitbox
+end
+
+-- Register a walker model for its walking animation along the carpet lane.
+-- `laneX` is the fixed x the walker travels at; `progress` is the starting z
+-- position and `speed` is studs/sec. The walker moves +z and wraps to the
+-- start when it passes +CARPET_HALF.
+function BrainrotModels.startWalker(model, laneX, startZ, speed, carpetHalf)
+	local item = {
+		model = model,
+		kind = "walk",
+		laneX = laneX,
+		z = startZ,
+		speed = speed,
+		carpetHalf = carpetHalf,
+		lastTick = tick(),
+	}
+	table.insert(animated, item)
+	return item
+end
+
+-- Stop walking a walker (called on catch). Removes it from the animation loop.
+function BrainrotModels.stopWalker(model)
+	for i = #animated, 1, -1 do
+		if animated[i].model == model then
+			table.remove(animated, i)
+		end
+	end
+end
+	-- The unit resting on a pedestal: label shows name and rate, just above the
 -- unit (lower than carried/capsule so stacked placed units don't collide).
 function BrainrotModels.buildPlaced(entry, mutation, traits)
 	local model = BrainrotModels.build(entry, mutation, nil, traits)
@@ -543,7 +600,7 @@ function BrainrotModels.retire(model)
 end
 
 -- One loop drives every animation in the game: capsule spin, carried bob,
--- placed sway and the rainbow mutation's hue cycle.
+-- placed sway, walker stride and the rainbow mutation's hue cycle.
 RunService.Heartbeat:Connect(function()
 	local now = tick()
 	for i = #animated, 1, -1 do
@@ -561,6 +618,17 @@ RunService.Heartbeat:Connect(function()
 			local lift = math.sin(now * 2 + item.base.Position.X) * 0.12
 			local yaw = math.sin(now * 1.5 + item.base.Position.Z) * 0.18
 			model:PivotTo(item.base * CFrame.new(0, lift, 0) * CFrame.Angles(0, yaw, 0))
+		elseif item.kind == "walk" then
+			-- Walkers travel one lane (fixed x) in +z, wrap to the start past the end.
+			item.z += item.speed * (now - (item.lastTick or now))
+			item.lastTick = now
+			if item.z > item.carpetHalf then
+				item.z = -item.carpetHalf
+			end
+			local bob = math.sin(now * 8 + item.z) * 0.18
+			local sway = math.sin(now * 6 + item.z) * 0.12
+			model:PivotTo(CFrame.new(item.laneX, Config.Walkers.spawnY + bob, item.z)
+				* CFrame.Angles(0, sway, 0))
 		end
 	end
 	-- Rainbow mutation: cycle hue across the whole body.

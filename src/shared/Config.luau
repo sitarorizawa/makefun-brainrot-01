@@ -112,6 +112,26 @@ Config.RareAnnounce = {
 	minInterval = 12, -- seconds between announcements
 }
 
+-- Walking brainrot characters on the red carpet: 12-16 walkers always alive,
+-- single lane at x=0, z from -CARPET_HALF to +CARPET_HALF then wrap.
+-- Speed scales with rarity so rarer characters are harder to catch.
+Config.CARPET_HALF = 72 -- exported so init.server can use it without hardcoding
+Config.Walkers = {
+	minAlive = 12,
+	maxAlive = 16,
+	respawnDelay = 4, -- seconds before a replacement spawns after a catch
+	labelVOffset = 3.8, -- higher than capsule/carried/placed labels so they never overlap
+	spawnY = 2.0, -- studs above the carpet
+	speeds = {
+		Common = 4,
+		Uncommon = 6,
+		Rare = 8,
+		Epic = 10,
+		Legendary = 13,
+		Mythic = 17,
+	},
+}
+
 -- Rarity lookup by name, for rolls and labels.
 function Config.rarity(name)
 	for _, entry in ipairs(Config.Rarities) do

@@ -149,6 +149,150 @@ local function updateStats(player)
 end
 
 -- ---------------------------------------------------------------------------
+-- Walkers: brainrot characters walking the red carpet, catchable like capsules
+-- ---------------------------------------------------------------------------
+
+local walkers = {} -- [walkerIndex] = walker record, 12-16 alive at once
+
+local function walkerCount()
+	local n = 0
+	for _ in pairs(walkers) do
+		n += 1
+	end
+	return n
+end
+
+-- Pick a catalog entry with a controlled rarity mix — weighted toward Common
+-- but every rarity can appear so a Mythic on the carpet is a chase-worthy moment.
+local function rollWalkerUnit()
+	local rarity = Config.rollRarity(rng)
+	local pool = {}
+	for _, entry in ipairs(Config.Brainrots) do
+		if entry.rarity == rarity.name then
+			table.insert(pool, entry)
+		end
+	end
+	local entry = pool[rng:NextInteger(1, #pool)]
+	local mutation = Config.rollMutation(rng)
+	local traits = Config.rollTraits(rng)
+	return entry, mutation, traits
+end
+
+local function spawnWalker(startZ)
+	return nil, nil
+end
+
+local function catchWalker(player, record)
+	local state = states[player]
+	if state == nil or state.carried ~= nil then
+		return
+	end
+
+	state.carried = { entry = record.entry, mutation = record.mutation, traits = record.traits }
+	local model = BrainrotModels.buildCarried(record.entry, record.mutation, record.traits)
+	model.Name = "Carried"
+	state.carriedModel = model
+	model.Parent = workspace
+
+	-- Sparkle on catch, big for Rare+.
+	local rarityColor = Config.rarity(record.entry.rarity).color
+	if rarityIndex(record.entry.rarity) >= 3 then
+		BrainrotModels.sparkleAt(record.model.PrimaryPart.Position, rarityColor, true)
+	end
+
+	-- Collection tracking.
+	local isNew = state.collectedIds[record.entry.id] == nil
+	if isNew then
+		state.collectedIds[record.entry.id] = true
+		state.rarityCounts[record.entry.rarity] = (state.rarityCounts[record.entry.rarity] or 0) + 1
+		publishCollection(player, state)
+	end
+
+	-- Retire the walker model and schedule a replacement.
+	BrainrotModels.stopWalker(record.model)
+	BrainrotModels.retire(record.model)
+	record.model:Destroy()
+	walkers[record.walkerIndex] = nil
+	record.dead = true
+
+	local wi = record.walkerIndex
+	task.delay(Config.Walkers.respawnDelay, function()
+		if walkers[wi] == nil then
+			spawnWalker(rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
+		end
+	end)
+
+	if isNew then
+		local found = 0
+		for _ in pairs(state.collectedIds) do
+			found += 1
+		end
+		showToast(player, string.format("NEW DISCOVERY! %s (%d/%d)",
+			Config.unitTitle(record.entry, record.mutation, record.traits), found, #Config.Brainrots))
+	else
+		showToast(player, string.format(
+			"Caught %s from the carpet! %s",
+			Config.unitTitle(record.entry, record.mutation, record.traits),
+			state.baseIndex and "Bring it to your base!" or "Claim an open base first!"
+		))
+	end
+	setHint(player, state.baseIndex and "Carry it onto YOUR island to place it" or "Stand on an open base to claim it")
+end
+
+spawnWalker = function(startZ)
+	if walkerCount() >= Config.Walkers.maxAlive then
+		return
+	end
+	local entry, mutation, traits = rollWalkerUnit()
+	local model, hitbox = BrainrotModels.buildWalker(entry, mutation, traits)
+
+	-- Find a free walker index.
+	local wi = 1
+	while walkers[wi] ~= nil do
+		wi += 1
+	end
+
+	-- All walkers share the centre lane (x = 0), moving +z.
+	local laneX = 0
+	local speed = Config.Walkers.speeds[entry.rarity] or 5
+	local z = startZ or (rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
+	BrainrotModels.startWalker(model, laneX, z, speed, Config.CARPET_HALF)
+
+	-- Position the model at its starting spot so it doesn't flash at origin.
+	model:PivotTo(CFrame.new(laneX, Config.Walkers.spawnY, z))
+	model.Parent = workspace
+
+	local record = {
+		model = model,
+		entry = entry,
+		mutation = mutation,
+		traits = traits,
+		walkerIndex = wi,
+		dead = false,
+	}
+	walkers[wi] = record
+
+	hitbox.Touched:Connect(function(hit)
+		if record.dead or walkers[wi] ~= record then
+			return
+		end
+		local player = playerFromHit(hit)
+		if player == nil then
+			return
+		end
+		local state = states[player]
+		if state == nil or state.carried ~= nil then
+			if state and state.carried ~= nil then
+				showToast(player, "Hands full — place your catch first!")
+			end
+			return
+		end
+		record.dead = true
+		catchWalker(player, record)
+	end)
+end
+
+-- ---------------------------------------------------------------------------
 -- Capsules: spawn, catch, respawn
 -- ---------------------------------------------------------------------------
 
@@ -888,8 +1032,14 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ---------------------------------------------------------------------------
--- Kick it off: capsules on every pad, bases listening for claims
+-- Kick it off: walkers on the carpet, capsules on every pad, bases listening
 -- ---------------------------------------------------------------------------
+
+-- Seed the carpet with walkers so the lane is busy from the first frame.
+-- Populate minAlive right away, spaced evenly.
+for _ = 1, Config.Walkers.minAlive do
+	spawnWalker(rng:NextNumber() * Config.CARPET_HALF * 2 - Config.CARPET_HALF)
+end
 
 for index = 1, Config.Capsule.padCount do
 	spawnCapsule(index)
