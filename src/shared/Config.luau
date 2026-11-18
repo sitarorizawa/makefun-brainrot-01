@@ -17,18 +17,18 @@ Config.Rarities = {
 -- The twelve collectible brainrots: each earns its cash rate per second while it
 -- sits on a pedestal of the player's base. `shape` and `hat` pick the 3D build.
 Config.Brainrots = {
-	{ id = "gunko", name = "Gunko", rarity = "Common", rate = 1, color = Color3.fromRGB(240, 220, 120), shape = "round", hat = "none" },
-	{ id = "blorbo", name = "Blorbo", rarity = "Common", rate = 2, color = Color3.fromRGB(120, 200, 240), shape = "box", hat = "none" },
-	{ id = "schnorp", name = "Schnorp", rarity = "Common", rate = 3, color = Color3.fromRGB(240, 140, 170), shape = "tall", hat = "none" },
-	{ id = "wumbino", name = "Wumbino", rarity = "Uncommon", rate = 6, color = Color3.fromRGB(150, 230, 110), shape = "round", hat = "antenna" },
-	{ id = "flibberjack", name = "Flibberjack", rarity = "Uncommon", rate = 10, color = Color3.fromRGB(255, 190, 80), shape = "box", hat = "cap" },
-	{ id = "grumbo", name = "Grumbo", rarity = "Rare", rate = 22, color = Color3.fromRGB(140, 110, 220), shape = "tall", hat = "horns" },
-	{ id = "zonko", name = "Zonko the Zesty", rarity = "Rare", rate = 35, color = Color3.fromRGB(90, 220, 200), shape = "round", hat = "crown" },
-	{ id = "binglebop", name = "Binglebop", rarity = "Epic", rate = 75, color = Color3.fromRGB(255, 120, 90), shape = "box", hat = "antenna" },
-	{ id = "crungus", name = "Crungus", rarity = "Epic", rate = 110, color = Color3.fromRGB(110, 240, 160), shape = "tall", hat = "cap" },
-	{ id = "fartbox", name = "Lord Fartbox", rarity = "Legendary", rate = 250, color = Color3.fromRGB(200, 200, 60), shape = "box", hat = "crown" },
-	{ id = "schnoz", name = "Quantum Schnoz", rarity = "Legendary", rate = 400, color = Color3.fromRGB(90, 160, 255), shape = "round", hat = "horns" },
-	{ id = "finalblorbo", name = "The Final Blorbo", rarity = "Mythic", rate = 900, color = Color3.fromRGB(255, 80, 200), shape = "tall", hat = "crown" },
+	{ id = "satoshi-nekotto", name = "Satoshi Nekotto", rarity = "Common", rate = 1, color = Color3.fromRGB(255, 165, 0), shape = "round", hat = "none" },
+	{ id = "vitalik-froghini", name = "Vitalik Froghini", rarity = "Common", rate = 2, color = Color3.fromRGB(120, 200, 240), shape = "box", hat = "none" },
+	{ id = "schnorpellino", name = "Schnorpellino", rarity = "Common", rate = 3, color = Color3.fromRGB(240, 140, 170), shape = "tall", hat = "none" },
+	{ id = "wumbino-antennini", name = "Wumbino Antennini", rarity = "Uncommon", rate = 6, color = Color3.fromRGB(150, 230, 110), shape = "round", hat = "antenna" },
+	{ id = "flibberino-pizza", name = "Flibberino Pizzarolo", rarity = "Uncommon", rate = 10, color = Color3.fromRGB(255, 190, 80), shape = "box", hat = "cap" },
+	{ id = "grumbolo-melon", name = "Grumbolo Melonotto", rarity = "Rare", rate = 22, color = Color3.fromRGB(140, 110, 220), shape = "tall", hat = "horns" },
+	{ id = "zonketto-limone", name = "Zonketto Limonele", rarity = "Rare", rate = 35, color = Color3.fromRGB(90, 220, 200), shape = "round", hat = "crown" },
+	{ id = "binglebop-arcade", name = "Binglebop Macchinino", rarity = "Epic", rate = 75, color = Color3.fromRGB(255, 120, 90), shape = "box", hat = "antenna" },
+	{ id = "crungus-funghetto", name = "Crungus Funghetto", rarity = "Epic", rate = 110, color = Color3.fromRGB(110, 240, 160), shape = "tall", hat = "cap" },
+	{ id = "fartellone-bomb", name = "Fartellone Bombetta", rarity = "Legendary", rate = 250, color = Color3.fromRGB(200, 200, 60), shape = "box", hat = "crown" },
+	{ id = "schnozzolo-fridge", name = "Schnozzolo Gelatone", rarity = "Legendary", rate = 400, color = Color3.fromRGB(90, 160, 255), shape = "round", hat = "horns" },
+	{ id = "finale-drago", name = "Finale Dragoespresso", rarity = "Mythic", rate = 900, color = Color3.fromRGB(255, 80, 200), shape = "tall", hat = "crown" },
 }
 
 -- Mutations roll independently of rarity when a capsule is caught and multiply
