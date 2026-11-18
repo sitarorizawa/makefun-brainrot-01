@@ -59,19 +59,9 @@ local function buildGround()
 		Name = "Island",
 		Size = Vector3.new(ISLAND_SIZE, 0.4, ISLAND_SIZE),
 		Color = GRASS,
-		Material = Enum.Material.Plastic,
+		Material = Enum.Material.Grass,
 	})
 	grass.CFrame = CFrame.new(0, 0, 0)
-
-	-- Apply stud texture to the top face for LEGO baseplate look.
-	pcall(function()
-		local tex = Instance.new("Texture")
-		tex.Texture = "rbxasset://textures/studs.dds" -- built-in Roblox stud texture (never fails to load)
-		tex.Face = Enum.NormalId.Top
-		tex.StudsPerTileU = 2
-		tex.StudsPerTileV = 2
-		tex.Parent = grass
-	end)
 
 	grass.Anchored = true
 	grass.CanCollide = true
@@ -147,7 +137,7 @@ local function buildCliffs()
 		end
 		angle = angle or rng:NextNumber(math.rad(30), math.rad(60))
 
-		local radius = rng:NextNumber(140, 160)
+		local radius = rng:NextNumber(100, 140)
 		local x = math.cos(angle) * radius
 		local z = math.sin(angle) * radius
 
