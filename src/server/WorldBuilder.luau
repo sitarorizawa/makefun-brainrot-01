@@ -52,21 +52,30 @@ local function setupLighting()
 end
 
 -- ---------------------------------------------------------------------------
--- Ground: flat green plane, 300x300, centered at origin, Y=0.
+-- Ground: 10x10 grid of 30x30 Plastic tiles, 300x300 total, centered at
+-- origin, Y=0. Each tile is small enough to show visible studs.
 -- ---------------------------------------------------------------------------
 
 local function buildGround()
-	local grass = part({
-		Name = "Island",
-		Size = Vector3.new(ISLAND_SIZE, 0.4, ISLAND_SIZE),
-		Color = GRASS,
-		Material = Enum.Material.Plastic,
-	})
-	grass.CFrame = CFrame.new(0, 0, 0)
+	local m = Instance.new("Model")
+	m.Name = "Ground"
 
-	grass.Anchored = true
-	grass.CanCollide = true
-	grass.Parent = workspace
+	for x = -150, 120, 30 do
+		for z = -150, 120, 30 do
+			local tile = part({
+				Name = "Tile",
+				Size = Vector3.new(30, 0.4, 30),
+				Color = GRASS,
+				Material = Enum.Material.Plastic,
+			})
+			tile.CFrame = CFrame.new(x + 15, 0, z + 15)
+			tile.Anchored = true
+			tile.CanCollide = true
+			tile.Parent = m
+		end
+	end
+
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
@@ -89,8 +98,8 @@ end
 
 -- ---------------------------------------------------------------------------
 -- Cliffs: reddish-brown brick walls at the horizon, varying heights, forming a
--- segmented enclosure around the island perimeter. 21 cliffs, seeded for
--- determinism.
+-- segmented enclosure around the island perimeter. 16 cliffs, evenly spaced
+-- with jitter, seeded for determinism.
 -- ---------------------------------------------------------------------------
 
 local BRICK_COLOR = Color3.fromRGB(140, 80, 60)
@@ -107,24 +116,26 @@ local function buildCliffs()
 	m.Name = "Cliffs"
 
 	local rng = Random.new(42)
+	local CLUSTER_COUNT = 16
 
-	-- 7 BIG, 8 MEDIUM, 6 SMALL = 21 cliffs.
+	-- 5 BIG, 6 MEDIUM, 5 SMALL = 16 cliffs.
 	local bucketOrder = {}
-	for _ = 1, 7 do table.insert(bucketOrder, 1) end
-	for _ = 1, 8 do table.insert(bucketOrder, 2) end
-	for _ = 1, 6 do table.insert(bucketOrder, 3) end
+	for _ = 1, 5 do table.insert(bucketOrder, 1) end
+	for _ = 1, 6 do table.insert(bucketOrder, 2) end
+	for _ = 1, 5 do table.insert(bucketOrder, 3) end
 
-	-- 6 cliffs will be WedgeParts for shape variety
-	local wedgeSet = { [3] = true, [6] = true, [9] = true, [12] = true, [15] = true, [18] = true }
+	-- 5 cliffs will be WedgeParts for shape variety
+	local wedgeSet = { [2] = true, [5] = true, [8] = true, [11] = true, [14] = true }
 
+	-- Evenly distributed base angles with jitter, skipping road zone.
+	local baseAngle = math.pi * 2 / CLUSTER_COUNT -- ~22.5° spacing
 	for i, bucketIndex in ipairs(bucketOrder) do
 		local bucket = CLIFF_BUCKETS[bucketIndex]
 
-		-- Pick an angle around all 360 degrees, skipping within 15 deg of the
-		-- road (north/south, i.e. angle near 0 or 180 degrees).
 		local angle
 		for _ = 1, 50 do
-			local a = rng:NextNumber(0, math.pi * 2)
+			local a = (i - 1) * baseAngle + rng:NextNumber(-math.rad(5), math.rad(5))
+			a = a % (math.pi * 2)
 			local nearNorth = math.abs(a) < math.rad(15) or math.abs(a - math.pi * 2) < math.rad(15)
 			local nearSouth = math.abs(a - math.pi) < math.rad(15)
 			if not nearNorth and not nearSouth then
@@ -134,7 +145,7 @@ local function buildCliffs()
 		end
 		angle = angle or rng:NextNumber(math.rad(30), math.rad(60))
 
-		local radius = rng:NextNumber(100, 140)
+		local radius = rng:NextNumber(105, 135)
 		local x = math.cos(angle) * radius
 		local z = math.sin(angle) * radius
 
