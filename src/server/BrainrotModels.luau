@@ -50,7 +50,7 @@ end
 -- units lower, carried units between), the text is a single short line, and a
 -- running cap keeps the total visible labels bounded so a busy plaza never
 -- stacks a wall of text.
-local LABEL_MAX_VISIBLE = 16
+local LABEL_MAX_VISIBLE = 24
 local labelsCreated = 0
 
 -- A simple billboard above a model: one short title line. `vOffset` is the
@@ -66,7 +66,7 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Label"
-	gui.Size = UDim2.fromOffset(200, 30)
+	gui.Size = UDim2.fromOffset(280, 56)
 	gui.StudsOffset = Vector3.new(0, vOffset or 4.0, 0)
 	gui.AlwaysOnTop = true -- names must stay readable in screenshots, even across the map
 	gui.MaxDistance = 200
@@ -84,6 +84,18 @@ local function addLabel(model, title, subtitle, titleColor, vOffset)
 	if subtitle and subtitle ~= "" then
 		line = title .. " — " .. subtitle
 	end
+	-- Only truncate text longer than ~30 characters so the wider panel never clips.
+	if #line > 30 then
+		line = string.sub(line, 1, 27) .. "…"
+	end
+
+	-- Thin dark background panel behind the text for contrast in screenshots.
+	local bg = Instance.new("Frame")
+	bg.Name = "Background"
+	bg.Size = UDim2.fromScale(1, 1)
+	bg.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+	bg.BackgroundTransparency = 0.5
+	bg.Parent = gui
 
 	local main = Instance.new("TextLabel")
 	main.Name = "Title"
@@ -258,7 +270,7 @@ local function addHeadFace(model, cx, cy, cz, faceZ, spread, eyeY, scale)
 		local eye = makePart({
 			Name = "Eye",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.6, 0.6, 0.3) * scale,
+			Size = Vector3.new(0.9, 0.9, 0.4) * scale,
 			Color = WHITE,
 			Material = Enum.Material.SmoothPlastic,
 		})
@@ -267,7 +279,7 @@ local function addHeadFace(model, cx, cy, cz, faceZ, spread, eyeY, scale)
 		local pupil = makePart({
 			Name = "Pupil",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.3, 0.3, 0.18) * scale,
+			Size = Vector3.new(0.45, 0.45, 0.22) * scale,
 			Color = BLACK,
 			Material = Enum.Material.SmoothPlastic,
 		})
@@ -286,8 +298,8 @@ end
 
 -- Two stubby legs (or long thin ones for tall shapes) below the body.
 local function addLegs(model, body, bodyColor, tall, scale)
-	local legH = (tall and 2.6 or 0.8) * scale
-	local legW = (tall and 0.5 or 0.95) * scale
+	local legH = (tall and 1.8 or 1.6) * scale
+	local legW = (tall and 0.9 or 1.1) * scale
 	for _, side in ipairs({ -1, 1 }) do
 		local leg = makePart({
 			Name = "Leg",
@@ -400,35 +412,37 @@ local builders = {}
 
 -- 1. Satoshi Nekotto — cat head + Bitcoin orange coin body, pickaxe prop.
 builders["satoshi-nekotto"] = function(model, bodyColor, scale)
+	-- Bitcoin coin STANDING on edge: cylinder axis is vertical (Y), so it reads
+	-- as a coin balanced upright, not lying flat.
 	local body = makePart({
 		Name = "Body",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.7, 3.4, 3.4) * scale, -- flat coin (X is the cylinder axis)
+		Size = Vector3.new(0.8, 1.2, 3.2) * scale, -- X is the cylinder axis (thickness)
 		Color = bodyColor,
 		Material = Enum.Material.Metal,
 	})
-	body.CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(90))
+	body.CFrame = CFrame.new(0, 0, 0) -- no rotation: stands on edge
 	body.Parent = model
-	-- Bitcoin "₿" emboss: a dark disc on the coin face.
+	-- Bitcoin "₿" emboss: a dark disc on the coin face (front).
 	local emboss = makePart({
 		Name = "CoinEmboss",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.4, 1.4, 0.2) * scale,
+		Size = Vector3.new(1.6, 1.6, 0.2) * scale,
 		Color = Color3.fromRGB(180, 110, 0),
 		Material = Enum.Material.Metal,
 	})
-	emboss.CFrame = CFrame.new(0, 0, -1.75 * scale)
+	emboss.CFrame = CFrame.new(0, 0, -1.65 * scale)
 	emboss.Parent = model
 
 	addLegs(model, body, bodyColor, false, scale)
 	local arms = addArms(model, body, bodyColor, scale)
 
-	-- Cat head above the coin.
-	local headY = body.Size.Y / 2 + 1.1 * scale
+	-- Cat head above the coin — large (1.5:1 head:body).
+	local headY = body.Size.Y / 2 + 1.8 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.0, 2.0, 2.0) * scale,
+		Size = Vector3.new(3.0, 3.0, 3.0) * scale,
 		Color = bodyColor:Lerp(WHITE, 0.2),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -439,15 +453,15 @@ builders["satoshi-nekotto"] = function(model, bodyColor, scale)
 		local ear = makeWedge({
 			Name = "Ear",
 
-			Size = Vector3.new(0.4, 0.6, 0.4) * scale,
+			Size = Vector3.new(0.5, 1.0, 0.5) * scale,
 			Color = bodyColor:Lerp(WHITE, 0.2),
 			Material = Enum.Material.SmoothPlastic,
 		})
-		ear.CFrame = CFrame.new(side * 0.55 * scale, headY + 0.95 * scale, 0)
+		ear.CFrame = CFrame.new(side * 0.85 * scale, headY + 1.4 * scale, 0)
 			* CFrame.Angles(0, 0, math.rad(-15 * side))
 		ear.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0, 1.0 * scale, 0.42 * scale, 0.15 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.5 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "none", headY + head.Size.Y / 2, scale)
 
 	-- Pickaxe prop in the right hand.
@@ -472,15 +486,17 @@ end
 
 -- 2. Vitalik Froghini — frog head + ETH diamond body, gas meter on back.
 builders["vitalik-froghini"] = function(model, bodyColor, scale)
+	-- ETH diamond body: elongated ball standing upright.
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.6, 3.0, 2.2) * scale,
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(2.5, 3.5, 2.5) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.SmoothPlastic,
 	})
 	body.CFrame = CFrame.new(0, 0, 0)
 	body.Parent = model
-	-- ETH diamond facets on the front.
+	-- Diamond facet on the front.
 	local diamond = makePart({
 		Name = "Diamond",
 		Shape = Enum.PartType.Ball,
@@ -504,11 +520,11 @@ builders["vitalik-froghini"] = function(model, bodyColor, scale)
 	addLegs(model, body, bodyColor, false, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 0.9 * scale
+	local headY = body.Size.Y / 2 + 0.6 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.2, 1.5, 2.2) * scale,
+		Size = Vector3.new(2.8, 2.0, 2.8) * scale,
 		Color = bodyColor:Lerp(Color3.fromRGB(90, 180, 90), 0.4),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -519,36 +535,37 @@ builders["vitalik-froghini"] = function(model, bodyColor, scale)
 		local bump = makePart({
 			Name = "EyeBump",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.8, 0.5, 0.8) * scale,
+			Size = Vector3.new(1.0, 0.6, 1.0) * scale,
 			Color = head.Color,
 			Material = Enum.Material.SmoothPlastic,
 		})
-		bump.CFrame = CFrame.new(side * 0.55 * scale, headY + 0.5 * scale, 0)
+		bump.CFrame = CFrame.new(side * 0.7 * scale, headY + 0.6 * scale, 0)
 		bump.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0, 1.1 * scale, 0.55 * scale, 0.25 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.4 * scale, 0.65 * scale, 0.3 * scale, scale)
 	addHeadHat(model, "none", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 3. Schnorpellino — duck head + sneaker body (red), shoelace arms.
 builders["schnorpellino"] = function(model, bodyColor, scale)
+	-- Sneaker body: a shoe-shaped block standing upright, sole on the bottom.
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.4, 2.2, 4.2) * scale,
+		Size = Vector3.new(2.5, 2.0, 3.5) * scale,
 		Color = Color3.fromRGB(220, 40, 40),
 		Material = Enum.Material.Fabric,
 	})
-	body.CFrame = CFrame.new(0, 0, 0)
+	body.CFrame = CFrame.new(0, 0.5 * scale, 0)
 	body.Parent = model
-	-- White sole under the sneaker.
+	-- Darker sole under the sneaker.
 	local sole = makePart({
 		Name = "Sole",
-		Size = Vector3.new(2.6, 0.5, 4.4) * scale,
-		Color = WHITE,
+		Size = Vector3.new(2.7, 0.6, 3.7) * scale,
+		Color = Color3.fromRGB(60, 20, 20),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	sole.CFrame = CFrame.new(0, -body.Size.Y / 2 - 0.2 * scale, 0.1 * scale)
+	sole.CFrame = CFrame.new(0, -body.Size.Y / 2 - 0.3 * scale, 0.1 * scale)
 	sole.Parent = model
 	-- White swoosh stripe.
 	local swoosh = makePart({
@@ -557,7 +574,7 @@ builders["schnorpellino"] = function(model, bodyColor, scale)
 		Color = WHITE,
 		Material = Enum.Material.Fabric,
 	})
-	swoosh.CFrame = CFrame.new(body.Size.X / 2, 0, 0) * CFrame.Angles(0, 0, math.rad(-20))
+	swoosh.CFrame = CFrame.new(body.Size.X / 2, 0.5 * scale, 0) * CFrame.Angles(0, 0, math.rad(-20))
 	swoosh.Parent = model
 
 	addLegs(model, body, bodyColor, true, scale)
@@ -565,20 +582,20 @@ builders["schnorpellino"] = function(model, bodyColor, scale)
 	for _, side in ipairs({ -1, 1 }) do
 		local lace = makePart({
 			Name = "Arm",
-			Size = Vector3.new(0.12, 1.0, 0.12) * scale,
+			Size = Vector3.new(0.12, 1.2, 0.12) * scale,
 			Color = WHITE,
 			Material = Enum.Material.Fabric,
 		})
-		lace.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.1 * scale), 0.3 * scale, 0)
+		lace.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.1 * scale), 0.8 * scale, 0)
 			* CFrame.Angles(0, 0, math.rad(-30 * side))
 		lace.Parent = model
 	end
 
-	local headY = body.Size.Y / 2 + 1.4 * scale
+	local headY = body.Position.Y + body.Size.Y / 2 + 1.6 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.8, 1.8, 1.8) * scale,
+		Size = Vector3.new(2.8, 2.8, 2.8) * scale,
 		Color = WHITE,
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -587,13 +604,13 @@ builders["schnorpellino"] = function(model, bodyColor, scale)
 	-- Orange duck beak (wedge).
 	local beak = makePart({
 		Name = "Beak",
-		Size = Vector3.new(0.9, 0.5, 1.0) * scale,
+		Size = Vector3.new(1.0, 0.6, 1.2) * scale,
 		Color = Color3.fromRGB(255, 140, 0),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	beak.CFrame = CFrame.new(0, headY - 0.3 * scale, 1.0 * scale) * CFrame.Angles(math.rad(20), 0, 0)
+	beak.CFrame = CFrame.new(0, headY - 0.4 * scale, 1.4 * scale) * CFrame.Angles(math.rad(20), 0, 0)
 	beak.Parent = model
-	addHeadFace(model, 0, headY, 0, 0.9 * scale, 0.42 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.4 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "none", headY + head.Size.Y / 2, scale)
 	return body
 end
@@ -602,7 +619,7 @@ end
 builders["wumbino-antennini"] = function(model, bodyColor, scale)
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.8, 2.6, 1.6) * scale,
+		Size = Vector3.new(2.2, 2.8, 2.2) * scale,
 		Color = Color3.fromRGB(80, 70, 60),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -612,54 +629,64 @@ builders["wumbino-antennini"] = function(model, bodyColor, scale)
 	local speaker = makePart({
 		Name = "Speaker",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.3, 1.6, 1.6) * scale,
+		Size = Vector3.new(0.3, 1.8, 1.8) * scale,
 		Color = Color3.fromRGB(40, 40, 40),
 		Material = Enum.Material.Metal,
 	})
 	speaker.CFrame = CFrame.new(0, -0.2 * scale, -body.Size.Z / 2) * CFrame.Angles(0, 0, math.rad(90))
 	speaker.Parent = model
-	-- Tuning dial.
+	-- Tuning dial with knob.
 	local dial = makePart({
 		Name = "Dial",
-		Size = Vector3.new(1.6, 0.4, 0.1) * scale,
+		Size = Vector3.new(1.8, 0.5, 0.1) * scale,
 		Color = Color3.fromRGB(255, 220, 80),
 		Material = Enum.Material.Neon,
 	})
 	dial.CFrame = CFrame.new(0, 0.7 * scale, -body.Size.Z / 2)
 	dial.Parent = model
+	local dialKnob = makePart({
+		Name = "DialKnob",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.15, 0.5, 0.5) * scale,
+		Color = Color3.fromRGB(180, 180, 190),
+		Material = Enum.Material.Metal,
+	})
+	dialKnob.CFrame = CFrame.new(0.9 * scale, 0.7 * scale, -body.Size.Z / 2) * CFrame.Angles(0, 0, math.rad(90))
+	dialKnob.Parent = model
 
 	addLegs(model, body, bodyColor, false, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 0.9 * scale
+	local headY = body.Size.Y / 2 + 0.8 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.0, 1.4, 2.0) * scale,
+		Size = Vector3.new(2.8, 2.0, 2.8) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.SmoothPlastic,
 	})
 	head.CFrame = CFrame.new(0, headY, 0)
 	head.Parent = model
-	addHeadFace(model, 0, headY, 0, 1.0 * scale, 0.5 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.4 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "antenna", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 5. Flibberino Pizzarolo — chicken head + pizza box body, pizza slice hat.
 builders["flibberino-pizza"] = function(model, bodyColor, scale)
+	-- Pizza box body: flat, wide box with yellow cheese top.
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(3.0, 0.8, 3.0) * scale,
+		Size = Vector3.new(2.8, 0.6, 2.8) * scale,
 		Color = Color3.fromRGB(190, 120, 60),
 		Material = Enum.Material.Cardboard,
 	})
 	body.CFrame = CFrame.new(0, 0, 0)
 	body.Parent = model
-	-- Pizza surface (cheese + pepperoni bumps).
+	-- Pizza surface (cheese + pepperoni bumps) — yellow top.
 	local cheese = makePart({
 		Name = "Cheese",
-		Size = Vector3.new(2.8, 0.2, 2.8) * scale,
+		Size = Vector3.new(2.6, 0.25, 2.6) * scale,
 		Color = Color3.fromRGB(255, 210, 120),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -669,22 +696,22 @@ builders["flibberino-pizza"] = function(model, bodyColor, scale)
 		local pep = makePart({
 			Name = "Pepperoni",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.5, 0.2, 0.5) * scale,
+			Size = Vector3.new(0.5, 0.22, 0.5) * scale,
 			Color = Color3.fromRGB(200, 50, 40),
 			Material = Enum.Material.SmoothPlastic,
 		})
-		pep.CFrame = CFrame.new(p[1] * scale, body.Size.Y / 2 + 0.15 * scale, p[2] * scale)
+		pep.CFrame = CFrame.new(p[1] * scale, body.Size.Y / 2 + 0.12 * scale, p[2] * scale)
 		pep.Parent = model
 	end
 
 	addLegs(model, body, bodyColor, false, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 1.6 * scale
+	local headY = body.Size.Y / 2 + 2.0 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(1.6, 1.8, 1.6) * scale,
+		Size = Vector3.new(2.8, 2.8, 2.8) * scale,
 		Color = WHITE,
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -694,51 +721,52 @@ builders["flibberino-pizza"] = function(model, bodyColor, scale)
 	local comb = makePart({
 		Name = "Comb",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(0.6, 0.4, 0.6) * scale,
+		Size = Vector3.new(0.8, 0.5, 0.8) * scale,
 		Color = Color3.fromRGB(220, 40, 40),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	comb.CFrame = CFrame.new(0, headY + 0.9 * scale, -0.2 * scale)
+	comb.CFrame = CFrame.new(0, headY + 1.3 * scale, -0.2 * scale)
 	comb.Parent = model
 	-- Orange beak.
 	local beak = makePart({
 		Name = "Beak",
-		Size = Vector3.new(0.5, 0.4, 0.8) * scale,
+		Size = Vector3.new(0.6, 0.5, 1.0) * scale,
 		Color = Color3.fromRGB(255, 150, 0),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	beak.CFrame = CFrame.new(0, headY - 0.2 * scale, 0.9 * scale)
+	beak.CFrame = CFrame.new(0, headY - 0.3 * scale, 1.4 * scale)
 	beak.Parent = model
-	addHeadFace(model, 0, headY, 0, 0.8 * scale, 0.4 * scale, 0.25 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.4 * scale, 0.6 * scale, 0.3 * scale, scale)
 	-- Pizza slice hat (triangle wedge) replaces the generic cap silhouette.
 	local slice = makeWedge({
 		Name = "CapDome",
 
-		Size = Vector3.new(0.8, 1.0, 1.0) * scale,
+		Size = Vector3.new(1.0, 1.2, 1.2) * scale,
 		Color = Color3.fromRGB(255, 200, 100),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	slice.CFrame = CFrame.new(0, headY + 1.2 * scale, 0)
+	slice.CFrame = CFrame.new(0, headY + 1.6 * scale, 0)
 	slice.Parent = model
 	return body
 end
 
 -- 6. Grumbolo Melonotto — gorilla head + watermelon body, seed armor.
 builders["grumbolo-melon"] = function(model, bodyColor, scale)
+	-- Watermelon body: large round ball.
 	local body = makePart({
 		Name = "Body",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(3.6, 4.6, 3.6) * scale,
+		Size = Vector3.new(3.0, 3.0, 3.0) * scale,
 		Color = Color3.fromRGB(40, 120, 50),
 		Material = Enum.Material.SmoothPlastic,
 	})
 	body.CFrame = CFrame.new(0, 0, 0)
 	body.Parent = model
 	-- Lighter green stripes around the melon.
-	for _, off in ipairs({ -1.0, -0.3, 0.4, 1.1 }) do
+	for _, off in ipairs({ -0.9, -0.3, 0.3, 0.9 }) do
 		local stripe = makePart({
 			Name = "MelonStripe",
-			Size = Vector3.new(3.7, 0.3, 3.7) * scale,
+			Size = Vector3.new(3.1, 0.3, 3.1) * scale,
 			Color = Color3.fromRGB(90, 180, 90),
 			Material = Enum.Material.SmoothPlastic,
 		})
@@ -746,7 +774,7 @@ builders["grumbolo-melon"] = function(model, bodyColor, scale)
 		stripe.Parent = model
 	end
 	-- Seed armor: black seeds studded on the front.
-	for _, s in ipairs({ { -0.6, 0.4, -1.7 }, { 0.5, -0.2, -1.7 }, { 0.1, 0.9, -1.7 }, { -0.9, -0.6, -1.6 } }) do
+	for _, s in ipairs({ { -0.6, 0.4, -1.5 }, { 0.5, -0.2, -1.5 }, { 0.1, 0.9, -1.5 }, { -0.9, -0.6, -1.4 } }) do
 		local seed = makePart({
 			Name = "Seed",
 			Size = Vector3.new(0.22, 0.4, 0.1) * scale,
@@ -760,10 +788,11 @@ builders["grumbolo-melon"] = function(model, bodyColor, scale)
 	addLegs(model, body, bodyColor, true, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 - 0.4 * scale
+	local headY = body.Size.Y / 2 + 1.0 * scale
 	local head = makePart({
 		Name = "Head",
-		Size = Vector3.new(2.4, 2.6, 2.4) * scale,
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(2.8, 3.0, 2.8) * scale,
 		Color = Color3.fromRGB(70, 50, 40),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -772,30 +801,31 @@ builders["grumbolo-melon"] = function(model, bodyColor, scale)
 	-- Gorilla brow ridge.
 	local brow = makePart({
 		Name = "Brow",
-		Size = Vector3.new(2.0, 0.4, 0.3) * scale,
+		Size = Vector3.new(2.2, 0.5, 0.3) * scale,
 		Color = Color3.fromRGB(50, 35, 25),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	brow.CFrame = CFrame.new(0, headY + 0.4 * scale, 1.0 * scale)
+	brow.CFrame = CFrame.new(0, headY + 0.5 * scale, 1.1 * scale)
 	brow.Parent = model
-	addHeadFace(model, 0, headY, 0.2 * scale, 1.1 * scale, 0.5 * scale, 0.1 * scale, scale)
+	addHeadFace(model, 0, headY, 0.2 * scale, 1.4 * scale, 0.6 * scale, 0.15 * scale, scale)
 	addHeadHat(model, "horns", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 7. Zonketto Limonele — shark head + giant lemon body, yellow fins.
 builders["zonketto-limone"] = function(model, bodyColor, scale)
+	-- Lemon body: large slightly-tall ball.
 	local body = makePart({
 		Name = "Body",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(3.4, 4.2, 3.4) * scale,
+		Size = Vector3.new(2.8, 3.2, 2.8) * scale,
 		Color = Color3.fromRGB(255, 230, 60),
 		Material = Enum.Material.SmoothPlastic,
 	})
 	body.CFrame = CFrame.new(0, 0, 0)
 	body.Parent = model
 	-- Lemon texture bumps (subtle).
-	for _, off in ipairs({ { 0.6, 0.8, 1.4 }, { -0.7, -0.3, 1.3 }, { 0.2, -0.9, 1.5 } }) do
+	for _, off in ipairs({ { 0.6, 0.8, 1.3 }, { -0.7, -0.3, 1.2 }, { 0.2, -0.9, 1.4 } }) do
 		local bump = makePart({
 			Name = "LemonBump",
 			Shape = Enum.PartType.Ball,
@@ -813,7 +843,7 @@ builders["zonketto-limone"] = function(model, bodyColor, scale)
 		local fin = makeWedge({
 			Name = "Arm",
 
-			Size = Vector3.new(0.4, 1.4, 0.8) * scale,
+			Size = Vector3.new(0.5, 1.6, 0.9) * scale,
 			Color = Color3.fromRGB(255, 240, 100),
 			Material = Enum.Material.SmoothPlastic,
 		})
@@ -822,10 +852,10 @@ builders["zonketto-limone"] = function(model, bodyColor, scale)
 		fin.Parent = model
 	end
 
-	local headY = body.Size.Y / 2 - 0.2 * scale
+	local headY = body.Size.Y / 2 + 0.8 * scale
 	local head = makePart({
 		Name = "Head",
-		Size = Vector3.new(2.6, 2.2, 3.0) * scale,
+		Size = Vector3.new(2.8, 2.4, 3.2) * scale,
 		Color = Color3.fromRGB(150, 170, 180),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -835,22 +865,22 @@ builders["zonketto-limone"] = function(model, bodyColor, scale)
 	local dorsal = makeWedge({
 		Name = "Dorsal",
 
-		Size = Vector3.new(0.3, 1.2, 1.0) * scale,
+		Size = Vector3.new(0.4, 1.4, 1.2) * scale,
 		Color = Color3.fromRGB(130, 150, 160),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	dorsal.CFrame = CFrame.new(0, headY + 1.0 * scale, -0.3 * scale)
+	dorsal.CFrame = CFrame.new(0, headY + 1.1 * scale, -0.3 * scale)
 	dorsal.Parent = model
 	-- Rows of teeth under the mouth.
 	local teeth = makePart({
 		Name = "Teeth",
-		Size = Vector3.new(1.6, 0.3, 0.2) * scale,
+		Size = Vector3.new(1.8, 0.3, 0.2) * scale,
 		Color = WHITE,
 		Material = Enum.Material.SmoothPlastic,
 	})
-	teeth.CFrame = CFrame.new(0, headY - 0.7 * scale, 1.4 * scale)
+	teeth.CFrame = CFrame.new(0, headY - 0.8 * scale, 1.6 * scale)
 	teeth.Parent = model
-	addHeadFace(model, 0, headY, 0.4 * scale, 1.5 * scale, 0.5 * scale, 0.3 * scale, scale)
+	addHeadFace(model, 0, headY, 0.4 * scale, 1.6 * scale, 0.6 * scale, 0.35 * scale, scale)
 	addHeadHat(model, "crown", headY + head.Size.Y / 2, scale)
 	return body
 end
@@ -859,7 +889,7 @@ end
 builders["binglebop-arcade"] = function(model, bodyColor, scale)
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.8, 4.0, 2.4) * scale,
+		Size = Vector3.new(2.0, 3.0, 2.5) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -868,30 +898,30 @@ builders["binglebop-arcade"] = function(model, bodyColor, scale)
 	-- Arcade screen.
 	local screen = makePart({
 		Name = "Screen",
-		Size = Vector3.new(1.8, 1.4, 0.15) * scale,
+		Size = Vector3.new(1.5, 1.2, 0.15) * scale,
 		Color = Color3.fromRGB(40, 200, 255),
 		Material = Enum.Material.Neon,
 	})
-	screen.CFrame = CFrame.new(0, 0.6 * scale, -body.Size.Z / 2)
+	screen.CFrame = CFrame.new(0, 0.5 * scale, -body.Size.Z / 2)
 	screen.Parent = model
 	-- Control panel.
 	local panel = makePart({
 		Name = "Panel",
-		Size = Vector3.new(2.0, 0.3, 0.6) * scale,
+		Size = Vector3.new(1.8, 0.3, 0.6) * scale,
 		Color = Color3.fromRGB(40, 40, 45),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	panel.CFrame = CFrame.new(0, -0.5 * scale, -body.Size.Z / 2 + 0.4 * scale)
+	panel.CFrame = CFrame.new(0, -0.6 * scale, -body.Size.Z / 2 + 0.35 * scale)
 	panel.Parent = model
 
 	addLegs(model, body, bodyColor, false, scale)
 	local arms = addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 0.8 * scale
+	local headY = body.Size.Y / 2 + 0.6 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.0, 1.8, 2.0) * scale,
+		Size = Vector3.new(2.8, 2.4, 2.8) * scale,
 		Color = Color3.fromRGB(255, 220, 180),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -902,14 +932,14 @@ builders["binglebop-arcade"] = function(model, bodyColor, scale)
 		local ear = makePart({
 			Name = "Ear",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(0.5, 0.5, 0.3) * scale,
+			Size = Vector3.new(0.7, 0.7, 0.4) * scale,
 			Color = Color3.fromRGB(220, 170, 140),
 			Material = Enum.Material.SmoothPlastic,
 		})
-		ear.CFrame = CFrame.new(side * 0.7 * scale, headY + 0.8 * scale, 0)
+		ear.CFrame = CFrame.new(side * 0.9 * scale, headY + 1.1 * scale, 0)
 		ear.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0, 1.0 * scale, 0.45 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0, 1.4 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "antenna", headY + head.Size.Y / 2, scale)
 
 	-- Joystick prop in the right hand.
@@ -935,10 +965,11 @@ end
 
 -- 9. Crungus Funghetto — deer head + giant mushroom body, glowing spores.
 builders["crungus-funghetto"] = function(model, bodyColor, scale)
-	-- Mushroom stem body (tall).
+	-- Mushroom stem body (cylinder).
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.2, 3.6, 2.2) * scale,
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(1.6, 3.0, 1.6) * scale,
 		Color = Color3.fromRGB(240, 235, 220),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -948,14 +979,14 @@ builders["crungus-funghetto"] = function(model, bodyColor, scale)
 	local cap = makePart({
 		Name = "Cap",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(4.0, 2.0, 4.0) * scale,
+		Size = Vector3.new(2.8, 2.2, 2.8) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.SmoothPlastic,
 	})
 	cap.CFrame = CFrame.new(0, body.Size.Y / 2 + 0.2 * scale, 0)
 	cap.Parent = model
 	-- White spots on the cap.
-	for _, s in ipairs({ { -1.0, 1.2, -0.6 }, { 0.9, 1.4, 0.4 }, { 0.2, 1.6, -1.1 }, { -0.4, 1.0, 1.2 } }) do
+	for _, s in ipairs({ { -0.7, 1.8, -0.4 }, { 0.6, 2.0, 0.3 }, { 0.1, 2.2, -0.8 }, { -0.3, 1.6, 0.9 } }) do
 		local spot = makePart({
 			Name = "Spore",
 			Shape = Enum.PartType.Ball,
@@ -970,10 +1001,10 @@ builders["crungus-funghetto"] = function(model, bodyColor, scale)
 	addLegs(model, body, bodyColor, true, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = -body.Size.Y / 2 + 1.0 * scale
+	local headY = body.Size.Y / 2 + cap.Size.Y / 2 + 0.8 * scale
 	local head = makePart({
 		Name = "Head",
-		Size = Vector3.new(1.8, 2.0, 2.2) * scale,
+		Size = Vector3.new(2.8, 2.6, 2.8) * scale,
 		Color = Color3.fromRGB(160, 120, 80),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -983,23 +1014,24 @@ builders["crungus-funghetto"] = function(model, bodyColor, scale)
 	local snout = makeWedge({
 		Name = "Snout",
 
-		Size = Vector3.new(0.6, 0.6, 1.0) * scale,
+		Size = Vector3.new(0.8, 0.8, 1.2) * scale,
 		Color = Color3.fromRGB(120, 90, 60),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	snout.CFrame = CFrame.new(0, headY - 0.3 * scale, 1.3 * scale)
+	snout.CFrame = CFrame.new(0, headY - 0.4 * scale, 1.6 * scale)
 	snout.Parent = model
-	addHeadFace(model, 0, headY, 0.2 * scale, 1.1 * scale, 0.45 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0.2 * scale, 1.4 * scale, 0.55 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "cap", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 10. Fartellone Bombetta — pig head + round bomb body, lit fuse on back.
 builders["fartellone-bomb"] = function(model, bodyColor, scale)
+	-- Bomb body: large round ball.
 	local body = makePart({
 		Name = "Body",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(3.6, 3.6, 3.6) * scale,
+		Size = Vector3.new(3.0, 3.2, 3.0) * scale,
 		Color = Color3.fromRGB(40, 40, 45),
 		Material = Enum.Material.Metal,
 	})
@@ -1008,7 +1040,7 @@ builders["fartellone-bomb"] = function(model, bodyColor, scale)
 	-- Highlight band on the bomb.
 	local band = makePart({
 		Name = "Band",
-		Size = Vector3.new(3.7, 0.3, 3.7) * scale,
+		Size = Vector3.new(3.1, 0.3, 3.1) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.Neon,
 	})
@@ -1043,11 +1075,11 @@ builders["fartellone-bomb"] = function(model, bodyColor, scale)
 	addLegs(model, body, bodyColor, false, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 - 0.2 * scale
+	local headY = body.Size.Y / 2 + 0.6 * scale
 	local head = makePart({
 		Name = "Head",
 		Shape = Enum.PartType.Ball,
-		Size = Vector3.new(2.2, 2.2, 2.2) * scale,
+		Size = Vector3.new(2.8, 2.8, 2.8) * scale,
 		Color = Color3.fromRGB(255, 160, 170),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -1057,35 +1089,36 @@ builders["fartellone-bomb"] = function(model, bodyColor, scale)
 	local snout = makePart({
 		Name = "Snout",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.6, 0.8, 0.8) * scale,
+		Size = Vector3.new(0.7, 0.9, 0.9) * scale,
 		Color = Color3.fromRGB(255, 140, 150),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	snout.CFrame = CFrame.new(0, headY - 0.2 * scale, 1.4 * scale) * CFrame.Angles(0, 0, math.rad(90))
+	snout.CFrame = CFrame.new(0, headY - 0.2 * scale, 1.6 * scale) * CFrame.Angles(0, 0, math.rad(90))
 	snout.Parent = model
 	-- Pig ears.
 	for _, side in ipairs({ -1, 1 }) do
 		local ear = makeWedge({
 			Name = "Ear",
 
-			Size = Vector3.new(0.3, 0.5, 0.4) * scale,
+			Size = Vector3.new(0.4, 0.7, 0.5) * scale,
 			Color = Color3.fromRGB(230, 140, 150),
 			Material = Enum.Material.SmoothPlastic,
 		})
-		ear.CFrame = CFrame.new(side * 0.7 * scale, headY + 0.9 * scale, 0)
+		ear.CFrame = CFrame.new(side * 0.9 * scale, headY + 1.1 * scale, 0)
 			* CFrame.Angles(0, 0, math.rad(-20 * side))
 		ear.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0.6 * scale, 1.2 * scale, 0.5 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0.6 * scale, 1.5 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "crown", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 11. Schnozzolo Gelatone — elephant head + fridge body, trunk = hose.
 builders["schnozzolo-fridge"] = function(model, bodyColor, scale)
+	-- Fridge body: tall box.
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.8, 4.6, 2.4) * scale,
+		Size = Vector3.new(2.2, 3.5, 2.2) * scale,
 		Color = WHITE,
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -1094,29 +1127,29 @@ builders["schnozzolo-fridge"] = function(model, bodyColor, scale)
 	-- Fridge handle.
 	local handle = makePart({
 		Name = "Handle",
-		Size = Vector3.new(0.2, 1.6, 0.3) * scale,
+		Size = Vector3.new(0.2, 1.4, 0.3) * scale,
 		Color = Color3.fromRGB(120, 130, 140),
 		Material = Enum.Material.Metal,
 	})
-	handle.CFrame = CFrame.new(body.Size.X / 2 - 0.4 * scale, 0.4 * scale, -body.Size.Z / 2 - 0.1 * scale)
+	handle.CFrame = CFrame.new(body.Size.X / 2 - 0.35 * scale, 0.3 * scale, -body.Size.Z / 2 - 0.1 * scale)
 	handle.Parent = model
 	-- Door split line.
 	local split = makePart({
 		Name = "DoorSplit",
-		Size = Vector3.new(2.8, 0.1, 0.1) * scale,
+		Size = Vector3.new(2.2, 0.1, 0.1) * scale,
 		Color = Color3.fromRGB(180, 190, 200),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	split.CFrame = CFrame.new(0, 0.4 * scale, -body.Size.Z / 2)
+	split.CFrame = CFrame.new(0, 0.3 * scale, -body.Size.Z / 2)
 	split.Parent = model
 
 	addLegs(model, body, bodyColor, true, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 0.6 * scale
+	local headY = body.Size.Y / 2 + 1.0 * scale
 	local head = makePart({
 		Name = "Head",
-		Size = Vector3.new(2.6, 2.4, 2.8) * scale,
+		Size = Vector3.new(2.8, 2.6, 3.0) * scale,
 		Color = Color3.fromRGB(150, 160, 170),
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -1126,11 +1159,11 @@ builders["schnozzolo-fridge"] = function(model, bodyColor, scale)
 	for _, side in ipairs({ -1, 1 }) do
 		local ear = makePart({
 			Name = "Ear",
-			Size = Vector3.new(0.4, 1.4, 1.4) * scale,
+			Size = Vector3.new(0.5, 1.2, 1.2) * scale,
 			Color = Color3.fromRGB(130, 140, 150),
 			Material = Enum.Material.SmoothPlastic,
 		})
-		ear.CFrame = CFrame.new(side * 1.4 * scale, headY, 0) * CFrame.Angles(0, 0, math.rad(15 * side))
+		ear.CFrame = CFrame.new(side * 1.5 * scale, headY, 0) * CFrame.Angles(0, 0, math.rad(15 * side))
 		ear.Parent = model
 	end
 	-- Trunk = hose curving down from the face.
@@ -1143,16 +1176,17 @@ builders["schnozzolo-fridge"] = function(model, bodyColor, scale)
 	})
 	trunk.CFrame = CFrame.new(0, headY - 0.8 * scale, 1.2 * scale) * CFrame.Angles(math.rad(70), 0, 0)
 	trunk.Parent = model
-	addHeadFace(model, 0, headY, 0.2 * scale, 1.4 * scale, 0.55 * scale, 0.3 * scale, scale)
+	addHeadFace(model, 0, headY, 0.2 * scale, 1.5 * scale, 0.6 * scale, 0.3 * scale, scale)
 	addHeadHat(model, "horns", headY + head.Size.Y / 2, scale)
 	return body
 end
 
 -- 12. Finale Dragoespresso — dragon head + espresso machine body, steam wings.
 builders["finale-drago"] = function(model, bodyColor, scale)
+	-- Espresso machine body: tall box.
 	local body = makePart({
 		Name = "Body",
-		Size = Vector3.new(2.6, 4.2, 2.4) * scale,
+		Size = Vector3.new(2.0, 2.8, 2.0) * scale,
 		Color = Color3.fromRGB(60, 60, 68),
 		Material = Enum.Material.Metal,
 	})
@@ -1162,7 +1196,7 @@ builders["finale-drago"] = function(model, bodyColor, scale)
 	local spout = makePart({
 		Name = "Spout",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.8, 0.3, 0.3) * scale,
+		Size = Vector3.new(0.7, 0.3, 0.3) * scale,
 		Color = Color3.fromRGB(200, 200, 210),
 		Material = Enum.Material.Metal,
 	})
@@ -1172,22 +1206,22 @@ builders["finale-drago"] = function(model, bodyColor, scale)
 	local cup = makePart({
 		Name = "Cup",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(0.4, 0.7, 0.7) * scale,
+		Size = Vector3.new(0.35, 0.6, 0.6) * scale,
 		Color = Color3.fromRGB(30, 30, 35),
 		Material = Enum.Material.Metal,
 	})
-	cup.CFrame = CFrame.new(0, -0.6 * scale, -body.Size.Z / 2 + 0.2 * scale) * CFrame.Angles(math.rad(90), 0, 0)
+	cup.CFrame = CFrame.new(0, -0.5 * scale, -body.Size.Z / 2 + 0.2 * scale) * CFrame.Angles(math.rad(90), 0, 0)
 	cup.Parent = model
 	-- Steam wings on the back/sides.
 	for _, side in ipairs({ -1, 1 }) do
 		local wing = makeWedge({
 			Name = "Wing",
 
-			Size = Vector3.new(0.3, 1.6, 1.4) * scale,
+			Size = Vector3.new(0.3, 1.4, 1.2) * scale,
 			Color = bodyColor,
 			Material = Enum.Material.Neon,
 		})
-		wing.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.4 * scale), 0.6 * scale, 0)
+		wing.CFrame = CFrame.new(side * (body.Size.X / 2 + 0.35 * scale), 0.5 * scale, 0)
 			* CFrame.Angles(0, math.rad(90), math.rad(-20 * side))
 		wing.Parent = model
 		local steam = Instance.new("ParticleEmitter")
@@ -1208,10 +1242,10 @@ builders["finale-drago"] = function(model, bodyColor, scale)
 	addLegs(model, body, bodyColor, true, scale)
 	addArms(model, body, bodyColor, scale)
 
-	local headY = body.Size.Y / 2 + 0.4 * scale
+	local headY = body.Size.Y / 2 + 0.6 * scale
 	local head = makePart({
 		Name = "Head",
-		Size = Vector3.new(2.2, 2.4, 2.8) * scale,
+		Size = Vector3.new(2.8, 2.8, 3.0) * scale,
 		Color = bodyColor,
 		Material = Enum.Material.SmoothPlastic,
 	})
@@ -1221,25 +1255,25 @@ builders["finale-drago"] = function(model, bodyColor, scale)
 	local snout = makeWedge({
 		Name = "Snout",
 
-		Size = Vector3.new(0.8, 0.8, 1.2) * scale,
+		Size = Vector3.new(1.0, 1.0, 1.4) * scale,
 		Color = bodyColor:Lerp(BLACK, 0.2),
 		Material = Enum.Material.SmoothPlastic,
 	})
-	snout.CFrame = CFrame.new(0, headY - 0.2 * scale, 1.6 * scale)
+	snout.CFrame = CFrame.new(0, headY - 0.2 * scale, 1.8 * scale)
 	snout.Parent = model
 	-- Spikes along the head.
-	for _, off in ipairs({ -0.4, 0.2, 0.8 }) do
+	for _, off in ipairs({ -0.5, 0.25, 0.9 }) do
 		local spike = makeWedge({
 			Name = "Spike",
 
-			Size = Vector3.new(0.3, 0.6, 0.3) * scale,
+			Size = Vector3.new(0.4, 0.8, 0.4) * scale,
 			Color = Color3.fromRGB(255, 200, 60),
 			Material = Enum.Material.Neon,
 		})
-		spike.CFrame = CFrame.new(off * scale, headY + 1.1 * scale, 0)
+		spike.CFrame = CFrame.new(off * scale, headY + 1.3 * scale, 0)
 		spike.Parent = model
 	end
-	addHeadFace(model, 0, headY, 0.4 * scale, 1.5 * scale, 0.5 * scale, 0.2 * scale, scale)
+	addHeadFace(model, 0, headY, 0.4 * scale, 1.6 * scale, 0.6 * scale, 0.25 * scale, scale)
 	addHeadHat(model, "crown", headY + head.Size.Y / 2, scale)
 	return body
 end
@@ -1247,7 +1281,7 @@ end
 -- Build one brainrot character as an anchored Model whose PrimaryPart is the
 -- fused-object body. `scale` grows it (the plaza statue uses a big one).
 function BrainrotModels.build(entry, mutation, scale, traits)
-	scale = scale or 1
+	scale = scale or 1.6
 	local model = Instance.new("Model")
 	model.Name = mutation and mutation.id ~= "none" and (mutation.name .. " " .. entry.name) or entry.name
 	if traits and #traits > 0 then

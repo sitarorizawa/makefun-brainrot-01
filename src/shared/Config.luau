@@ -122,7 +122,7 @@ Config.Walkers = {
 	maxAlive = 16,
 	respawnDelay = 4, -- seconds before a replacement spawns after a catch
 	labelVOffset = 3.8, -- higher than capsule/carried/placed labels so they never overlap
-	spawnY = 2.0, -- studs above the carpet
+	spawnY = 3.5, -- studs above the carpet
 	laneSpacing = 9, -- fixed convoy gap kept between walkers (studs)
 	convoySpeed = 7, -- every walker moves at this speed (no per-rarity speed)
 }
