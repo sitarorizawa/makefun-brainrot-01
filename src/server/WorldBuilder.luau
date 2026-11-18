@@ -66,10 +66,10 @@ local function buildGround()
 	-- Apply stud texture to the top face for LEGO baseplate look.
 	pcall(function()
 		local tex = Instance.new("Texture")
-		tex.Texture = "rbxassetid://5808313338" -- Roblox classic stud pattern
+		tex.Texture = "rbxasset://textures/studs.dds" -- built-in Roblox stud texture (never fails to load)
 		tex.Face = Enum.NormalId.Top
-		tex.StudsPerTileU = 4
-		tex.StudsPerTileV = 4
+		tex.StudsPerTileU = 2
+		tex.StudsPerTileV = 2
 		tex.Parent = grass
 	end)
 
