@@ -13,7 +13,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Wave = {}
 
 local ARENA_HALF = 112
-local TRAVEL = ARENA_HALF * 2 + 8
+local TRAVEL = ARENA_HALF * 2 + 18
 
 local directions = {
 	{ axis = "X", sign = 1 },
