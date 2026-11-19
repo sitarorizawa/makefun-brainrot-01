@@ -3987,7 +3987,7 @@ function WorldBuilder.build()
 
 	safeStep("setupLighting", setupLighting)
 	--43 characters walking on asphalt road,10 stud spacing,2 lanes
-	-- 43 characters:1 baris di tengah aspal, spacing10, LOOP jalan terus
+	-- 43 characters:1 baris di tengah aspal, spacing20, LOOP jalan terus
 	-- Build all43 characters (parade script yang atur posisi/jalan)
 	safeStep("buildSatoshinoCroc", function() buildSatoshinoCroc(0, 0) end)
 	safeStep("buildBananitaWhalebit", function() buildBananitaWhalebit(0, 0) end)
@@ -4039,7 +4039,7 @@ function WorldBuilder.build()
 		for i, n in ipairs(PARADE_NAMES) do
 			local m = workspace:FindFirstChild(n)
 			if m then
-				local z = -145 + (i - 1) * 10
+				local z = -145 + (i - 1) * 20
 				local p = m:GetPivot().Position
 				m:PivotTo(CFrame.new(0, p.Y, z))
 			end
@@ -4062,7 +4062,7 @@ function WorldBuilder.build()
 		RunService.Heartbeat:Connect(function(dt)
 			t = t + dt * SPEED
 			for i, m in ipairs(models) do
-				local z = -145 + ((i - 1) * 10 + t) % SPAN
+				local z = -145 + ((i - 1) * 20 + t) % SPAN
 				m:PivotTo(CFrame.new(0, ys[i], z))
 			end
 		end)
