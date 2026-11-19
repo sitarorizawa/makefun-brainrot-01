@@ -22,7 +22,7 @@ local ROAD_HALF = 150 -- road spans z = -150 .. +150
 -- Colour palette
 -- ---------------------------------------------------------------------------
 
-local GRASS = Color3.fromRGB(180, 140, 90)  -- light brown
+local GRASS = Color3.fromRGB(40, 100, 30)  -- dark green
 local OCEAN = Color3.fromRGB(60, 160, 220)
 local ASPHALT = Color3.fromRGB(55, 55, 65)
 local PATH = Color3.fromRGB(100, 200, 80)
@@ -111,7 +111,7 @@ end
 -- 300-long part — same culling issue as the ground), plus 4x4x20 pillars.
 -- ---------------------------------------------------------------------------
 
-local WALL_COLOR = Color3.fromRGB(140, 80, 60)
+local WALL_COLOR = Color3.fromRGB(180, 140, 90)  -- light brown
 
 local function buildPerimeterWall()
 	local m = Instance.new("Model")
