@@ -118,8 +118,117 @@ local moneyCounter = label({
 moneyCounter.Parent = moneyPanel
 
 -- ---------------------------------------------------------------------------
+-- Panels: Shop + Index (opened from the left-edge buttons)
+-- ---------------------------------------------------------------------------
+
+local shopPanel = Instance.new("Frame")
+shopPanel.Name = "ShopPanel"
+shopPanel.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+shopPanel.BackgroundTransparency = 0.12
+shopPanel.BorderSizePixel = 0
+shopPanel.Size = UDim2.fromOffset(380, 300)
+shopPanel.Position = UDim2.new(0.5, -190, 0.5, -150)
+shopPanel.Visible = false
+shopPanel.ZIndex = 8
+shopPanel.Parent = gui
+do
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = shopPanel
+	local title = label({
+		Name = "Title", Text = "SHOP", Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.fromRGB(120, 230, 140), TextSize = 24,
+		Size = UDim2.new(1, -24, 0, 34), Position = UDim2.fromOffset(12, 10), ZIndex = 9,
+	})
+	title.Parent = shopPanel
+end
+
+local shopRows = {}
+local rowSpecs = {
+	{ key = "slots",      name = "Extra Pedestal", desc = "One more display slot",     attr = "SlotCost" },
+	{ key = "multiplier", name = "Income Boost",   desc = "+0.5x income, permanent",   attr = "MultiplierCost" },
+	{ key = "speed",      name = "Speed Boost",    desc = "Walk around faster",        attr = "SpeedCost" },
+}
+for i, rs in ipairs(rowSpecs) do
+	local row = Instance.new("Frame")
+	row.Name = rs.key
+	row.BackgroundColor3 = Color3.fromRGB(30, 34, 46)
+	row.BorderSizePixel = 0
+	row.Size = UDim2.new(1, -24, 0, 64)
+	row.Position = UDim2.fromOffset(12, 50 + (i - 1) * 72)
+	row.ZIndex = 9
+	row.Parent = shopPanel
+	local rc = Instance.new("UICorner"); rc.CornerRadius = UDim.new(0, 10); rc.Parent = row
+
+	local n = label({ Name = "N", Text = rs.name, Font = Enum.Font.GothamBold, TextColor3 = Color3.new(1, 1, 1), TextSize = 17, Size = UDim2.new(1, -150, 0, 24), Position = UDim2.fromOffset(12, 8), ZIndex = 10 })
+	n.Parent = row
+	local d = label({ Name = "D", Text = rs.desc, Font = Enum.Font.Gotham, TextColor3 = Color3.fromRGB(150, 155, 170), TextSize = 13, Size = UDim2.new(1, -150, 0, 20), Position = UDim2.fromOffset(12, 34), ZIndex = 10 })
+	d.Parent = row
+
+	local price = label({ Name = "Price", Text = "$...", Font = Enum.Font.GothamBold, TextColor3 = Color3.fromRGB(255, 220, 90), TextSize = 16, Size = UDim2.fromOffset(80, 24), Position = UDim2.new(1, -178, 0, 6), ZIndex = 10, TextXAlignment = Enum.TextXAlignment.Right })
+	price.Parent = row
+
+	local buy = Instance.new("TextButton")
+	buy.Name = "Buy"
+	buy.Text = "BUY"
+	buy.Font = Enum.Font.GothamBold
+	buy.BackgroundColor3 = Color3.fromRGB(45, 195, 95)
+	buy.TextColor3 = Color3.new(1, 1, 1)
+	buy.TextSize = 15
+	buy.AutoButtonColor = true
+	buy.BorderSizePixel = 0
+	buy.Size = UDim2.fromOffset(74, 32)
+	buy.Position = UDim2.new(1, -86, 0, 26)
+	buy.ZIndex = 10
+	buy.Parent = row
+	local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0, 8); bc.Parent = buy
+	local actionKey = rs.key
+	buy.MouseButton1Click:Connect(function()
+		shopRemote:FireServer(actionKey)
+	end)
+
+	shopRows[#shopRows + 1] = { attr = rs.attr, price = price, buy = buy }
+end
+
+-- Index panel: collection progress straight from the server attributes.
+local indexPanel = Instance.new("Frame")
+indexPanel.Name = "IndexPanel"
+indexPanel.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
+indexPanel.BackgroundTransparency = 0.12
+indexPanel.BorderSizePixel = 0
+indexPanel.Size = UDim2.fromOffset(380, 300)
+indexPanel.Position = UDim2.new(0.5, -190, 0.5, -150)
+indexPanel.Visible = false
+indexPanel.ZIndex = 8
+indexPanel.Parent = gui
+local indexCount, indexRarities
+do
+	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = indexPanel
+	local title = label({
+		Name = "Title", Text = "INDEX", Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.fromRGB(110, 170, 255), TextSize = 24,
+		Size = UDim2.new(1, -24, 0, 34), Position = UDim2.fromOffset(12, 10), ZIndex = 9,
+	})
+	title.Parent = indexPanel
+	indexCount = label({
+		Name = "Count", Text = "0 / 0 caught", Font = Enum.Font.GothamBold,
+		TextColor3 = Color3.new(1, 1, 1), TextSize = 18,
+		Size = UDim2.new(1, -24, 0, 26), Position = UDim2.fromOffset(12, 52), ZIndex = 9,
+	})
+	indexCount.Parent = indexPanel
+	indexRarities = label({
+		Name = "Rarities", Text = "", Font = Enum.Font.Gotham,
+		TextColor3 = Color3.fromRGB(210, 215, 225), TextSize = 17,
+		Size = UDim2.new(1, -24, 0, 160), Position = UDim2.fromOffset(12, 90), ZIndex = 9,
+		TextYAlignment = Enum.TextYAlignment.Top,
+	})
+	indexRarities.RichText = true
+	indexRarities.TextWrapped = true
+	indexRarities.Parent = indexPanel
+end
+
+-- ---------------------------------------------------------------------------
 -- 3. Left edge: 4 icon buttons with icon glyph, label, rounded corners, padding
 -- ---------------------------------------------------------------------------
+
 
 local iconSpecs = {
 	{ name = "Shop",    icon = "🛒", color = Color3.fromRGB(45, 195, 95),  action = "none" }, -- opens shop (tbd)
@@ -183,7 +292,15 @@ for i, spec in ipairs(iconSpecs) do
 	textLabel.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
-		if spec.action ~= "none" then
+		if spec.name == "Shop" then
+			shopPanel.Visible = not shopPanel.Visible
+			indexPanel.Visible = false
+		elseif spec.name == "Index" then
+			indexPanel.Visible = not indexPanel.Visible
+			shopPanel.Visible = false
+		elseif spec.name == "Codes" then
+			showToast("No active codes right now!")
+		elseif spec.action ~= "none" then
 			shopRemote:FireServer(spec.action)
 		end
 	end)
@@ -271,7 +388,8 @@ local toast = label({
 toast.Parent = gui
 
 local toastToken = 0
-local function showToast(text)
+local showToast -- forward declaration (used by the button handler above)
+showToast = function(text)
 	toastToken += 1
 	local token = toastToken
 	toast.Text = text
@@ -336,6 +454,30 @@ RunService.RenderStepped:Connect(function()
 	local cash = player:GetAttribute("Cash") or 0
 	moneyCounter.Text = "$" .. fmt(cash)
 
+	-- Shop panel prices (−1 attribute = maxed)
+	if shopPanel.Visible then
+		for _, row in ipairs(shopRows) do
+			local cost = player:GetAttribute(row.attr) or -1
+			if cost < 0 then
+				row.price.Text = "MAXED"
+				row.price.TextColor3 = Color3.fromRGB(150, 155, 170)
+				row.buy.Visible = false
+			else
+				row.price.Text = "$" .. fmt(cost)
+				row.price.TextColor3 = Color3.fromRGB(255, 220, 90)
+				row.buy.Visible = true
+			end
+		end
+	end
+
+	-- Index panel content
+	if indexPanel.Visible then
+		indexCount.Text = string.format("%d / %d caught",
+			player:GetAttribute("CollectionCount") or 0,
+			player:GetAttribute("CollectionMax") or 0)
+		indexRarities.Text = player:GetAttribute("RarityProgress") or ""
+	end
+
 	-- Instruction line: use the server Hint attribute, or a default.
 	local hint = player:GetAttribute("Hint") or ""
 	if hint ~= "" then
@@ -346,7 +488,7 @@ RunService.RenderStepped:Connect(function()
 		if carrying then
 			instructionLine.Text = "Bring the catch to your base!"
 		else
-			instructionLine.Text = "Catch a capsule and bring it to your base!"
+			instructionLine.Text = "Click a brainrot on the road, then bring it to your base!"
 		end
 	end
 

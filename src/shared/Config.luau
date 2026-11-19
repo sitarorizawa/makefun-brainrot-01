@@ -106,7 +106,7 @@ Config.TraitRoll = {
 }
 
 Config.Economy = {
-	startCash = 0,
+	startCash = 100, -- enough for a few Common catches to get the loop going
 	startSlots = 4, -- pedestals that accept a unit from the start
 	maxSlots = 10,
 	slotBaseCost = 500, -- next slot costs slotBaseCost * 2^(slots owned - startSlots)

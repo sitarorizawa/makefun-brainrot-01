@@ -116,6 +116,11 @@ local function updateStats(player)
 	player:SetAttribute("Cash", math.floor(state.cash))
 	player:SetAttribute("CashPerSecond", income)
 	player:SetAttribute("Slots", state.slots)
+	-- Shop costs for the HUD (−1 = maxed out).
+	player:SetAttribute("SlotCost", state.slots < Config.Economy.maxSlots and Config.slotCost(state.slots) or -1)
+	player:SetAttribute("MultiplierCost", state.multiplierLevel < Config.Economy.maxMultiplierLevel and Config.multiplierCost(state.multiplierLevel) or -1)
+	player:SetAttribute("SpeedCost", state.speedLevel < Config.Economy.maxSpeedLevel and Config.speedCost(state.speedLevel) or -1)
+	player:SetAttribute("RebirthNeed", Config.rebirthRequirement(state.rebirths))
 	player:SetAttribute("MultiplierLevel", state.multiplierLevel)
 	player:SetAttribute("SpeedLevel", state.speedLevel)
 	player:SetAttribute("Rebirths", state.rebirths)
@@ -412,6 +417,36 @@ for _, obj in ipairs(workspace:GetChildren()) do
 end
 workspace.DescendantAdded:Connect(wireParadeModel)
 
+-- Paint the catch price + income onto every parade billboard label.
+local function paintParadeLabel(obj)
+	if not obj:IsA("Model") then
+		return
+	end
+	local bb = obj:FindFirstChildWhichIsA("BillboardGui", true)
+	local label = bb and bb:FindFirstChildWhichIsA("TextLabel")
+	if label == nil or label:GetAttribute("Priced") then
+		return
+	end
+	local id = paradeNameToId(obj.Name)
+	for _, e in ipairs(Config.Brainrots) do
+		if e.id == id then
+			label:SetAttribute("Priced", true)
+			label.TextWrapped = true
+			bb.Size = UDim2.new(0, 360, 0, 92)
+			label.Text = string.format(
+				"%s\n[%s]  $%s to catch  ·  $%d/s",
+				e.name, e.rarity, fmt(Config.catchPrice(e.rarity)), e.rate
+			)
+			break
+		end
+	end
+end
+
+for _, obj in ipairs(workspace:GetChildren()) do
+	paintParadeLabel(obj)
+end
+workspace.DescendantAdded:Connect(paintParadeLabel)
+
 -- Capsules: spawn, catch, respawn
 -- ---------------------------------------------------------------------------
 
@@ -680,7 +715,7 @@ local function placeUnit(player, base)
 	local rate = Config.unitIncome(carried.entry, carried.mutation, carried.traits)
 	showToast(player, string.format("Placed %s — earning $%d/s",
 		Config.unitTitle(carried.entry, carried.mutation, carried.traits), rate))
-	setHint(player, "Catch another capsule, or open the shop with your cash")
+	setHint(player, "Catch another brainrot, or open the shop with your cash")
 end
 
 local function claimBase(player, base)
@@ -701,8 +736,8 @@ local function claimBase(player, base)
 	state.baseIndex = index
 	state.baseModel = base
 	WorldBuilder.setBaseSign(base, player.DisplayName .. "'s VAULT", "SAFE ZONE · place your brainrots here", Color3.fromRGB(120, 210, 255))
-	showToast(player, "Base claimed! Now catch a capsule")
-	setHint(player, state.carried and "Step onto your island to place your catch" or "Touch a glowing capsule to catch a brainrot")
+	showToast(player, "Base claimed! Now click a brainrot on the road!")
+	setHint(player, state.carried and "Step onto your island to place your catch" or "Click a brainrot walking on the road to catch it!")
 	updateStats(player)
 end
 
@@ -844,7 +879,7 @@ local function onShopAction(player, action)
 		-- The HUD COLLECT button: place the carried catch from anywhere on
 		-- your own base's economy (server still validates slots and ownership).
 		if state.carried == nil then
-			showToast(player, "Nothing to collect — touch a glowing capsule!")
+			showToast(player, "Nothing to catch — click a brainrot on the road!")
 			return
 		end
 		if state.baseIndex == nil or state.baseModel == nil then
@@ -1060,7 +1095,7 @@ local function onPlayerAdded(player)
 	player:SetAttribute("CollectionMax", #Config.Brainrots)
 	player:SetAttribute("RarityProgress", "")
 	publishCollection(player, state)
-	setHint(player, "1) Claim an open base  2) Catch a capsule  3) Bring it home")
+	setHint(player, "1) Claim an open base  2) Click a brainrot on the road  3) Bring it home")
 
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)
