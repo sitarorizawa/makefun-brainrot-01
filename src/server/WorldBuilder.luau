@@ -22,7 +22,7 @@ local ROAD_HALF = 150 -- road spans z = -150 .. +150
 -- Colour palette
 -- ---------------------------------------------------------------------------
 
-local GRASS = Color3.fromRGB(80, 180, 70)
+local GRASS = Color3.fromRGB(180, 140, 90)  -- light brown
 local OCEAN = Color3.fromRGB(60, 160, 220)
 local ASPHALT = Color3.fromRGB(55, 55, 65)
 local PATH = Color3.fromRGB(100, 200, 80)
