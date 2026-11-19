@@ -268,15 +268,120 @@ local function buildTunnels()
 end
 
 -- ---------------------------------------------------------------------------
--- setBaseSign / buildSpawnPad: stubs returning empty for Step 1.
+-- Base: creative open-front building at x=50, facing the road (x=0).
 -- ---------------------------------------------------------------------------
 
-function WorldBuilder.setBaseSign(_baseModel, _title, _subtitle, _color)
-	-- No bases yet — no-op.
+local BASE_X = 50
+local BASE_W = 40
+local BASE_D = 30
+local BASE_H = 12
+
+local baseModel = nil
+
+local function buildBase()
+	local m = Instance.new("Model")
+	m.Name = "Base1"
+
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
+
+	-- Floor
+	local floor = bp({Name="Floor", Size=Vector3.new(BASE_W, 1, BASE_D), Color=Color3.fromRGB(50,50,55), Material=Enum.Material.Plastic})
+	floor.CFrame = CFrame.new(BASE_X, 0.5, 0)
+	studAllFaces(floor)
+	floor.Parent = m
+
+	-- Checkerboard tiles (5x5) inside the base
+	for tx = 0, 7 do
+		for tz = 0, 5 do
+			local c = ((tx + tz) % 2 == 0) and Color3.fromRGB(70,70,75) or Color3.fromRGB(50,50,55)
+			local tile = bp({Name="Tile", Size=Vector3.new(5, 0.15, 5), Color=c, Material=Enum.Material.Plastic})
+			tile.CFrame = CFrame.new(BASE_X - BASE_W/2 + 2.5 + tx*5, 1.07, -BASE_D/2 + 2.5 + tz*5)
+			tile.CanCollide = false
+			tile.Parent = m
+		end
+	end
+
+	-- Back wall (positive X, away from road)
+	local back = bp({Name="BackWall", Size=Vector3.new(1, BASE_H, BASE_D), Color=Color3.fromRGB(120,80,50), Material=Enum.Material.Plastic})
+	back.CFrame = CFrame.new(BASE_X + BASE_W/2, BASE_H/2 + 1, 0)
+	studAllFaces(back)
+	back.Parent = m
+
+	-- Side walls (Z sides)
+	for _, sz in ipairs({-1, 1}) do
+		local wall = bp({Name="SideWall", Size=Vector3.new(BASE_W, BASE_H, 1), Color=Color3.fromRGB(120,80,50), Material=Enum.Material.Plastic})
+		wall.CFrame = CFrame.new(BASE_X, BASE_H/2 + 1, sz * BASE_D/2)
+		studAllFaces(wall)
+		wall.Parent = m
+	end
+
+	-- Ceiling
+	local ceil = bp({Name="Ceiling", Size=Vector3.new(BASE_W + 1, 1, BASE_D + 1), Color=Color3.fromRGB(100,65,40), Material=Enum.Material.Plastic})
+	ceil.CFrame = CFrame.new(BASE_X, BASE_H + 1.5, 0)
+	ceil.Parent = m
+
+	-- Corner pillars (open front = negative X has NO wall)
+	for _, sx in ipairs({-1, 1}) do
+		for _, sz in ipairs({-1, 1}) do
+			local pil = bp({Name="Pillar", Size=Vector3.new(2, BASE_H, 2), Color=Color3.fromRGB(160,120,80), Material=Enum.Material.Plastic})
+			pil.CFrame = CFrame.new(BASE_X + sx * BASE_W/2, BASE_H/2 + 1, sz * BASE_D/2)
+			studAllFaces(pil)
+			pil.Parent = m
+		end
+	end
+
+	-- Display shelves on back wall (3 rows)
+	for row = 1, 3 do
+		local shelf = bp({Name="Shelf" .. row, Size=Vector3.new(3, 0.5, BASE_D - 6), Color=Color3.fromRGB(160,120,80), Material=Enum.Material.Plastic})
+		shelf.CFrame = CFrame.new(BASE_X + BASE_W/2 - 3, row * 3 + 1, 0)
+		shelf.Parent = m
+	end
+
+	-- Neon strip on top of open front
+	local neon = bp({Name="NeonStrip", Size=Vector3.new(0.5, 0.5, BASE_D), Color=Color3.fromRGB(0,255,255), Material=Enum.Material.Neon})
+	neon.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 1, 0)
+	neon.CanCollide = false
+	neon.Parent = m
+
+	-- Sign board above open front
+	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 3, 20), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+	sign.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 3.5, 0)
+	sign.CanCollide = false
+	sign.Parent = m
+
+	m.Parent = workspace
+	return m
 end
 
-function WorldBuilder.buildSpawnPad(_index)
-	return nil
+function WorldBuilder.setBaseSign(model, title, _subtitle, _color)
+	if not model then return end
+	local sign = model:FindFirstChild("Sign")
+	if not sign then return end
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Left
+	gui.Parent = sign
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = title or "YOUR BASE"
+	label.TextColor3 = Color3.fromRGB(255, 220, 50)
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBold
+	label.Parent = gui
+end
+
+function WorldBuilder.buildSpawnPad(index)
+	local pad = part({Name="Pad" .. index, Size=Vector3.new(6, 1, 6), Color=Color3.fromRGB(50,200,50), Material=Enum.Material.Plastic})
+	pad.CFrame = CFrame.new(BASE_X, 1.6, 0)
+	pad.Anchored = true
+	pad.CanCollide = true
+	studAllFaces(pad)
+	return pad
 end
 
 -- ---------------------------------------------------------------------------
@@ -302,9 +407,14 @@ function WorldBuilder.build()
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
 	safeStep("buildTunnels", buildTunnels)
+	safeStep("buildBase", function()
+		baseModel = buildBase()
+	end)
 
-
-	return { pads = {}, bases = {} }
+	return {
+		pads = { WorldBuilder.buildSpawnPad(1) },
+		bases = { baseModel },
+	}
 end
 
 return WorldBuilder
