@@ -564,6 +564,103 @@ local BASE_H = 18
 
 local baseModel = nil
 
+-- ---------------------------------------------------------------------------
+-- Gates: stone arch tunnels at both road ends (z=±150).
+-- ---------------------------------------------------------------------------
+
+local function buildGates()
+	local m = Instance.new("Model")
+	m.Name = "Gates"
+
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
+
+	local STONE = Color3.fromRGB(110, 110, 118)
+	local STONE_DARK = Color3.fromRGB(85, 85, 92)
+	local STONE_LIGHT = Color3.fromRGB(140, 140, 148)
+
+	local function buildGate(z)
+		-- Two side pillars (thick, stone)
+		for _, sx in ipairs({-1, 1}) do
+			-- Pillar base
+			local base = bp({Name="GateBase", Size=Vector3.new(8, 4, 12), Color=STONE_DARK, Material=Enum.Material.Slate})
+			base.CFrame = CFrame.new(sx * 16, 2, z)
+			studAllFaces(base)
+			base.Parent = m
+
+			-- Pillar body (stacked stone blocks for texture)
+			for row = 0, 5 do
+				local block = bp({Name="GatePillar", Size=Vector3.new(7, 4, 10), Color=STONE, Material=Enum.Material.Slate})
+				block.CFrame = CFrame.new(sx * 16, 6 + row * 4, z)
+				studAllFaces(block)
+				block.Parent = m
+			end
+
+			-- Pillar cap
+			local cap = bp({Name="GateCap", Size=Vector3.new(9, 3, 12), Color=STONE_LIGHT, Material=Enum.Material.Slate})
+			cap.CFrame = CFrame.new(sx * 16, 31, z)
+			studAllFaces(cap)
+			cap.Parent = m
+		end
+
+		-- Arch: curved stone blocks over the road
+		local archY = 30
+		local R = 16
+		for i = 0, 8 do
+			local t = math.pi * i / 8
+			local wx = math.cos(t) * R
+			local wy = archY + math.sin(t) * 8
+			local block = bp({Name="GateArch", Size=Vector3.new(6, 5, 10), Color=STONE, Material=Enum.Material.Slate})
+			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
+			studAllFaces(block)
+			block.Parent = m
+		end
+
+		-- Keystone at top
+		local key = bp({Name="GateKeystone", Size=Vector3.new(8, 7, 11), Color=STONE_LIGHT, Material=Enum.Material.Slate})
+		key.CFrame = CFrame.new(0, archY + 10, z)
+		studAllFaces(key)
+		key.Parent = m
+
+		-- Inner arch trim (lighter stone)
+		for i = 1, 7 do
+			local t = math.pi * i / 8
+			local wx = math.cos(t) * (R - 3)
+			local wy = archY + math.sin(t) * 6
+			local trim = bp({Name="GateTrim", Size=Vector3.new(4, 3, 11), Color=STONE_LIGHT, Material=Enum.Material.Slate})
+			trim.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
+			studAllFaces(trim)
+			trim.Parent = m
+		end
+
+		-- Top wall connecting pillars (above arch)
+		local topWall = bp({Name="GateTopWall", Size=Vector3.new(40, 6, 10), Color=STONE_DARK, Material=Enum.Material.Slate})
+		topWall.CFrame = CFrame.new(0, archY + 16, z)
+		studAllFaces(topWall)
+		topWall.Parent = m
+
+		-- Grass on top
+		local grassTop = bp({Name="GateGrass", Size=Vector3.new(42, 2, 12), Color=Color3.fromRGB(40,100,30), Material=Enum.Material.Grass})
+		grassTop.CFrame = CFrame.new(0, archY + 20, z)
+		grassTop.Parent = m
+
+		-- Dark interior (ceiling + back)
+		local ceil = bp({Name="GateCeiling", Size=Vector3.new(24, 1, 12), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Slate})
+		ceil.CFrame = CFrame.new(0, archY - 2, z)
+		ceil.CanCollide = false
+		ceil.Parent = m
+	end
+
+	buildGate(-150)
+	buildGate(150)
+
+	m.Parent = workspace
+end
+
 local function buildBase()
 	local m = Instance.new("Model")
 	m.Name = "Base1"
@@ -859,6 +956,7 @@ function WorldBuilder.build()
 	safeStep("buildLamps", buildLamps)
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
+	safeStep("buildGates", buildGates)
 	safeStep("buildBase", function()
 		baseModel = buildBase()
 	end)
