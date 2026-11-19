@@ -242,32 +242,48 @@ local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
 
-	local function addBox(name, size, pos, color)
-		local p = part({
-			Name = name,
-			Size = size,
-			Color = color,
-			Material = Enum.Material.Slate,
-		})
-		p.CFrame = CFrame.new(pos)
+	local function addPart(props)
+		local p = part(props)
 		studAllFaces(p)
-		p.Anchored = true
-		p.CanCollide = true
-		p.Parent = m
+		return p
 	end
 
-	-- Walls sit on the ground (center Y = height / 2). The arch top's center
-	-- is at Y = 12; the keystone rests on its crown (12 + 3/2 + 4/2).
-	local function addArch(prefix, z)
-		addBox(prefix .. "WallWest", Vector3.new(6, 12, 8), Vector3.new(-15, 6, z), STONE_COLOR)
-		addBox(prefix .. "WallEast", Vector3.new(6, 12, 8), Vector3.new(15, 6, z), STONE_COLOR)
-		addBox(prefix .. "ArchTop", Vector3.new(36, 3, 8), Vector3.new(0, 12, z), STONE_COLOR)
-		addBox(prefix .. "Keystone", Vector3.new(6, 4, 8.5), Vector3.new(0, 15.5, z), KEYSTONE)
+	local function buildOneTunnel(z)
+		-- Side pillars with plinths and caps
+		for _, side in ipairs({ -1, 1 }) do
+			local plinth = addPart({Name="Plinth", Size=Vector3.new(6,2,8), Color=Color3.fromRGB(80,80,90), Material=Enum.Material.Slate})
+			plinth.CFrame = CFrame.new(side*16, 1, z)
+			plinth.Parent = m
+
+			local pillar = addPart({Name="Pillar", Size=Vector3.new(4,14,6), Color=Color3.fromRGB(110,110,120), Material=Enum.Material.Slate})
+			pillar.CFrame = CFrame.new(side*16, 9, z)
+			pillar.Parent = m
+
+			local cap = addPart({Name="Cap", Size=Vector3.new(5,1.5,7), Color=Color3.fromRGB(150,150,160), Material=Enum.Material.Slate})
+			cap.CFrame = CFrame.new(side*16, 16.75, z)
+			cap.Parent = m
+		end
+
+		-- Curved arch: 7 wedges in a semicircle from left cap to right cap
+		local archY = 17
+		local R = 16
+		for i = 0, 6 do
+			local t = math.pi * i / 6
+			local wx = math.cos(t) * R
+			local wy = archY + math.sin(t) * 5
+			local wedge = addPart({Name="Arch", Size=Vector3.new(4.5,4,6), Color=Color3.fromRGB(110,110,120), Material=Enum.Material.Slate})
+			wedge.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
+			wedge.Parent = m
+		end
+
+		-- Keystone at peak
+		local key = addPart({Name="Keystone", Size=Vector3.new(5,5,7), Color=Color3.fromRGB(150,150,160), Material=Enum.Material.Slate})
+		key.CFrame = CFrame.new(0, archY + 5, z)
+		key.Parent = m
 	end
 
-	addArch("North", -120) -- z = -100
-	addArch("South", 120) -- z = +100
-
+	buildOneTunnel(-120)
+	buildOneTunnel(120)
 	m.Parent = workspace
 end
 
