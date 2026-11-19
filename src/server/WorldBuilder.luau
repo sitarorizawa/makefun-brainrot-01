@@ -239,7 +239,7 @@ local function buildTunnels()
 	local SCALE = 0.5
 	local success, err = pcall(function()
 		local insertService = game:GetService("InsertService")
-		for _, z in ipairs({-70, 70}) do
+		for _, z in ipairs({0}) do
 			local model = insertService:LoadAsset(assetId)
 			model.Name = "Tunnel"
 			-- Anchor + scale + remove black walls
