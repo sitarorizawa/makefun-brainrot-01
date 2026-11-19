@@ -3960,6 +3960,18 @@ local baseModel = nil
 local baseModel2 = nil
 local baseModel3 = nil
 
+function WorldBuilder.buildSpawnPad(index)
+	local zOffsets = {[1] = 0, [2] = 95, [3] = -95}
+	local z = zOffsets[index] or 0
+	local pad = part({Name = "SpawnPad" .. index, Size = Vector3.new(6, 1, 6), Color = Color3.fromRGB(50, 200, 50), Material = Enum.Material.Plastic})
+	pad.Anchored = true
+	pad.CanCollide = true
+	pad.TopSurface = Enum.SurfaceType.Studs
+	pad.CFrame = CFrame.new(36, 0.5, z)
+	pad.Parent = workspace
+	return pad
+end
+
 function WorldBuilder.build()
 	local function safeStep(name, fn)
 		local ok, err = pcall(fn)
