@@ -235,7 +235,7 @@ end
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
-	local assetId = 4859586766
+	local assetId = 9095595491
 	local SCALE = 0.5
 	local success, err = pcall(function()
 		local insertService = game:GetService("InsertService")
@@ -301,6 +301,8 @@ function WorldBuilder.build()
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
+	safeStep("buildTunnels", buildTunnels)
+
 
 	return { pads = {}, bases = {} }
 end
