@@ -1497,7 +1497,7 @@ local function buildBombardiroAirdrop(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(skull, "Bombardiro Airdrop [MYTHIC]", Color3.fromRGB(255,200,50))
+	addLabel(skull, "Bombardiro Airdrop [LEGENDARY]", Color3.fromRGB(255,180,80))
 
 	m.Parent=workspace; return m
 end
@@ -1906,7 +1906,7 @@ local function buildPipiPotatoStake(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Pipi Potato Stake [RARE]", Color3.fromRGB(255,180,190))
+	addLabel(head, "Pipi Potato Stake [UNCOMMON]", Color3.fromRGB(150,255,150))
 	m.Parent=workspace; return m
 end
 
@@ -1981,7 +1981,7 @@ local function buildChimpanziniSolana(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Chimpanzini Solana [UNCOMMON]", Color3.fromRGB(170,100,255))
+	addLabel(head, "Chimpanzini Solana [COMMON]", Color3.fromRGB(200,200,210))
 	m.Parent=workspace; return m
 end
 
@@ -2945,7 +2945,7 @@ local function buildBruschettaBlock(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Bruschetta Block [RARE]", Color3.fromRGB(100,255,150))
+	addLabel(head, "Bruschetta Block [UNCOMMON]", Color3.fromRGB(150,255,150))
 	m.Parent=workspace; return m
 end
 
@@ -3043,7 +3043,7 @@ local function buildZucchinoVault(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Zucchino Vault [EPIC]", Color3.fromRGB(100,255,130))
+	addLabel(head, "Zucchino Vault [RARE]", Color3.fromRGB(100,200,255))
 	m.Parent=workspace; return m
 end
 
@@ -3187,7 +3187,7 @@ local function buildGnocchiGolem(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Gnocchi Golem [MYTHIC]", Color3.fromRGB(255,220,120))
+	addLabel(head, "Gnocchi Golem [SECRET]", Color3.fromRGB(255,50,50))
 	m.Parent=workspace; return m
 end
 
@@ -3235,7 +3235,7 @@ local function buildFocacciaNode(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Focaccia Node [RARE]", Color3.fromRGB(255,200,130))
+	addLabel(head, "Focaccia Node [UNCOMMON]", Color3.fromRGB(150,255,150))
 	m.Parent=workspace; return m
 end
 
@@ -3337,7 +3337,7 @@ local function buildTiramisuTower(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Tiramisu Tower [MYTHIC]", Color3.fromRGB(255,220,140))
+	addLabel(head, "Tiramisu Tower [EPIC]", Color3.fromRGB(170,100,255))
 	m.Parent=workspace; return m
 end
 
@@ -3435,7 +3435,7 @@ local function buildLimoneFrost(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Limone Frost [EPIC]", Color3.fromRGB(255,240,120))
+	addLabel(head, "Limone Frost [RARE]", Color3.fromRGB(100,200,255))
 	m.Parent=workspace; return m
 end
 
@@ -3537,7 +3537,7 @@ local function buildPolentaPillar(posX, posZ)
 		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
 		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
 	end
-	addLabel(head, "Polenta Pillar [UNCOMMON]", Color3.fromRGB(255,230,110))
+	addLabel(head, "Polenta Pillar [COMMON]", Color3.fromRGB(200,200,210))
 	m.Parent=workspace; return m
 end
 
