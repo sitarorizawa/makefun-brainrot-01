@@ -907,7 +907,7 @@ local function buildBase()
 	-- Move base2 to z=100
 	for _, p in ipairs(base2:GetDescendants()) do
 		if p:IsA("BasePart") then
-			p.CFrame = p.CFrame + Vector3.new(0, 0, 100)
+			p.CFrame = p.CFrame + Vector3.new(0, 0, 95)
 		end
 	end
 	local base3 = buildBaseAt(65, false)
@@ -915,7 +915,7 @@ local function buildBase()
 	-- Move base3 to z=-100
 	for _, p in ipairs(base3:GetDescendants()) do
 		if p:IsA("BasePart") then
-			p.CFrame = p.CFrame + Vector3.new(0, 0, -100)
+			p.CFrame = p.CFrame + Vector3.new(0, 0, -95)
 		end
 	end
 	return base1, base2, base3
