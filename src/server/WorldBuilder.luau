@@ -256,7 +256,7 @@ local function buildTunnels()
 				end
 			end
 			-- Position: arch faces along Z axis (road direction)
-			local pivot = CFrame.new(0, 0, z)
+			local pivot = CFrame.new(0, 2, z)
 			model:PivotTo(pivot)
 			model.Parent = m
 		end
