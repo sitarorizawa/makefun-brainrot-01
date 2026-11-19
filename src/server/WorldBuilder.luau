@@ -641,6 +641,165 @@ local function buildBase()
 	sign.CanCollide = false
 	sign.Parent = m
 
+	-- === DECORATIONS ===
+
+	-- 1. Front porch + steps
+	local porch = bp({Name="Porch", Size=Vector3.new(8, 1, BASE_W), Color=Color3.fromRGB(140,140,145), Material=Enum.Material.Concrete})
+	porch.CFrame = CFrame.new(BASE_X - BASE_W/2 - 4, 0.5, 0)
+	porch.Parent = m
+
+	for i, sx in ipairs({-2, -4}) do
+		local step = bp({Name="Step", Size=Vector3.new(2, 0.5, BASE_W), Color=Color3.fromRGB(130,130,135), Material=Enum.Material.Concrete})
+		step.CFrame = CFrame.new(BASE_X - BASE_W/2 + sx - 1, 0.25, 0)
+		step.Parent = m
+	end
+
+	-- Porch railing
+	for _, sz in ipairs({-1, 1}) do
+		for _, px in ipairs({BASE_X - BASE_W/2 - 7, BASE_X - BASE_W/2 - 1}) do
+			local post = bp({Name="RailingPost", Size=Vector3.new(0.5, 3, 0.5), Color=Color3.fromRGB(70,70,75), Material=Enum.Material.Metal})
+			post.CFrame = CFrame.new(px, 2.5, sz * (BASE_W/2 - 1))
+			post.Parent = m
+		end
+		local bar = bp({Name="RailingBar", Size=Vector3.new(6, 0.3, 0.3), Color=Color3.fromRGB(70,70,75), Material=Enum.Material.Metal})
+		bar.CFrame = CFrame.new(BASE_X - BASE_W/2 - 4, 3.8, sz * (BASE_W/2 - 1))
+		bar.Parent = m
+	end
+
+	-- 2. Ceiling light fixtures (NO PointLight)
+	for _, lx in ipairs({-10, 0, 10}) do
+		for _, lz in ipairs({-10, 10}) do
+			local fixture = bp({Name="CeilingLight", Size=Vector3.new(4, 0.3, 4), Color=Color3.fromRGB(250,250,245), Material=Enum.Material.Neon})
+			fixture.CFrame = CFrame.new(BASE_X + lx, BASE_H + 1, lz)
+			fixture.CanCollide = false
+			fixture.Parent = m
+		end
+	end
+
+	-- 3. Display cases (4 glass cases for brainrots)
+	for _, pos in ipairs({{-15, -12}, {-15, 12}, {15, -12}, {15, 12}}) do
+		local caseBase = bp({Name="CaseBase", Size=Vector3.new(6, 1, 6), Color=Color3.fromRGB(130,95,60), Material=Enum.Material.Wood})
+		caseBase.CFrame = CFrame.new(BASE_X + pos[1], 1.5, pos[2])
+		caseBase.Parent = m
+
+		local glass = bp({Name="CaseGlass", Size=Vector3.new(5, 5, 5), Color=Color3.fromRGB(200,230,255), Material=Enum.Material.Glass})
+		glass.Transparency = 0.7
+		glass.CFrame = CFrame.new(BASE_X + pos[1], 4.5, pos[2])
+		glass.CanCollide = false
+		glass.Parent = m
+
+		local caseTop = bp({Name="CaseTop", Size=Vector3.new(6, 0.3, 6), Color=Color3.fromRGB(130,95,60), Material=Enum.Material.Wood})
+		caseTop.CFrame = CFrame.new(BASE_X + pos[1], 7.1, pos[2])
+		caseTop.Parent = m
+	end
+
+	-- 4. Front desk + monitor
+	local deskTop = bp({Name="DeskTop", Size=Vector3.new(1, 0.3, 10), Color=Color3.fromRGB(160,120,80), Material=Enum.Material.Wood})
+	deskTop.CFrame = CFrame.new(BASE_X - 15, 4.3, 0)
+	deskTop.Parent = m
+
+	local deskBase = bp({Name="DeskBase", Size=Vector3.new(1, 4, 10), Color=Color3.fromRGB(120,85,55), Material=Enum.Material.Wood})
+	deskBase.CFrame = CFrame.new(BASE_X - 15, 2, 0)
+	deskBase.Parent = m
+
+	local monitor = bp({Name="Monitor", Size=Vector3.new(0.2, 1.5, 2), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.SmoothPlastic})
+	monitor.CFrame = CFrame.new(BASE_X - 15.5, 5.3, 0)
+	monitor.CanCollide = false
+	monitor.Parent = m
+
+	local screen = bp({Name="MonitorScreen", Size=Vector3.new(0.1, 1.2, 1.8), Color=Color3.fromRGB(0,255,255), Material=Enum.Material.Neon})
+	screen.CFrame = CFrame.new(BASE_X - 15.7, 5.3, 0)
+	screen.CanCollide = false
+	screen.Parent = m
+
+	-- 5. Windows on side walls (frames + glass)
+	for _, sz in ipairs({-1, 1}) do
+		for _, wz in ipairs({-15, -5, 5, 15}) do
+			local frame = bp({Name="WindowFrame", Size=Vector3.new(1.2, 5, 4), Color=Color3.fromRGB(140,105,70), Material=Enum.Material.Wood})
+			frame.CFrame = CFrame.new(BASE_X, 11, sz * (BASE_D/2))
+			-- Offset along Z
+			frame.CFrame = CFrame.new(BASE_X + wz, 11, sz * (BASE_D/2))
+			frame.Parent = m
+
+			local wglass = bp({Name="WindowGlass", Size=Vector3.new(0.6, 4, 3), Color=Color3.fromRGB(180,220,255), Material=Enum.Material.Glass})
+			wglass.Transparency = 0.5
+			wglass.CFrame = CFrame.new(BASE_X + wz, 11, sz * (BASE_D/2))
+			wglass.CanCollide = false
+			wglass.Parent = m
+		end
+	end
+
+	-- 6. Trophy shelves + posters on back wall
+	for _, tz in ipairs({-10, 0, 10}) do
+		local tshelf = bp({Name="TrophyShelf", Size=Vector3.new(0.5, 0.3, 8), Color=Color3.fromRGB(160,120,80), Material=Enum.Material.Wood})
+		tshelf.CFrame = CFrame.new(BASE_X + BASE_W/2 - 2, 9, tz)
+		tshelf.Parent = m
+
+		for _, ox in ipairs({-2, 2}) do
+			local trophy = bp({Name="Trophy", Size=Vector3.new(1, 1.5, 1), Color=Color3.fromRGB(255,200,50), Material=Enum.Material.Metal})
+			trophy.CFrame = CFrame.new(BASE_X + BASE_W/2 - 2, 10, tz + ox)
+			trophy.Parent = m
+		end
+	end
+
+	-- Posters on back wall
+	for _, pz in ipairs({-8, 8}) do
+		local poster = bp({Name="Poster", Size=Vector3.new(0.2, 4, 3), Color=Color3.fromRGB(0,255,100), Material=Enum.Material.Neon})
+		poster.CFrame = CFrame.new(BASE_X + BASE_W/2 - 0.5, 13, pz)
+		poster.CanCollide = false
+		poster.Parent = m
+	end
+
+	-- 7. Roof details
+	-- Roof railing
+	for _, sz in ipairs({-1, 1}) do
+		local rail = bp({Name="RoofRail", Size=Vector3.new(BASE_W, 0.3, 0.3), Color=Color3.fromRGB(70,70,75), Material=Enum.Material.Metal})
+		rail.CFrame = CFrame.new(BASE_X, BASE_H + 3.5, sz * BASE_D/2)
+		rail.Parent = m
+	end
+	for _, sx in ipairs({-1, 1}) do
+		local rail = bp({Name="RoofRail", Size=Vector3.new(0.3, 0.3, BASE_D), Color=Color3.fromRGB(70,70,75), Material=Enum.Material.Metal})
+		rail.CFrame = CFrame.new(BASE_X + sx * BASE_W/2, BASE_H + 3.5, 0)
+		rail.Parent = m
+	end
+	-- Railing posts
+	for _, sx in ipairs({-1, 0, 1}) do
+		for _, sz in ipairs({-1, 1}) do
+			local rp = bp({Name="RoofPost", Size=Vector3.new(0.3, 2, 0.3), Color=Color3.fromRGB(70,70,75), Material=Enum.Material.Metal})
+			rp.CFrame = CFrame.new(BASE_X + sx * BASE_W/2, BASE_H + 2.5, sz * BASE_D/2)
+			rp.Parent = m
+		end
+	end
+
+	-- AC unit
+	local ac = bp({Name="ACUnit", Size=Vector3.new(4, 2, 3), Color=Color3.fromRGB(150,150,155), Material=Enum.Material.Metal})
+	ac.CFrame = CFrame.new(BASE_X + 10, BASE_H + 3, -10)
+	ac.Parent = m
+
+	-- Vent pipe
+	local vent = bp({Name="VentPipe", Size=Vector3.new(2, 4, 2), Color=Color3.fromRGB(100,100,105), Material=Enum.Material.Metal})
+	vent.CFrame = CFrame.new(BASE_X - 10, BASE_H + 3, 10)
+	vent.Parent = m
+
+	-- 8. Potted plants (4 corners inside)
+	for _, cx in ipairs({-1, 1}) do
+		for _, cz in ipairs({-1, 1}) do
+			local pot = bp({Name="PlantPot", Size=Vector3.new(3, 2, 3), Color=Color3.fromRGB(180,100,60), Material=Enum.Material.Slate, Shape=Enum.PartType.Cylinder})
+			pot.CFrame = CFrame.new(BASE_X + cx * (BASE_W/2 - 4), 2, cz * (BASE_D/2 - 4)) * CFrame.Angles(0, 0, math.rad(90))
+			pot.Parent = m
+
+			local plant = bp({Name="Plant", Size=Vector3.new(2, 3, 2), Color=Color3.fromRGB(40,160,50), Material=Enum.Material.Grass})
+			plant.CFrame = CFrame.new(BASE_X + cx * (BASE_W/2 - 4), 4.5, cz * (BASE_D/2 - 4))
+			plant.Parent = m
+		end
+	end
+
+	-- 9. Welcome mat
+	local mat = bp({Name="WelcomeMat", Size=Vector3.new(4, 0.1, 8), Color=Color3.fromRGB(120,30,30), Material=Enum.Material.Fabric})
+	mat.CFrame = CFrame.new(BASE_X - BASE_W/2 + 2, 1.15, 0)
+	mat.CanCollide = false
+	mat.Parent = m
+
 	m.Parent = workspace
 	return m
 end
