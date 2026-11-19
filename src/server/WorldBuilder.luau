@@ -93,102 +93,7 @@ local function buildGround()
 		addSegment("Wall3East", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(half3, h3/2, offset))
 		addSegment("Wall3West", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(-half3, h3/2, offset))
 	end
-	m.Parent = workspace
-end
-
--- ---------------------------------------------------------------------------
--- Ocean: blue plane under the island at Y=-3.
--- ---------------------------------------------------------------------------
-
-local function buildOcean()
-	local water = part({
-		Name = "Ocean",
-		Size = Vector3.new(OCEAN_SIZE, 0.2, OCEAN_SIZE),
-		Color = OCEAN,
-		Material = Enum.Material.SmoothPlastic,
-		Transparency = 0.3,
-	})
-	water.CFrame = CFrame.new(0, -3, 0)
-	water.Anchored = true
-	water.TopSurface = Enum.SurfaceType.Smooth
-	water.BottomSurface = Enum.SurfaceType.Smooth
-	water.CanCollide = false
-	water.Parent = workspace
-end
-
--- ---------------------------------------------------------------------------
--- Perimeter wall: clean rectangular enclosure around the island edge. Each
--- side is broken into 10 segments of 30 studs (studs invisible on a single
--- 300-long part — same culling issue as the ground), plus 8x8x30 pillars.
--- ---------------------------------------------------------------------------
-
-local WALL_COLOR = Color3.fromRGB(120, 80, 50)  -- dark brown
-
-local function buildPerimeterWall()
-	local m = Instance.new("Model")
-	m.Name = "PerimeterWall"
-
-	local half = ISLAND_SIZE / 2 -- 150
-	local SEGMENT_COUNT = 12
-	local SEGMENT_LENGTH = 25
-	local SEGMENT_START = -137 -- first segment center; -135 + i*30 covers -150..+150
-	local rng = Random.new(42)
-
-	local function addSegment(name, size, pos)
-		local w = part({
-			Name = name,
-			Size = size,
-			Color = WALL_COLOR,
-			Material = Enum.Material.Plastic,
-		})
-		w.CFrame = CFrame.new(pos)
-		studAllFaces(w)
-		local grassTop = part({
-			Name = "WallGrass",
-			Size = Vector3.new(size.X + 0.2, 1, size.Z + 0.2),
-			Color = Color3.fromRGB(40, 100, 30),
-			Material = Enum.Material.Plastic,
-		})
-		grassTop.CFrame = CFrame.new(pos + Vector3.new(0, size.Y/2 + 0.5, 0))
-		studAllFaces(grassTop)
-		grassTop.Anchored = true
-		grassTop.CanCollide = false
-		grassTop.Parent = m
-		w.Anchored = true
-		w.CanCollide = true
-		w.Parent = m
-	end
-
-	-- North/south run along X at z=±150; east/west run along Z at x=±150.
-	-- Bottom sits at Y=0, so center is at Y=12.5.
-	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 25, 20)
-	local sizeAlongZ = Vector3.new(20, 25, SEGMENT_LENGTH)
-	for i = 0, SEGMENT_COUNT - 1 do
-		local offset = SEGMENT_START + i * SEGMENT_LENGTH
-		local h = rng:NextNumber(12, 35)
-		addSegment("WallNorth", Vector3.new(SEGMENT_LENGTH, h, 20), Vector3.new(offset, h/2, -half))
-		local h = rng:NextNumber(12, 35)
-		addSegment("WallSouth", Vector3.new(SEGMENT_LENGTH, h, 20), Vector3.new(offset, h/2, half))
-		local h = rng:NextNumber(12, 35)
-		addSegment("WallEast", Vector3.new(20, h, SEGMENT_LENGTH), Vector3.new(half, h/2, offset))
-		local h = rng:NextNumber(12, 35)
-		addSegment("WallWest", Vector3.new(20, h, SEGMENT_LENGTH), Vector3.new(-half, h/2, offset))
-	end
-
-
-	-- Second wall line, closer to center, thinner and shorter
-	local half2 = half - 12  -- 138
-	for i = 0, SEGMENT_COUNT - 1 do
-		local offset = SEGMENT_START + i * SEGMENT_LENGTH
-		local h1 = rng:NextNumber(12, 35)  -- first wall height
-		local h2 = h1 * 0.6  -- second wall shorter than first
-		addSegment("Wall2North", Vector3.new(SEGMENT_LENGTH, h2, 12), Vector3.new(offset, h2/2, -half2))
-		addSegment("Wall2South", Vector3.new(SEGMENT_LENGTH, h2, 12), Vector3.new(offset, h2/2, half2))
-		addSegment("Wall2East", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(half2, h2/2, offset))
-		addSegment("Wall2West", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(-half2, h2/2, offset))
-	end
-
-	-- Third wall line, thinnest and shortest
+, thinnest and shortest
 	local half3 = half - 24  -- 126
 	for i = 0, SEGMENT_COUNT - 1 do
 		local offset = SEGMENT_START + i * SEGMENT_LENGTH
@@ -236,7 +141,7 @@ local function buildRoad()
 	line.Parent = m
 
 
-	-- Third wall line, thinnest and shortest
+	, thinnest and shortest
 	local half3 = half - 24  -- 126
 	for i = 0, SEGMENT_COUNT - 1 do
 		local offset = SEGMENT_START + i * SEGMENT_LENGTH
