@@ -585,6 +585,7 @@ local BASE_H = 18
 
 local baseModel = nil
 local baseModel2 = nil
+local baseModel3 = nil
 
 -- ---------------------------------------------------------------------------
 -- Gates: stone arch tunnels at both road ends (z=±150).
@@ -896,11 +897,28 @@ local function buildBaseAt(bx, mirror)
 	return m
 end
 
--- Build 2 bases: right (x=65) and left (x=-65), mirrored
+-- Build 3 bases on the RIGHT side (x=65), spaced apart along Z
 local function buildBase()
 	local base1 = buildBaseAt(65, false)
-	local base2 = buildBaseAt(-65, true)
-	return base1, base2
+	base1.Name = "Base1"
+	-- Shift base1 to z=0 is default; add two more at z=±100
+	local base2 = buildBaseAt(65, false)
+	base2.Name = "Base2"
+	-- Move base2 to z=100
+	for _, p in ipairs(base2:GetDescendants()) do
+		if p:IsA("BasePart") then
+			p.CFrame = p.CFrame + Vector3.new(0, 0, 100)
+		end
+	end
+	local base3 = buildBaseAt(65, false)
+	base3.Name = "Base3"
+	-- Move base3 to z=-100
+	for _, p in ipairs(base3:GetDescendants()) do
+		if p:IsA("BasePart") then
+			p.CFrame = p.CFrame + Vector3.new(0, 0, -100)
+		end
+	end
+	return base1, base2, base3
 end
 
 -- ---------------------------------------------------------------------------
@@ -909,6 +927,7 @@ end
 
 local baseModel = nil
 local baseModel2 = nil
+local baseModel3 = nil
 
 function WorldBuilder.build()
 	local function safeStep(name, fn)
@@ -937,14 +956,15 @@ function WorldBuilder.build()
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
 	safeStep("buildBase", function()
-		local b1, b2 = buildBase()
+		local b1, b2, b3 = buildBase()
 		baseModel = b1
 		baseModel2 = b2
+		baseModel3 = b3
 	end)
 
 	return {
-		pads = { WorldBuilder.buildSpawnPad(1), WorldBuilder.buildSpawnPad(2) },
-		bases = { baseModel, baseModel2 },
+		pads = { WorldBuilder.buildSpawnPad(1), WorldBuilder.buildSpawnPad(2), WorldBuilder.buildSpawnPad(3) },
+		bases = { baseModel, baseModel2, baseModel3 },
 	}
 end
 
