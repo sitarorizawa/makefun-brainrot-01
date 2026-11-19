@@ -727,13 +727,37 @@ local function buildGates()
 			bush.Parent = m
 		end
 
-		-- Black interior (solid block filling the arch opening)
-		local blackBlock = bp({Name="GateInterior", Size=Vector3.new(24, 22, 10), Color=Color3.fromRGB(15, 15, 18), Material=Enum.Material.SmoothPlastic})
-		blackBlock.CFrame = CFrame.new(0, 11, z)
-		blackBlock.Parent = m
+		-- Shadow fade interior (layered semi-transparent darkness)
+		-- Layer 1: light shadow at entrance (transparent 0.85)
+		local s1 = bp({Name="Shadow1", Size=Vector3.new(24, 22, 3), Color=Color3.fromRGB(20, 20, 25), Material=Enum.Material.SmoothPlastic})
+		s1.Transparency = 0.85
+		s1.CFrame = CFrame.new(0, 11, z - 3)
+		s1.CanCollide = false
+		s1.Parent = m
 
-		-- Black floor inside tunnel
-		local blackFloor = bp({Name="GateFloor", Size=Vector3.new(26, 0.5, 14), Color=Color3.fromRGB(10, 10, 12), Material=Enum.Material.SmoothPlastic})
+		-- Layer 2: medium shadow (transparent 0.65)
+		local s2 = bp({Name="Shadow2", Size=Vector3.new(24, 22, 3), Color=Color3.fromRGB(15, 15, 18), Material=Enum.Material.SmoothPlastic})
+		s2.Transparency = 0.65
+		s2.CFrame = CFrame.new(0, 11, z)
+		s2.CanCollide = false
+		s2.Parent = m
+
+		-- Layer 3: deep shadow (transparent 0.4)
+		local s3 = bp({Name="Shadow3", Size=Vector3.new(24, 22, 3), Color=Color3.fromRGB(10, 10, 12), Material=Enum.Material.SmoothPlastic})
+		s3.Transparency = 0.4
+		s3.CFrame = CFrame.new(0, 11, z + 3)
+		s3.CanCollide = false
+		s3.Parent = m
+
+		-- Layer 4: darkest (transparent 0.15, almost solid black at back)
+		local s4 = bp({Name="Shadow4", Size=Vector3.new(24, 22, 3), Color=Color3.fromRGB(5, 5, 7), Material=Enum.Material.SmoothPlastic})
+		s4.Transparency = 0.15
+		s4.CFrame = CFrame.new(0, 11, z + 6)
+		s4.CanCollide = false
+		s4.Parent = m
+
+		-- Floor: dark, subtle
+		local blackFloor = bp({Name="GateFloor", Size=Vector3.new(26, 0.5, 14), Color=Color3.fromRGB(25, 25, 28), Material=Enum.Material.SmoothPlastic})
 		blackFloor.CFrame = CFrame.new(0, 0.25, z)
 		blackFloor.Parent = m
 
