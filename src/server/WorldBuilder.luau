@@ -41,6 +41,16 @@ local function part(props)
 	return p
 end
 
+local function studAllFaces(p)
+	p.TopSurface = Enum.SurfaceType.Studs
+	p.BottomSurface = Enum.SurfaceType.Studs
+	p.FrontSurface = Enum.SurfaceType.Studs
+	p.BackSurface = Enum.SurfaceType.Studs
+	p.LeftSurface = Enum.SurfaceType.Studs
+	p.RightSurface = Enum.SurfaceType.Studs
+	return p
+end
+
 -- ---------------------------------------------------------------------------
 -- Lighting: no custom setup.
 -- ---------------------------------------------------------------------------
@@ -66,7 +76,7 @@ local function buildGround()
 				Material = Enum.Material.Plastic,
 			})
 			tile.CFrame = CFrame.new(x + 25, 0, z + 25)
-			tile.TopSurface = Enum.SurfaceType.Studs
+			studAllFaces(tile)
 			tile.Anchored = true
 			tile.CanCollide = true
 			tile.Parent = m
@@ -120,8 +130,7 @@ local function buildPerimeterWall()
 			Material = Enum.Material.Plastic,
 		})
 		w.CFrame = CFrame.new(pos)
-		w.TopSurface = Enum.SurfaceType.Studs
-		w.BottomSurface = Enum.SurfaceType.Studs
+		studAllFaces(w)
 		w.Anchored = true
 		w.CanCollide = true
 		w.Parent = m
@@ -149,8 +158,7 @@ local function buildPerimeterWall()
 				Material = Enum.Material.Plastic,
 			})
 			pillar.CFrame = CFrame.new(sx, 10, sz)
-			pillar.TopSurface = Enum.SurfaceType.Studs
-			pillar.BottomSurface = Enum.SurfaceType.Studs
+			studAllFaces(pillar)
 			pillar.Anchored = true
 			pillar.CanCollide = true
 			pillar.Parent = m
@@ -177,7 +185,7 @@ local function buildRoad()
 	})
 	road.CFrame = CFrame.new(0, 0.2, 0)
 	road.Anchored = true
-	road.TopSurface = Enum.SurfaceType.Studs
+	studAllFaces(road)
 	road.CanCollide = true
 	road.Parent = m
 
