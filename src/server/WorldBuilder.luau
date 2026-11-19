@@ -106,21 +106,26 @@ local function buildOcean()
 end
 
 -- ---------------------------------------------------------------------------
--- Perimeter wall: clean rectangular enclosure around the island edge. Each
--- side is broken into 10 segments of 30 studs (studs invisible on a single
--- 300-long part — same culling issue as the ground), plus 8x8x30 pillars.
+-- Perimeter wall: three concentric lines of segmented wall around the island
+-- edge (12 segments of 25 studs per side — studs vanish on a single 300-long
+-- part, same culling issue as the ground). Heights vary per segment so the
+-- skyline reads as ruined rather than extruded; the outer line caps each
+-- segment with a grass strip. One seeded Random keeps the layout identical
+-- every run.
 -- ---------------------------------------------------------------------------
 
 local WALL_COLOR = Color3.fromRGB(120, 80, 50)  -- dark brown
 
 local function buildPerimeterWall()
+	local rng = Random.new(42)
+
 	local m = Instance.new("Model")
 	m.Name = "PerimeterWall"
 
 	local half = ISLAND_SIZE / 2 -- 150
-	local SEGMENT_COUNT = 10
-	local SEGMENT_LENGTH = 30
-	local SEGMENT_START = -135 -- first segment center; -135 + i*30 covers -150..+150
+	local SEGMENT_COUNT = 12
+	local SEGMENT_LENGTH = 25
+	local SEGMENT_START = -half + SEGMENT_LENGTH / 2 -- -137.5; + i*25 covers -150..+150
 
 	local function addSegment(name, size, pos)
 		local w = part({
@@ -136,17 +141,52 @@ local function buildPerimeterWall()
 		w.Parent = m
 	end
 
-	-- North/south run along X at z=±150; east/west run along Z at x=±150.
-	-- Bottom sits at Y=0, so center is at Y=12.5.
-	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 25, 20)
-	local sizeAlongZ = Vector3.new(20, 25, SEGMENT_LENGTH)
-	for i = 0, SEGMENT_COUNT - 1 do
-		local offset = SEGMENT_START + i * SEGMENT_LENGTH
-		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 12.5, -half))
-		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 12.5, half))
-		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 12.5, offset))
-		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 12.5, offset))
+	local function addGrassCap(name, size, pos)
+		local g = part({
+			Name = name,
+			Size = size,
+			Color = GRASS,
+			Material = Enum.Material.Plastic,
+		})
+		g.CFrame = CFrame.new(pos)
+		studAllFaces(g)
+		g.Anchored = true
+		g.CanCollide = false
+		g.Parent = m
 	end
+
+	-- One line: north/south run along X at z=±distance, east/west along Z at
+	-- x=±distance. Bottom sits at Y=0, so the center is at Y=height/2.
+	local function addWallLine(prefix, distance, thickness, minH, maxH, capWithGrass)
+		for i = 0, SEGMENT_COUNT - 1 do
+			local offset = SEGMENT_START + i * SEGMENT_LENGTH
+			local height = rng:NextNumber(minH, maxH)
+			local y = height / 2
+
+			local sizeAlongX = Vector3.new(SEGMENT_LENGTH, height, thickness)
+			local sizeAlongZ = Vector3.new(thickness, height, SEGMENT_LENGTH)
+			addSegment(prefix .. "North", sizeAlongX, Vector3.new(offset, y, -distance))
+			addSegment(prefix .. "South", sizeAlongX, Vector3.new(offset, y, distance))
+			addSegment(prefix .. "East", sizeAlongZ, Vector3.new(distance, y, offset))
+			addSegment(prefix .. "West", sizeAlongZ, Vector3.new(-distance, y, offset))
+
+			if capWithGrass then
+				-- 1-stud slab a hair wider than the wall, sitting on its top.
+				local capX = Vector3.new(SEGMENT_LENGTH, 1, thickness + 2)
+				local capZ = Vector3.new(thickness + 2, 1, SEGMENT_LENGTH)
+				local capY = height + 0.5
+				addGrassCap(prefix .. "GrassNorth", capX, Vector3.new(offset, capY, -distance))
+				addGrassCap(prefix .. "GrassSouth", capX, Vector3.new(offset, capY, distance))
+				addGrassCap(prefix .. "GrassEast", capZ, Vector3.new(distance, capY, offset))
+				addGrassCap(prefix .. "GrassWest", capZ, Vector3.new(-distance, capY, offset))
+			end
+		end
+	end
+
+	-- Outermost (thick, tall, grass-capped) → innermost (thin, short).
+	addWallLine("Wall1", half, 20, 12, 35, true) -- half = 150
+	addWallLine("Wall2", half - 12, 12, 8, 22, false) -- 138
+	addWallLine("Wall3", half - 24, 5, 5, 14, false) -- 126
 
 	m.Parent = workspace
 end
