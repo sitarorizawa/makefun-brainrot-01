@@ -314,7 +314,8 @@ local function buildBase()
 
 	-- Side walls (Z sides)
 	for _, sz in ipairs({-1, 1}) do
-		local wall = bp({Name="SideWall", Size=Vector3.new(BASE_W, BASE_H, 0.5), Color=Color3.fromRGB(170,210,230), Material=Enum.Material.Glass})
+		local wall = bp({Name="SideWall", Size=Vector3.new(BASE_W, BASE_H, 0.5), Color=Color3.fromRGB(200,230,255), Material=Enum.Material.Glass})
+		wall.Transparency = 0.7
 		wall.CFrame = CFrame.new(BASE_X, BASE_H/2 + 1, sz * BASE_D/2)
 		studAllFaces(wall)
 		wall.Parent = m
