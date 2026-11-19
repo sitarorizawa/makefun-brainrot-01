@@ -357,7 +357,7 @@ local function buildShop()
 	end
 
 	-- Neon sign above the entrance
-	local sign = solid({Name = "Sign", Size = Vector3.new(0.5, 2, 12), Color = NEON_GREEN, Material = Enum.Material.Neon})
+	local sign = solid({Name = "Sign", Size = Vector3.new(0.5, 2, 12), Color = NEON_GREEN, Material = Enum.Material.SmoothPlastic})
 	sign.CFrame = CFrame.new(X + W / 2 + 0.25, 15, Z)
 	sign.CanCollide = false
 	sign.Parent = m
@@ -453,7 +453,7 @@ local function buildLamps()
 			pole.CFrame = CFrame.new(x, 5, z) * CFrame.Angles(0, 0, math.rad(90))
 			pole.Parent = m
 
-			local head = solid({Name = "LampHead", Size = Vector3.new(2, 2, 2), Color = GLOW, Material = Enum.Material.Neon, Shape = Enum.PartType.Ball})
+			local head = solid({Name = "LampHead", Size = Vector3.new(2, 2, 2), Color = GLOW, Material = Enum.Material.SmoothPlastic, Shape = Enum.PartType.Ball})
 			head.CFrame = CFrame.new(x, 11, z)
 			head.CanCollide = false
 			head.Parent = m
@@ -544,7 +544,7 @@ local function buildProps()
 		base.CFrame = CFrame.new(0, 1, z) * CFrame.Angles(0, 0, math.rad(90))
 		base.Parent = m
 
-		local water = solid({Name = "FountainWater", Size = Vector3.new(1.5, 8, 8), Color = WATER, Material = Enum.Material.Neon, Shape = Enum.PartType.Cylinder})
+		local water = solid({Name = "FountainWater", Size = Vector3.new(1.5, 8, 8), Color = WATER, Material = Enum.Material.SmoothPlastic, Shape = Enum.PartType.Cylinder})
 		water.CFrame = CFrame.new(0, 2.75, z) * CFrame.Angles(0, 0, math.rad(90))
 		water.CanCollide = false
 		water.Parent = m
@@ -648,7 +648,7 @@ local function buildGates()
 				stem.CanCollide = false
 				stem.Parent = m
 
-				local flower = bp({Name="Flower", Size=Vector3.new(1.2, 1.2, 1.2), Color=(f % 2 == 0) and FLOWER1 or FLOWER2, Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
+				local flower = bp({Name="Flower", Size=Vector3.new(1.2, 1.2, 1.2), Color=(f % 2 == 0) and FLOWER1 or FLOWER2, Material=Enum.Material.SmoothPlastic, Shape=Enum.PartType.Ball})
 				flower.CFrame = CFrame.new(sx * (13 + f), 20, z + f * 2 - 2)
 				flower.CanCollide = false
 				flower.Parent = m
@@ -820,10 +820,6 @@ local function buildBase()
 	-- 2. Ceiling light fixtures (NO PointLight)
 	for _, lx in ipairs({-10, 0, 10}) do
 		for _, lz in ipairs({-10, 10}) do
-			local fixture = bp({Name="CeilingLight", Size=Vector3.new(4, 0.3, 4), Color=Color3.fromRGB(250,250,245), Material=Enum.Material.Neon})
-			fixture.CFrame = CFrame.new(BASE_X + lx, BASE_H + 1, lz)
-			fixture.CanCollide = false
-			fixture.Parent = m
 		end
 	end
 
@@ -974,15 +970,7 @@ local function buildBase()
 	end
 
 	-- 11. Neon brain icon on back wall (big, centered)
-	local brainOuter = bp({Name="BrainIcon", Size=Vector3.new(0.5, 6, 6), Color=Color3.fromRGB(255, 100, 180), Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
-	brainOuter.CFrame = CFrame.new(BASE_X + BASE_W/2 - 1, 14, 0)
-	brainOuter.CanCollide = false
-	brainOuter.Parent = m
 
-	local brainInner = bp({Name="BrainIconInner", Size=Vector3.new(0.5, 4, 4), Color=Color3.fromRGB(255, 200, 220), Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
-	brainInner.CFrame = CFrame.new(BASE_X + BASE_W/2 - 1.3, 14, 0)
-	brainInner.CanCollide = false
-	brainInner.Parent = m
 
 
 
