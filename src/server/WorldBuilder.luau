@@ -66,7 +66,6 @@ local function buildGround()
 				Color = GRASS,
 				Material = Enum.Material.Plastic,
 			})
-			tile.TopSurface = Enum.SurfaceType.Studs
 			tile.CFrame = CFrame.new(x + 15, 0, z + 15)
 			tile.Anchored = true
 			tile.TopSurface = Enum.SurfaceType.Studs
@@ -98,6 +97,8 @@ local function buildOcean()
 	})
 	water.CFrame = CFrame.new(0, -3, 0)
 	water.Anchored = true
+	water.TopSurface = Enum.SurfaceType.Smooth
+	water.BottomSurface = Enum.SurfaceType.Smooth
 	water.CanCollide = false
 	water.Parent = workspace
 end
@@ -172,9 +173,9 @@ local function buildCliffs()
 		cliff.Size = Vector3.new(wide, tall, deep)
 		cliff.Color = BRICK_COLOR
 		cliff.Material = Enum.Material.Brick
+		cliff.Anchored = true
 		cliff.TopSurface = Enum.SurfaceType.Smooth
 		cliff.BottomSurface = Enum.SurfaceType.Smooth
-		cliff.Anchored = true
 		cliff.CanCollide = true
 
 		-- Bottom sits at Y=0, so center is at height/2.
@@ -208,7 +209,6 @@ local function buildSpawnArea()
 		Color = Color3.fromRGB(50, 140, 50),
 		Material = Enum.Material.Plastic,
 	})
-	platform.TopSurface = Enum.SurfaceType.Studs
 	platform.CFrame = CFrame.new(0, 0.2, 0)
 	platform.Anchored = true
 	platform.TopSurface = Enum.SurfaceType.Studs
@@ -235,26 +235,26 @@ local function buildRoad()
 	-- Dark grey asphalt slab: width 24, length 300, thickness 0.3, Y=0.2.
 	local road = part({
 		Name = "Asphalt",
-	road.TopSurface = Enum.SurfaceType.Smooth
 		Size = Vector3.new(ROAD_WIDTH, 0.3, ROAD_HALF * 2),
 		Color = ASPHALT,
 		Material = Enum.Material.Plastic,
 	})
 	road.CFrame = CFrame.new(0, 0.2, 0)
 	road.Anchored = true
+	road.TopSurface = Enum.SurfaceType.Smooth
 	road.CanCollide = true
 	road.Parent = m
 
 	-- White center line: 1 stud wide, Y=0.35.
 	local line = part({
 		Name = "CenterLine",
-	line.TopSurface = Enum.SurfaceType.Smooth
 		Size = Vector3.new(1, 0.1, ROAD_HALF * 2),
 		Color = Color3.fromRGB(255, 255, 255),
 		Material = Enum.Material.SmoothPlastic,
 	})
 	line.CFrame = CFrame.new(0, 0.35, 0)
 	line.Anchored = true
+	line.TopSurface = Enum.SurfaceType.Smooth
 	line.CanCollide = false
 	line.Parent = m
 
