@@ -4044,11 +4044,14 @@ function WorldBuilder.build()
 
 		local models = {}
 		local ys = {}
+		local rots = {}
 		for _, n in ipairs(PARADE_NAMES) do
 			local m = workspace:FindFirstChild(n)
 			if m then
+				local p = m:GetPivot()
 				models[#models + 1] = m
-				ys[#ys + 1] = m:GetPivot().Position.Y
+				ys[#ys + 1] = p.Position.Y
+				rots[#rots + 1] = p.Rotation
 			end
 		end
 
@@ -4057,7 +4060,7 @@ function WorldBuilder.build()
 				local pos = ((i - 1) * SPACING + t) % CYCLE
 				if pos <= SPAN then
 					if m.Parent ~= workspace then m.Parent = workspace end
-					m:PivotTo(CFrame.new(0, ys[i], -145 + pos))
+					m:PivotTo(CFrame.new(0, ys[i], 145 - pos) * rots[i])
 				else
 					if m.Parent ~= nil then m.Parent = nil end
 				end
