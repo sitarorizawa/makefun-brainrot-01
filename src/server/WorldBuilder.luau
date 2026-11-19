@@ -4145,12 +4145,12 @@ function WorldBuilder.build()
 	safeStep("buildProsciuttoSmoke", function() buildProsciuttoSmoke(0, 0) end)
 	safeStep("buildPolentaPillar", function() buildPolentaPillar(0, 0) end)
 
--- Streaming parade:43 karakter berurutan masuk jalan, spacing20, no overlap.
+-- Streaming parade:43 karakter berurutan masuk jalan, spacing50, no overlap.
 	-- Window [0,290] di aspal; di luar window = hide (muncul berurutan dari z=-145).
 	safeStep("buildParade", function()
 		local RunService = game:GetService("RunService")
 		local SPEED = 6
-		local SPACING = 20
+		local SPACING = 50
 		local SPAN = 290
 		local PARADE_NAMES = {"SatoshinoCrocodilo", "BananitaWhalebit", "PatapimNode", "TralaleroRugpull", "BombombiniGasfee", "BombardiroAirdrop", "BanditoreArbitrage", "BrrBrrNodek", "FrigoCameloWhale", "TungTungSahur", "CapuccinaMining", "PipiPotatoStake", "ChimpanziniSolana", "HamsteroWheel", "LamenoTungsten", "GorillahMemecoin", "PenguinoStable", "FroggoMaker", "SerpentinoDex", "OwlcornOracle", "ElephanteBridge", "CrabettoCex", "PandanoVault", "TortugaLedger", "ViperinoNode", "AquilinoStake", "CucumbroChain", "GelatinoMint", "PiccioneBridge", "GattinoSwap", "BruschettaBlock", "VolpeOracle", "ZucchinoVault", "MoscatoWhale", "CannoliBlaster", "GnocchiGolem", "FocacciaNode", "PestoPirate", "TiramisuTower", "ArancinoBomb", "LimoneFrost", "ProsciuttoSmoke", "PolentaPillar"}
 		local CYCLE = #PARADE_NAMES * SPACING
