@@ -235,7 +235,8 @@ end
 -- The gap between the walls is left open so the road passes through.
 -- ---------------------------------------------------------------------------
 
-local KEYSTONE = Color3.fromRGB(150, 100, 65) -- slightly lighter brown
+local STONE_COLOR = Color3.fromRGB(120, 120, 130)  -- grey stone
+local KEYSTONE = Color3.fromRGB(150, 150, 160) -- slightly lighter brown
 
 local function buildTunnels()
 	local m = Instance.new("Model")
@@ -258,9 +259,9 @@ local function buildTunnels()
 	-- Walls sit on the ground (center Y = height / 2). The arch top's center
 	-- is at Y = 12; the keystone rests on its crown (12 + 3/2 + 4/2).
 	local function addArch(prefix, z)
-		addBox(prefix .. "WallWest", Vector3.new(6, 12, 8), Vector3.new(-15, 6, z), WALL_COLOR)
-		addBox(prefix .. "WallEast", Vector3.new(6, 12, 8), Vector3.new(15, 6, z), WALL_COLOR)
-		addBox(prefix .. "ArchTop", Vector3.new(36, 3, 8), Vector3.new(0, 12, z), WALL_COLOR)
+		addBox(prefix .. "WallWest", Vector3.new(6, 12, 8), Vector3.new(-15, 6, z), STONE_COLOR)
+		addBox(prefix .. "WallEast", Vector3.new(6, 12, 8), Vector3.new(15, 6, z), STONE_COLOR)
+		addBox(prefix .. "ArchTop", Vector3.new(36, 3, 8), Vector3.new(0, 12, z), STONE_COLOR)
 		addBox(prefix .. "Keystone", Vector3.new(6, 4, 8.5), Vector3.new(0, 15.5, z), KEYSTONE)
 	end
 
