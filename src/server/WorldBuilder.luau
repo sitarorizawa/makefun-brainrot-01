@@ -108,10 +108,10 @@ end
 -- ---------------------------------------------------------------------------
 -- Perimeter wall: clean rectangular enclosure around the island edge. Each
 -- side is broken into 10 segments of 30 studs (studs invisible on a single
--- 300-long part — same culling issue as the ground), plus 4x4x20 pillars.
+-- 300-long part — same culling issue as the ground), plus 8x8x30 pillars.
 -- ---------------------------------------------------------------------------
 
-local WALL_COLOR = Color3.fromRGB(180, 140, 90)  -- light brown
+local WALL_COLOR = Color3.fromRGB(120, 80, 50)  -- dark brown
 
 local function buildPerimeterWall()
 	local m = Instance.new("Model")
@@ -137,27 +137,27 @@ local function buildPerimeterWall()
 	end
 
 	-- North/south run along X at z=±150; east/west run along Z at x=±150.
-	-- Bottom sits at Y=0, so center is at Y=7.5.
-	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 15, 2)
-	local sizeAlongZ = Vector3.new(2, 15, SEGMENT_LENGTH)
+	-- Bottom sits at Y=0, so center is at Y=12.5.
+	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 25, 6)
+	local sizeAlongZ = Vector3.new(6, 25, SEGMENT_LENGTH)
 	for i = 0, SEGMENT_COUNT - 1 do
 		local offset = SEGMENT_START + i * SEGMENT_LENGTH
-		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 7.5, -half))
-		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 7.5, half))
-		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 7.5, offset))
-		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 7.5, offset))
+		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 12.5, -half))
+		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 12.5, half))
+		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 12.5, offset))
+		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 12.5, offset))
 	end
 
-	-- Corner pillars: 4x4x20, straddling each corner to joint the walls.
+	-- Corner pillars: 8x8x30, straddling each corner to joint the walls.
 	for _, sx in ipairs({ -half, half }) do
 		for _, sz in ipairs({ -half, half }) do
 			local pillar = part({
 				Name = "CornerPillar",
-				Size = Vector3.new(4, 20, 4),
+				Size = Vector3.new(8, 30, 8),
 				Color = WALL_COLOR,
 				Material = Enum.Material.Plastic,
 			})
-			pillar.CFrame = CFrame.new(sx, 10, sz)
+			pillar.CFrame = CFrame.new(sx, 15, sz)
 			studAllFaces(pillar)
 			pillar.Anchored = true
 			pillar.CanCollide = true
