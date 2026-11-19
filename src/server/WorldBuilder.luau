@@ -96,92 +96,57 @@ local function buildOcean()
 end
 
 -- ---------------------------------------------------------------------------
--- Cliffs: reddish-brown brick walls at the horizon, varying heights, forming a
--- segmented enclosure around the island perimeter. 16 cliffs, evenly spaced
--- with jitter, seeded for determinism.
+-- Perimeter wall: clean rectangular enclosure around the island edge. Four
+-- 300x15x2 brick walls at x=±150 / z=±150, plus 4x4x20 corner pillars.
 -- ---------------------------------------------------------------------------
 
-local BRICK_COLOR = Color3.fromRGB(140, 80, 60)
+local WALL_COLOR = Color3.fromRGB(140, 80, 60)
 
--- size buckets: { wideMin, wideMax, tallMin, tallMax, deepMin, deepMax }
-local CLIFF_BUCKETS = {
-	{ 35, 55, 30, 50, 25, 50 }, -- BIG: dominate the horizon
-	{ 20, 40, 20, 35, 15, 30 }, -- MEDIUM
-	{ 10, 20, 12, 25, 10, 20 }, -- SMALL
-}
-
-local function buildCliffs()
+local function buildPerimeterWall()
 	local m = Instance.new("Model")
-	m.Name = "Cliffs"
+	m.Name = "PerimeterWall"
 
-	local rng = Random.new(42)
-	local CLUSTER_COUNT = 16
+	local half = ISLAND_SIZE / 2 -- 150
 
-	-- 5 BIG, 6 MEDIUM, 5 SMALL = 16 cliffs.
-	local bucketOrder = {}
-	for _ = 1, 5 do table.insert(bucketOrder, 1) end
-	for _ = 1, 6 do table.insert(bucketOrder, 2) end
-	for _ = 1, 5 do table.insert(bucketOrder, 3) end
+	-- Four walls: north/south run along X, east/west run along Z.
+	-- Bottom sits at Y=0, so center is at Y=7.5.
+	local walls = {
+		{ Name = "WallNorth", Size = Vector3.new(ISLAND_SIZE, 15, 2), Pos = Vector3.new(0, 7.5, -half) },
+		{ Name = "WallSouth", Size = Vector3.new(ISLAND_SIZE, 15, 2), Pos = Vector3.new(0, 7.5, half) },
+		{ Name = "WallEast", Size = Vector3.new(2, 15, ISLAND_SIZE), Pos = Vector3.new(half, 7.5, 0) },
+		{ Name = "WallWest", Size = Vector3.new(2, 15, ISLAND_SIZE), Pos = Vector3.new(-half, 7.5, 0) },
+	}
+	for _, def in ipairs(walls) do
+		local w = part({
+			Name = def.Name,
+			Size = def.Size,
+			Color = WALL_COLOR,
+			Material = Enum.Material.Brick,
+		})
+		w.CFrame = CFrame.new(def.Pos)
+		w.TopSurface = Enum.SurfaceType.Studs
+		w.BottomSurface = Enum.SurfaceType.Studs
+		w.Anchored = true
+		w.CanCollide = true
+		w.Parent = m
+	end
 
-	-- 5 cliffs will be WedgeParts for shape variety
-	local wedgeSet = { [2] = true, [5] = true, [8] = true, [11] = true, [14] = true }
-
-	-- Evenly distributed base angles with jitter, skipping road zone.
-	local baseAngle = math.pi * 2 / CLUSTER_COUNT -- ~22.5° spacing
-	for i, bucketIndex in ipairs(bucketOrder) do
-		local bucket = CLIFF_BUCKETS[bucketIndex]
-
-		local angle
-		for _ = 1, 50 do
-			local a = (i - 1) * baseAngle + rng:NextNumber(-math.rad(5), math.rad(5))
-			a = a % (math.pi * 2)
-			local nearNorth = math.abs(a) < math.rad(15) or math.abs(a - math.pi * 2) < math.rad(15)
-			local nearSouth = math.abs(a - math.pi) < math.rad(15)
-			if not nearNorth and not nearSouth then
-				angle = a
-				break
-			end
+	-- Corner pillars: 4x4x20, straddling each corner to joint the walls.
+	for _, sx in ipairs({ -half, half }) do
+		for _, sz in ipairs({ -half, half }) do
+			local pillar = part({
+				Name = "CornerPillar",
+				Size = Vector3.new(4, 20, 4),
+				Color = WALL_COLOR,
+				Material = Enum.Material.Brick,
+			})
+			pillar.CFrame = CFrame.new(sx, 10, sz)
+			pillar.TopSurface = Enum.SurfaceType.Studs
+			pillar.BottomSurface = Enum.SurfaceType.Studs
+			pillar.Anchored = true
+			pillar.CanCollide = true
+			pillar.Parent = m
 		end
-		angle = angle or rng:NextNumber(math.rad(30), math.rad(60))
-
-		local radius = rng:NextNumber(105, 135)
-		local x = math.cos(angle) * radius
-		local z = math.sin(angle) * radius
-
-		local wide = rng:NextNumber(bucket[1], bucket[2])
-		local tall = rng:NextNumber(bucket[3], bucket[4])
-		local deep = rng:NextNumber(bucket[5], bucket[6])
-
-		local yRot = rng:NextNumber(0, math.pi * 2)
-
-		local useWedge = wedgeSet[i] == true
-		local cliff
-		if useWedge then
-			cliff = Instance.new("WedgePart")
-		else
-			cliff = Instance.new("Part")
-		end
-		cliff.Name = "Cliff" .. tostring(i)
-		cliff.Size = Vector3.new(wide, tall, deep)
-		cliff.Color = BRICK_COLOR
-		cliff.Material = Enum.Material.Brick
-		cliff.Anchored = true
-		cliff.TopSurface = Enum.SurfaceType.Studs
-		cliff.BottomSurface = Enum.SurfaceType.Smooth
-		cliff.CanCollide = true
-
-		-- Bottom sits at Y=0, so center is at height/2.
-		local pos = Vector3.new(x, tall / 2, z)
-		local cf = CFrame.new(pos) * CFrame.Angles(0, yRot, 0)
-
-		-- WedgeParts face inward toward the island center.
-		if useWedge then
-			local toCenter = CFrame.new(pos, Vector3.new(0, pos.Y, 0))
-			cf = toCenter * CFrame.Angles(0, yRot, 0)
-		end
-
-		cliff.CFrame = cf
-		cliff.Parent = m
 	end
 
 	m.Parent = workspace
@@ -256,7 +221,7 @@ function WorldBuilder.build()
 	safeStep("setupLighting", setupLighting)
 	safeStep("buildGround", buildGround)
 	safeStep("buildOcean", buildOcean)
-	safeStep("buildCliffs", buildCliffs)
+	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
 
 	return { pads = {}, bases = {} }
