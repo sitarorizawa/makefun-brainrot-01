@@ -727,51 +727,7 @@ local function buildGates()
 			bush.Parent = m
 		end
 
-		-- Shadow fade interior FOLLOWING THE ARCH CURVE
-		-- 4 depth layers, each layer = curved arch shape (boxes along the curve)
-		local archY = 16
-		local archR = 14
-		local layers = {
-			{depth = -3, transparency = 0.85, color = Color3.fromRGB(20, 20, 25)},
-			{depth = 0, transparency = 0.65, color = Color3.fromRGB(15, 15, 18)},
-			{depth = 3, transparency = 0.40, color = Color3.fromRGB(10, 10, 12)},
-			{depth = 6, transparency = 0.15, color = Color3.fromRGB(5, 5, 7)},
-		}
-
-		for _, layer in ipairs(layers) do
-			local dz = z + layer.depth
-
-			-- Vertical side fills (left and right of arch)
-			for _, sx in ipairs({-1, 1}) do
-				local side = bp({Name="ShadowSide", Size=Vector3.new(4, 22, 3), Color=layer.color, Material=Enum.Material.SmoothPlastic})
-				side.Transparency = layer.transparency
-				side.CFrame = CFrame.new(sx * 16, 11, dz)
-				side.CanCollide = false
-				side.Parent = m
-			end
-
-			-- Curved arch fill (boxes following the semi-circle)
-			for i = 0, 8 do
-				local t = math.pi * i / 8
-				local wx = math.cos(t) * archR
-				local wy = archY + math.sin(t) * 5
-
-				local fill = bp({Name="ShadowArch", Size=Vector3.new(5, 5, 3), Color=layer.color, Material=Enum.Material.SmoothPlastic})
-				fill.Transparency = layer.transparency
-				fill.CFrame = CFrame.new(wx, wy, dz) * CFrame.Angles(0, 0, t - math.pi/2)
-				fill.CanCollide = false
-				fill.Parent = m
-			end
-
-			-- Fill below arch (between pillars, solid wall to ground)
-			local mid = bp({Name="ShadowMid", Size=Vector3.new(28, 16, 3), Color=layer.color, Material=Enum.Material.SmoothPlastic})
-			mid.Transparency = layer.transparency
-			mid.CFrame = CFrame.new(0, 8, dz)
-			mid.CanCollide = false
-			mid.Parent = m
-		end
-
-		-- Floor: dark, subtle
+		-- (shadow interior removed)
 		local blackFloor = bp({Name="GateFloor", Size=Vector3.new(26, 0.5, 14), Color=Color3.fromRGB(25, 25, 28), Material=Enum.Material.SmoothPlastic})
 		blackFloor.CFrame = CFrame.new(0, 0.25, z)
 		blackFloor.Parent = m
