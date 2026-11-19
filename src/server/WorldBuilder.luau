@@ -96,8 +96,9 @@ local function buildOcean()
 end
 
 -- ---------------------------------------------------------------------------
--- Perimeter wall: clean rectangular enclosure around the island edge. Four
--- 300x15x2 brick walls at x=±150 / z=±150, plus 4x4x20 corner pillars.
+-- Perimeter wall: clean rectangular enclosure around the island edge. Each
+-- side is broken into 10 segments of 30 studs (studs invisible on a single
+-- 300-long part — same culling issue as the ground), plus 4x4x20 pillars.
 -- ---------------------------------------------------------------------------
 
 local WALL_COLOR = Color3.fromRGB(140, 80, 60)
@@ -107,28 +108,35 @@ local function buildPerimeterWall()
 	m.Name = "PerimeterWall"
 
 	local half = ISLAND_SIZE / 2 -- 150
+	local SEGMENT_COUNT = 10
+	local SEGMENT_LENGTH = 30
+	local SEGMENT_START = -135 -- first segment center; -135 + i*30 covers -150..+150
 
-	-- Four walls: north/south run along X, east/west run along Z.
-	-- Bottom sits at Y=0, so center is at Y=7.5.
-	local walls = {
-		{ Name = "WallNorth", Size = Vector3.new(ISLAND_SIZE, 15, 2), Pos = Vector3.new(0, 7.5, -half) },
-		{ Name = "WallSouth", Size = Vector3.new(ISLAND_SIZE, 15, 2), Pos = Vector3.new(0, 7.5, half) },
-		{ Name = "WallEast", Size = Vector3.new(2, 15, ISLAND_SIZE), Pos = Vector3.new(half, 7.5, 0) },
-		{ Name = "WallWest", Size = Vector3.new(2, 15, ISLAND_SIZE), Pos = Vector3.new(-half, 7.5, 0) },
-	}
-	for _, def in ipairs(walls) do
+	local function addSegment(name, size, pos)
 		local w = part({
-			Name = def.Name,
-			Size = def.Size,
+			Name = name,
+			Size = size,
 			Color = WALL_COLOR,
 			Material = Enum.Material.Plastic,
 		})
-		w.CFrame = CFrame.new(def.Pos)
+		w.CFrame = CFrame.new(pos)
 		w.TopSurface = Enum.SurfaceType.Studs
 		w.BottomSurface = Enum.SurfaceType.Studs
 		w.Anchored = true
 		w.CanCollide = true
 		w.Parent = m
+	end
+
+	-- North/south run along X at z=±150; east/west run along Z at x=±150.
+	-- Bottom sits at Y=0, so center is at Y=7.5.
+	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 15, 2)
+	local sizeAlongZ = Vector3.new(2, 15, SEGMENT_LENGTH)
+	for i = 0, SEGMENT_COUNT - 1 do
+		local offset = SEGMENT_START + i * SEGMENT_LENGTH
+		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 7.5, -half))
+		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 7.5, half))
+		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 7.5, offset))
+		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 7.5, offset))
 	end
 
 	-- Corner pillars: 4x4x20, straddling each corner to joint the walls.
