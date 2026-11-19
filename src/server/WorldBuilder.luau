@@ -131,6 +131,17 @@ local function buildPerimeterWall()
 		})
 		w.CFrame = CFrame.new(pos)
 		studAllFaces(w)
+		local grassTop = part({
+			Name = "WallGrass",
+			Size = Vector3.new(size.X + 0.2, 1, size.Z + 0.2),
+			Color = Color3.fromRGB(40, 100, 30),
+			Material = Enum.Material.Plastic,
+		})
+		grassTop.CFrame = CFrame.new(pos + Vector3.new(0, size.Y/2 + 0.5, 0))
+		studAllFaces(grassTop)
+		grassTop.Anchored = true
+		grassTop.CanCollide = false
+		grassTop.Parent = m
 		w.Anchored = true
 		w.CanCollide = true
 		w.Parent = m
