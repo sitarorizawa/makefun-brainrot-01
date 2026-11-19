@@ -3940,16 +3940,51 @@ local function buildBaseAt(bx, mirror)
 	end
 
 	-- === SIGN ===
-	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 4, 22), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.Plastic})
-	sign.CFrame = CFrame.new(frontX, BASE_H + 8, 0)
+	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 15, 30), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.Plastic})
+	sign.CFrame = CFrame.new(frontX, BASE_H + 15.5, 0)
 	studAllFaces(sign)
 	sign.CanCollide = false
 	sign.Parent = m
 
-	local stripe = bp({Name="SignStripe", Size=Vector3.new(0.3, 0.8, 22), Color=ACCENT, Material=Enum.Material.Plastic})
-	stripe.CFrame = CFrame.new(frontX - MX * 0.2, BASE_H + 6.5, 0)
+	local stripe = bp({Name="SignStripe", Size=Vector3.new(0.3, 0.8, 30), Color=ACCENT, Material=Enum.Material.Plastic})
+	stripe.CFrame = CFrame.new(frontX - MX * 0.2, BASE_H + 7.3, 0)
 	stripe.CanCollide = false
 	stripe.Parent = m
+
+	-- === PRISON-BAR DOOR (slides down into the foundation when open) ===
+	m:SetAttribute("DoorOpen", true)
+	local doorModel = Instance.new("Model")
+	doorModel.Name = "Door"
+	doorModel.Parent = m
+	local BAR_H = 18
+	local barClosedY = 3.5 + BAR_H / 2 -- feet on the floor
+	local barOpenY = barClosedY - 22 -- fully sunk under the floor
+	local BAR_C = Color3.fromRGB(58, 58, 66)
+	for z = -18, 18, 3 do
+		local bar = bp({Name="Bar", Size=Vector3.new(0.7, BAR_H, 0.7), Color=BAR_C, Material=Enum.Material.Metal})
+		bar.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY, z)
+		bar:SetAttribute("ClosedY", barClosedY)
+		bar.Parent = doorModel
+	end
+	-- Horizontal crossbar (prison look), sinks together with the bars.
+	local cross = bp({Name="DoorCross", Size=Vector3.new(0.7, 0.9, 37), Color=BAR_C, Material=Enum.Material.Metal})
+	cross.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY + BAR_H / 2 - 1, 0)
+	cross:SetAttribute("ClosedY", 19.5)
+	cross.Parent = doorModel
+
+	-- Prompt anchor: a small invisible part at eye level by the entrance.
+	local doorAnchor = bp({Name="DoorAnchor", Size=Vector3.new(1, 2, 1), Color=Color3.fromRGB(80,80,90), Material=Enum.Material.Plastic})
+	doorAnchor.Transparency = 1
+	doorAnchor.CanCollide = false
+	doorAnchor.CFrame = CFrame.new(frontX - MX * 1.5, 5.5, 0)
+	doorAnchor.Parent = m
+	local doorPrompt = Instance.new("ProximityPrompt")
+	doorPrompt.ActionText = "Lock Door"
+	doorPrompt.ObjectText = "Vault Door"
+	doorPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	doorPrompt.MaxActivationDistance = 12
+	doorPrompt.HoldDuration = 0
+	doorPrompt.Parent = doorAnchor
 
 	m.Parent = workspace
 	return m

@@ -1389,6 +1389,41 @@ if world and world.bases then
 					onBaseTouched(base, hit)
 				end)
 			end
+
+			-- Prison-bar door: owner toggles the gate with E.
+			local doorAnchor = base:FindFirstChild("DoorAnchor")
+			local doorPrompt = doorAnchor and doorAnchor:FindFirstChildWhichIsA("ProximityPrompt")
+			if doorPrompt then
+				doorPrompt.Triggered:Connect(function(player)
+					local owner = base:GetAttribute("OwnerUserId")
+					if owner == nil then
+						showToast(player, "Claim this base first!")
+						return
+					end
+					if owner ~= player.UserId then
+						showToast(player, "Only the owner controls this door!")
+						return
+					end
+					local newState = not (base:GetAttribute("DoorOpen") == true)
+					base:SetAttribute("DoorOpen", newState)
+					local door = base:FindFirstChild("Door")
+					if door then
+						for _, p in ipairs(door:GetDescendants()) do
+							if p:IsA("BasePart") then
+								local cy = p:GetAttribute("ClosedY")
+								if cy then
+									local cur = p:GetPivot()
+									local targetY = newState and (cy - 22) or cy
+									p:PivotTo(CFrame.new(cur.Position.X, targetY, cur.Position.Z))
+								end
+							end
+						end
+					end
+					doorPrompt.ActionText = newState and "Lock Door" or "Unlock Door"
+					showToast(player, newState and "Vault door LOCKED." or "Vault door OPEN.")
+					playSfx(player, SFX_PING, newState and 0.8 or 1.15, 0.5)
+				end)
+			end
 		end
 	end
 end
