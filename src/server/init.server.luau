@@ -314,6 +314,104 @@ spawnWalker = function(startZ)
 end
 
 -- ---------------------------------------------------------------------------
+-- ---------------------------------------------------------------------------
+-- Parade catch: buy a brainrot straight off the road parade.
+-- ---------------------------------------------------------------------------
+
+local function paradeNameToId(name)
+	-- "SatoshinoCrocodilo" -> "satoshino-crocodilo"
+	local out = name:sub(1, 1):lower() .. name:sub(2)
+	out = out:gsub("(%u)", "-%1"):lower()
+	return out
+end
+
+local function catchParade(player, model)
+	local state = states[player]
+	if state == nil or state.carried ~= nil then
+		return
+	end
+
+	local id = paradeNameToId(model.Name)
+	local entry
+	for _, e in ipairs(Config.Brainrots) do
+		if e.id == id then
+			entry = e
+			break
+		end
+	end
+	if entry == nil then
+		return
+	end
+
+	-- Already caught recently (waiting to rejoin the parade)?
+	local now = os.time()
+	if (model:GetAttribute("CaughtUntil") or 0) > now then
+		return
+	end
+
+	-- Charge the catch price.
+	local price = Config.catchPrice(entry.rarity)
+	if state.cash < price then
+		showToast(player, string.format("Need $%s to catch %s", fmt(price), entry.name))
+		return
+	end
+	state.cash = state.cash - price
+
+	local mutation = Config.rollMutation(rng)
+	local traits = Config.rollTraits(rng)
+
+	state.carried = { entry = entry, mutation = mutation, traits = traits }
+	local carriedModel = BrainrotModels.buildCarried(entry, mutation, traits)
+	carriedModel.Name = "Carried"
+	state.carriedModel = carriedModel
+	carriedModel.Parent = workspace
+
+	local rarityColor = Config.rarity(entry.rarity).color
+	if rarityIndex(entry.rarity) >= 3 then
+		BrainrotModels.sparkleAt(model:GetPivot().Position, rarityColor, true)
+	end
+
+	-- Collection tracking + INDEX BONUS ($1,000 the first time a rarity tier lands).
+	local isNew = state.collectedIds[entry.id] == nil
+	if isNew then
+		state.collectedIds[entry.id] = true
+		local firstOfRarity = state.rarityCounts[entry.rarity] == nil
+		state.rarityCounts[entry.rarity] = (state.rarityCounts[entry.rarity] or 0) + 1
+		if firstOfRarity then
+			state.cash = state.cash + 1000
+			showToast(player, string.format("INDEX BONUS - first %s! +$1,000", entry.rarity))
+		end
+		publishCollection(player, state)
+	end
+
+	-- Hide the parade copy for a while, then it rejoins the parade.
+	model:SetAttribute("CaughtUntil", now + 30)
+
+	updateStats(player)
+	showToast(player, string.format("Caught %s for $%s - bring it to your base!",
+		Config.unitTitle(entry, mutation, traits), fmt(price)))
+	setHint(player, "Walk onto your base to place it on a pedestal")
+end
+
+-- Wire parade ClickDetectors: visible models now, hidden ones when they rejoin.
+local function wireParadeModel(obj)
+	if not obj:IsA("Model") then
+		return
+	end
+	local clicker = obj:FindFirstChildWhichIsA("ClickDetector", true)
+	if clicker and not clicker:GetAttribute("Wired") then
+		clicker:SetAttribute("Wired", true)
+		clicker.MouseClick:Connect(function(player)
+			catchParade(player, obj)
+		end)
+	end
+end
+
+for _, obj in ipairs(workspace:GetChildren()) do
+	wireParadeModel(obj)
+end
+workspace.DescendantAdded:Connect(wireParadeModel)
+
 -- Capsules: spawn, catch, respawn
 -- ---------------------------------------------------------------------------
 

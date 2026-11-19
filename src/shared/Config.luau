@@ -12,6 +12,8 @@ Config.Rarities = {
 	{ name = "Epic", weight = 9, color = Color3.fromRGB(170, 90, 255) },
 	{ name = "Legendary", weight = 6, color = Color3.fromRGB(255, 170, 40) },
 	{ name = "Mythic", weight = 3, color = Color3.fromRGB(255, 70, 120) },
+	{ name = "Secret", weight = 2, color = Color3.fromRGB(255, 50, 50) },
+	{ name = "God", weight = 1, color = Color3.fromRGB(255, 100, 255) },
 }
 
 -- The twelve collectible brainrots: each earns its cash rate per second while it
@@ -29,6 +31,50 @@ Config.Brainrots = {
 	{ id = "fartellone-bomb", name = "Fartellone Bombetta", rarity = "Legendary", rate = 250, color = Color3.fromRGB(200, 200, 60), shape = "box", hat = "crown" },
 	{ id = "schnozzolo-fridge", name = "Schnozzolo Gelatone", rarity = "Legendary", rate = 400, color = Color3.fromRGB(90, 160, 255), shape = "round", hat = "horns" },
 	{ id = "finale-drago", name = "Finale Dragoespresso", rarity = "Mythic", rate = 900, color = Color3.fromRGB(255, 80, 200), shape = "tall", hat = "crown" },
+-- The43 parade brainrots (catchable from the road parade).
+	{ id = "satoshino-crocodilo", name = "Satoshino Crocodilo", rarity = "Mythic", rate = 120, color = Color3.fromRGB(255, 70, 120), shape = "round", hat = "none" },
+	{ id = "bananita-whalebit", name = "Bananita Whalebit", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "antenna" },
+	{ id = "patapim-node", name = "Patapim Node", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "tall", hat = "cap" },
+	{ id = "tralalero-rugpull", name = "Tralalero Rugpull", rarity = "God", rate = 1000, color = Color3.fromRGB(255, 100, 255), shape = "round", hat = "horns" },
+	{ id = "bombombini-gasfee", name = "Bombombini Gasfee", rarity = "Mythic", rate = 120, color = Color3.fromRGB(255, 70, 120), shape = "box", hat = "crown" },
+	{ id = "bombardiro-airdrop", name = "Bombardiro Airdrop", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "tall", hat = "none" },
+	{ id = "banditore-arbitrage", name = "Banditore Arbitrage", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "round", hat = "antenna" },
+	{ id = "brr-brr-nodek", name = "Brr Brr Nodek", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "cap" },
+	{ id = "frigo-camelo-whale", name = "Frigo Camelo Whale", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "tall", hat = "horns" },
+	{ id = "tung-tung-sahur", name = "Tung Tung Sahur", rarity = "Secret", rate = 300, color = Color3.fromRGB(255, 50, 50), shape = "round", hat = "crown" },
+	{ id = "capuccina-mining", name = "Capuccina Mining", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "box", hat = "none" },
+	{ id = "pipi-potato-stake", name = "Pipi Potato Stake", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "tall", hat = "antenna" },
+	{ id = "chimpanzini-solana", name = "Chimpanzini Solana", rarity = "Common", rate = 1, color = Color3.fromRGB(170, 170, 175), shape = "round", hat = "cap" },
+	{ id = "hamstero-wheel", name = "Hamstero Wheel", rarity = "Common", rate = 1, color = Color3.fromRGB(170, 170, 175), shape = "box", hat = "horns" },
+	{ id = "lameno-tungsten", name = "Lameno Tungsten", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "tall", hat = "crown" },
+	{ id = "gorillah-memecoin", name = "Gorillah Memecoin", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "round", hat = "none" },
+	{ id = "penguino-stable", name = "Penguino Stable", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "antenna" },
+	{ id = "froggo-maker", name = "Froggo Maker", rarity = "Mythic", rate = 120, color = Color3.fromRGB(255, 70, 120), shape = "tall", hat = "cap" },
+	{ id = "serpentino-dex", name = "Serpentino Dex", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "round", hat = "horns" },
+	{ id = "owlcorn-oracle", name = "Owlcorn Oracle", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "crown" },
+	{ id = "elephante-bridge", name = "Elephante Bridge", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "tall", hat = "none" },
+	{ id = "crabetto-cex", name = "Crabetto CEX", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "round", hat = "antenna" },
+	{ id = "pandano-vault", name = "Pandano Vault", rarity = "Mythic", rate = 120, color = Color3.fromRGB(255, 70, 120), shape = "box", hat = "cap" },
+	{ id = "tortuga-ledger", name = "Tortuga Ledger", rarity = "Common", rate = 1, color = Color3.fromRGB(170, 170, 175), shape = "tall", hat = "horns" },
+	{ id = "viperino-node", name = "Viperino Node", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "round", hat = "crown" },
+	{ id = "aquilino-stake", name = "Aquilino Stake", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "box", hat = "none" },
+	{ id = "cucumbro-chain", name = "Cucumbro Chain", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "tall", hat = "antenna" },
+	{ id = "gelatino-mint", name = "Gelatino Mint", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "round", hat = "cap" },
+	{ id = "piccione-bridge", name = "Piccione Bridge", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "box", hat = "horns" },
+	{ id = "gattino-swap", name = "Gattino Swap", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "tall", hat = "crown" },
+	{ id = "bruschetta-block", name = "Bruschetta Block", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "round", hat = "none" },
+	{ id = "volpe-oracle", name = "Volpe Oracle", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "antenna" },
+	{ id = "zucchino-vault", name = "Zucchino Vault", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "tall", hat = "cap" },
+	{ id = "moscato-whale", name = "Moscato Whale", rarity = "Mythic", rate = 120, color = Color3.fromRGB(255, 70, 120), shape = "round", hat = "horns" },
+	{ id = "cannoli-blaster", name = "Cannoli Blaster", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "box", hat = "crown" },
+	{ id = "gnocchi-golem", name = "Gnocchi Golem", rarity = "Secret", rate = 300, color = Color3.fromRGB(255, 50, 50), shape = "tall", hat = "none" },
+	{ id = "focaccia-node", name = "Focaccia Node", rarity = "Uncommon", rate = 3, color = Color3.fromRGB(90, 200, 120), shape = "round", hat = "antenna" },
+	{ id = "pesto-pirate", name = "Pesto Pirate", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "box", hat = "cap" },
+	{ id = "tiramisu-tower", name = "Tiramisu Tower", rarity = "Epic", rate = 20, color = Color3.fromRGB(170, 90, 255), shape = "tall", hat = "horns" },
+	{ id = "arancino-bomb", name = "Arancino Bomb", rarity = "Legendary", rate = 50, color = Color3.fromRGB(255, 170, 40), shape = "round", hat = "crown" },
+	{ id = "limone-frost", name = "Limone Frost", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "box", hat = "none" },
+	{ id = "prosciutto-smoke", name = "Prosciutto Smoke", rarity = "Rare", rate = 8, color = Color3.fromRGB(80, 140, 255), shape = "tall", hat = "antenna" },
+	{ id = "polenta-pillar", name = "Polenta Pillar", rarity = "Common", rate = 1, color = Color3.fromRGB(170, 170, 175), shape = "round", hat = "cap" },
 }
 
 -- Mutations roll independently of rarity when a capsule is caught and multiply
@@ -128,6 +174,15 @@ Config.Walkers = {
 }
 
 -- Rarity lookup by name, for rolls and labels.
+-- Catch price when buying a brainrot off the parade.
+function Config.catchPrice(rarityName)
+	local prices = {
+		Common = 10, Uncommon = 50, Rare = 250, Epic = 1000,
+		Legendary = 2500, Mythic = 5000, Secret = 8000, God = 10000,
+	}
+	return prices[rarityName] or 10
+end
+
 function Config.rarity(name)
 	for _, entry in ipairs(Config.Rarities) do
 		if entry.name == name then

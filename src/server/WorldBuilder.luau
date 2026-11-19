@@ -4055,10 +4055,24 @@ function WorldBuilder.build()
 			end
 		end
 
+		-- Pasang ClickDetector biar bisa di-catch (handler di init.server).
+		for _, m in ipairs(models) do
+			local clicker = m:FindFirstChildWhichIsA("ClickDetector", true)
+			if clicker == nil then
+				clicker = Instance.new("ClickDetector")
+				clicker.MaxActivationDistance = 25
+				clicker.Parent = m
+			end
+		end
+
 		local function update()
+			local now = os.time()
 			for i, m in ipairs(models) do
+				-- Kalo ke-catch (CaughtUntil > now): sembunyikan dari parade.
+				local caughtUntil = m:GetAttribute("CaughtUntil") or 0
+				local caught = caughtUntil > now
 				local pos = ((i - 1) * SPACING + t) % CYCLE
-				if pos <= SPAN then
+				if pos <= SPAN and not caught then
 					if m.Parent ~= workspace then m.Parent = workspace end
 					m:PivotTo(CFrame.new(0, ys[i], 145 - pos) * rots[i])
 				else
