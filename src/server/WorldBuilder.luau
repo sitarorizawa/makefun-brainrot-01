@@ -242,17 +242,21 @@ local function buildTunnels()
 		for _, z in ipairs({-70, 70}) do
 			local model = insertService:LoadAsset(assetId)
 			model.Name = "Tunnel"
-			-- Anchor ALL parts
+			-- Anchor + scale + remove black walls
 			for _, desc in ipairs(model:GetDescendants()) do
 				if desc:IsA("BasePart") then
 					desc.Anchored = true
 					desc.CanCollide = true
-					-- Scale down
 					desc.Size = desc.Size * SCALE
+					-- Remove black blocking walls (very dark parts in center)
+					local brightness = (desc.Color.R + desc.Color.G + desc.Color.B) / 3
+					if brightness < 0.15 and math.abs(desc.Position.X) < 5 then
+						desc:Destroy()
+					end
 				end
 			end
-			-- Recenter and position
-			local pivot = CFrame.new(0, 0, z) * CFrame.Angles(0, math.rad(90), 0)
+			-- Position: arch faces along Z axis (road direction)
+			local pivot = CFrame.new(0, 0, z)
 			model:PivotTo(pivot)
 			model.Parent = m
 		end
