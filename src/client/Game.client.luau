@@ -48,6 +48,22 @@ local function label(props)
 	return l
 end
 
+-- Fun panel style: vertical gradient fill + gold border stroke.
+local function stylePanel(frame, strokeColor)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = strokeColor or Color3.fromRGB(255, 185, 70)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.2
+	stroke.Parent = frame
+	local grad = Instance.new("UIGradient")
+	grad.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(36, 40, 62)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 16, 24)),
+	})
+	grad.Rotation = 90
+	grad.Parent = frame
+end
+
 -- ---------------------------------------------------------------------------
 -- Root GUI
 -- ---------------------------------------------------------------------------
@@ -100,6 +116,7 @@ moneyPad.PaddingRight = UDim.new(0, 14)
 moneyPad.PaddingTop = UDim.new(0, 4)
 moneyPad.PaddingBottom = UDim.new(0, 4)
 moneyPad.Parent = moneyPanel
+stylePanel(moneyPanel, Color3.fromRGB(255, 205, 80))
 
 local moneyCounter = label({
 	Name = "Money",
@@ -134,6 +151,10 @@ local moneyRate = label({
 })
 moneyRate.Parent = moneyPanel
 
+-- Pop scale when income ticks up.
+local moneyScale = Instance.new("UIScale")
+moneyScale.Parent = moneyPanel
+
 local showToast -- forward declaration: the button handler below calls it
 
 -- ---------------------------------------------------------------------------
@@ -152,12 +173,27 @@ shopPanel.ZIndex = 8
 shopPanel.Parent = gui
 do
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = shopPanel
+	stylePanel(shopPanel)
 	local title = label({
-		Name = "Title", Text = "SHOP", Font = Enum.Font.GothamBold,
+		Name = "Title", Text = "🛒 SHOP", Font = Enum.Font.GothamBold,
 		TextColor3 = Color3.fromRGB(120, 230, 140), TextSize = 24,
 		Size = UDim2.new(1, -24, 0, 34), Position = UDim2.fromOffset(12, 10), ZIndex = 9,
 	})
 	title.Parent = shopPanel
+	local close = Instance.new("TextButton")
+	close.Name = "Close"
+	close.Text = "✕"
+	close.Font = Enum.Font.GothamBold
+	close.TextSize = 20
+	close.TextColor3 = Color3.fromRGB(255, 130, 130)
+	close.BackgroundTransparency = 1
+	close.Size = UDim2.fromOffset(36, 36)
+	close.Position = UDim2.new(1, -44, 0, 6)
+	close.ZIndex = 10
+	close.Parent = shopPanel
+	close.MouseButton1Click:Connect(function()
+		shopPanel.Visible = false
+	end)
 end
 
 local shopRows = {}
@@ -200,6 +236,10 @@ for i, rs in ipairs(rowSpecs) do
 	buy.ZIndex = 10
 	buy.Parent = row
 	local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0, 8); bc.Parent = buy
+	local bgrad = Instance.new("UIGradient")
+	bgrad.Color = ColorSequence.new(Color3.fromRGB(100, 240, 140), Color3.fromRGB(30, 150, 70))
+	bgrad.Rotation = 90
+	bgrad.Parent = buy
 	local actionKey = rs.key
 	buy.MouseButton1Click:Connect(function()
 		shopRemote:FireServer(actionKey)
@@ -222,8 +262,9 @@ indexPanel.Parent = gui
 local indexCount, indexRarities
 do
 	local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 14); c.Parent = indexPanel
+	stylePanel(indexPanel, Color3.fromRGB(110, 170, 255))
 	local title = label({
-		Name = "Title", Text = "INDEX", Font = Enum.Font.GothamBold,
+		Name = "Title", Text = "📚 INDEX", Font = Enum.Font.GothamBold,
 		TextColor3 = Color3.fromRGB(110, 170, 255), TextSize = 24,
 		Size = UDim2.new(1, -24, 0, 34), Position = UDim2.fromOffset(12, 10), ZIndex = 9,
 	})
@@ -243,6 +284,20 @@ do
 	indexRarities.RichText = true
 	indexRarities.TextWrapped = true
 	indexRarities.Parent = indexPanel
+	local close = Instance.new("TextButton")
+	close.Name = "Close"
+	close.Text = "✕"
+	close.Font = Enum.Font.GothamBold
+	close.TextSize = 20
+	close.TextColor3 = Color3.fromRGB(255, 130, 130)
+	close.BackgroundTransparency = 1
+	close.Size = UDim2.fromOffset(36, 36)
+	close.Position = UDim2.new(1, -44, 0, 6)
+	close.ZIndex = 10
+	close.Parent = indexPanel
+	close.MouseButton1Click:Connect(function()
+		indexPanel.Visible = false
+	end)
 end
 
 -- ---------------------------------------------------------------------------
@@ -278,6 +333,21 @@ for i, spec in ipairs(iconSpecs) do
 	corner.CornerRadius = UDim.new(0, 12)
 	corner.Parent = btn
 
+	-- Gradient fill + white outline + bouncy hover.
+	local bc = spec.color
+	local grad = Instance.new("UIGradient")
+	grad.Color = ColorSequence.new(
+		Color3.new(math.min(bc.R + 0.2, 1), math.min(bc.G + 0.2, 1), math.min(bc.B + 0.2, 1)),
+		Color3.new(bc.R * 0.5, bc.G * 0.5, bc.B * 0.5)
+	)
+	grad.Rotation = 90
+	grad.Parent = btn
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(1, 1, 1)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.4
+	stroke.Parent = btn
+
 	local pad = Instance.new("UIPadding")
 	pad.PaddingLeft = UDim.new(0, 8)
 	pad.PaddingRight = UDim.new(0, 8)
@@ -291,7 +361,7 @@ for i, spec in ipairs(iconSpecs) do
 		Font = Enum.Font.GothamBold,
 		TextColor3 = Color3.new(1, 1, 1),
 		TextScaled = false,
-		TextSize = 22,
+		TextSize = 27,
 		Size = UDim2.new(1, 0, 0.55, 0),
 		Position = UDim2.fromScale(0, 0),
 		ZIndex = 6,
@@ -323,6 +393,17 @@ for i, spec in ipairs(iconSpecs) do
 		elseif spec.action ~= "none" then
 			shopRemote:FireServer(spec.action)
 		end
+	end)
+
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.fromOffset(buttonWidth + 10, buttonHeight + 6),
+		}):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.12), {
+			Size = UDim2.fromOffset(buttonWidth, buttonHeight),
+		}):Play()
 	end)
 end
 
@@ -362,6 +443,7 @@ wavePanel.Parent = gui
 local waveCorner = Instance.new("UICorner")
 waveCorner.CornerRadius = UDim.new(0, 10)
 waveCorner.Parent = wavePanel
+stylePanel(wavePanel, Color3.fromRGB(255, 120, 90))
 
 local waveBanner = label({
 	Name = "WaveBanner",
@@ -400,12 +482,18 @@ local toast = label({
 	Font = Enum.Font.GothamBold,
 	TextColor3 = Color3.new(1, 1, 1),
 	TextStrokeTransparency = 0.35,
+	BackgroundColor3 = Color3.fromRGB(26, 28, 44),
+	BackgroundTransparency = 0.12,
 	Size = UDim2.fromOffset(560, 46),
 	Position = UDim2.new(0.5, -280, 0.42, 0),
 	ZIndex = 6,
 	Visible = false,
 })
 toast.Parent = gui
+do
+	local tc = Instance.new("UICorner"); tc.CornerRadius = UDim.new(0, 12); tc.Parent = toast
+	local ts = Instance.new("UIStroke"); ts.Color = Color3.fromRGB(255, 205, 80); ts.Thickness = 2; ts.Transparency = 0.3; ts.Parent = toast
+end
 
 local toastToken = 0
 showToast = function(text)
@@ -413,12 +501,18 @@ showToast = function(text)
 	local token = toastToken
 	toast.Text = text
 	toast.TextTransparency = 0
+	toast.BackgroundTransparency = 0.12
 	toast.Visible = true
+	-- Slide down into place.
+	toast.Position = UDim2.new(0.5, -280, 0.42, -40)
+	TweenService:Create(toast, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, -280, 0.42, 0),
+	}):Play()
 	task.delay(2.4, function()
 		if token ~= toastToken then
 			return
 		end
-		local tween = TweenService:Create(toast, TweenInfo.new(0.6), { TextTransparency = 1 })
+		local tween = TweenService:Create(toast, TweenInfo.new(0.6), { TextTransparency = 1, BackgroundTransparency = 1 })
 		tween:Play()
 		tween.Completed:Wait()
 		if token == toastToken then
@@ -458,6 +552,7 @@ carryPill.Parent = gui
 local carryCorner = Instance.new("UICorner")
 carryCorner.CornerRadius = UDim.new(0, 10)
 carryCorner.Parent = carryPill
+stylePanel(carryPill, Color3.fromRGB(255, 205, 80))
 
 local carryText = label({
 	Name = "CarryText",
@@ -477,6 +572,8 @@ local lastCash = nil
 
 -- Floating "+$N" text that rises and fades above the money panel.
 local function floatIncome(amount)
+	moneyScale.Scale = 1.08
+	TweenService:Create(moneyScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	local t = Instance.new("TextLabel")
 	t.Text = "+$" .. fmt(amount)
 	t.Font = Enum.Font.GothamBold
@@ -501,8 +598,8 @@ end
 RunService.RenderStepped:Connect(function()
 	-- Money counter + income rate
 	local cash = player:GetAttribute("Cash") or 0
-	moneyCounter.Text = "$" .. fmt(cash)
-	moneyRate.Text = "$" .. fmt(player:GetAttribute("CashPerSecond") or 0) .. "/s"
+	moneyCounter.Text = "💰 $" .. fmt(cash)
+	moneyRate.Text = "⚡ $" .. fmt(player:GetAttribute("CashPerSecond") or 0) .. "/s"
 	if lastCash == nil then
 		lastCash = cash
 	elseif cash > lastCash then
@@ -542,14 +639,13 @@ RunService.RenderStepped:Connect(function()
 	-- Instruction line: use the server Hint attribute, or a default.
 	local hint = player:GetAttribute("Hint") or ""
 	if hint ~= "" then
-		instructionLine.Text = hint
+		instructionLine.Text = "🎯 " .. hint
 	else
 		local carrying = (player:GetAttribute("CarryInfo") or "") ~= ""
-		local baseIndex = player:GetAttribute("BaseIndex") -- no direct attribute for this, approximate
 		if carrying then
-			instructionLine.Text = "Bring the catch to your base!"
+			instructionLine.Text = "🏃 Bring the catch to your base!"
 		else
-			instructionLine.Text = "Click a brainrot on the road, then bring it to your base!"
+			instructionLine.Text = "👆 Click a brainrot on the road, then bring it to your base!"
 		end
 	end
 

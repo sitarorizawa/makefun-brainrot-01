@@ -413,6 +413,7 @@ local function catchParade(player, model)
 	state.carriedModel = carriedModel
 	state.carriedVisual = carriedModel
 	carriedModel.Parent = workspace
+	addMutationAura(carriedModel, mutation)
 
 	local rarityColor = Config.rarity(entry.rarity).color
 	if rarityIndex(entry.rarity) >= 3 then
@@ -805,6 +806,86 @@ local function resetPedestalVisual(base, slot, slotsUnlocked)
 	end
 end
 
+-- Big mutation aura (golden/toxic/rainbow): dense sparkles + a huge neon
+-- ring at the feet + a floating halo around the body.
+local function addMutationAura(model, mutation)
+	if mutation == nil or mutation.id == "none" then
+		return
+	end
+	if model:GetAttribute("MutAura") then
+		return
+	end
+	model:SetAttribute("MutAura", true)
+
+	local color = mutation.color or Color3.fromRGB(255, 255, 255)
+	local seq
+	if mutation.id == "rainbow" then
+		seq = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 80)),
+			ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 220, 80)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 255, 120)),
+			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(100, 160, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 120, 255)),
+		})
+	else
+		seq = ColorSequence.new(color)
+	end
+
+	local pivot = model:GetPivot()
+	local cfr, size = model:GetBoundingBox()
+
+	local core = Instance.new("Part")
+	core.Name = "MutAuraCore"
+	core.Size = Vector3.new(1, 1, 1)
+	core.Transparency = 1
+	core.CanCollide = false
+	core.Anchored = true
+	core.CFrame = CFrame.new(pivot.Position)
+	core.Parent = model
+
+	local pe = Instance.new("ParticleEmitter")
+	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	pe.Color = seq
+	pe.Rate = 45
+	pe.Lifetime = NumberRange.new(1, 2)
+	pe.Speed = NumberRange.new(3, 6)
+	pe.SpreadAngle = Vector2.new(180, 180)
+	pe.Size = NumberSequence.new(1.3, 0)
+	pe.Transparency = NumberSequence.new(0.05, 1)
+	pe.LightEmission = 1
+	pe.Parent = core
+
+	-- Huge neon ring at the feet (2x the rarity ring).
+	local ring = Instance.new("Part")
+	ring.Name = "MutAuraRing"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Size = Vector3.new(0.7, 14, 14)
+	ring.Color = color
+	ring.Material = Enum.Material.Neon
+	ring.Transparency = 0.2
+	ring.Anchored = true
+	ring.CanCollide = false
+	local feetY = cfr.Position.Y - size.Y / 2
+	ring.CFrame = CFrame.new(pivot.Position.X, feetY + 0.3, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Parent = model
+
+	-- Floating halo ring around the body.
+	local halo = Instance.new("Part")
+	halo.Name = "MutAuraHalo"
+	halo.Shape = Enum.PartType.Cylinder
+	halo.Size = Vector3.new(0.5, 10, 10)
+	halo.Color = color
+	halo.Material = Enum.Material.Neon
+	halo.Transparency = 0.45
+	halo.Anchored = true
+	halo.CanCollide = false
+	halo.CFrame = CFrame.new(pivot.Position.X, pivot.Position.Y, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	halo.Parent = model
+end
+
+-- Forward declaration: steal runs off the [E] prompt placed units carry.
+local stealUnitFromPedestal
+
 local function placeUnit(player, base)
 	local state = states[player]
 	if state.carried == nil then
@@ -861,6 +942,23 @@ local function placeUnit(player, base)
 	state.carriedModel = nil
 	state.carriedVisual = nil
 	state.carried = nil
+
+	addMutationAura(model, carried.mutation)
+
+	-- [E] steal prompt: other players can rip this unit off the pedestal.
+	local anchor = model:FindFirstChildWhichIsA("BasePart")
+	if anchor then
+		local stealPrompt = Instance.new("ProximityPrompt")
+		stealPrompt.ActionText = "Steal"
+		stealPrompt.ObjectText = Config.unitTitle(carried.entry, carried.mutation, carried.traits)
+		stealPrompt.KeyboardKeyCode = Enum.KeyCode.E
+		stealPrompt.MaxActivationDistance = 14
+		stealPrompt.HoldDuration = 0.6
+		stealPrompt.Parent = anchor
+		stealPrompt.Triggered:Connect(function(thief)
+			stealUnitFromPedestal(thief, base, slot, model)
+		end)
+	end
 
 	updateStats(player)
 	local rate = Config.unitIncome(carried.entry, carried.mutation, carried.traits)
@@ -939,6 +1037,13 @@ local function finishLock(owner, state)
 	owner:SetAttribute("Robbed", false)
 	owner:SetAttribute("RobbedSeconds", 0)
 
+	-- Instant [E] steal already took the unit: end the alarm, no second payout.
+	if state.lockResolved then
+		state.lockResolved = nil
+		showToast(owner, "The thief got away with your goods!")
+		return
+	end
+
 	local thiefState = robber and states[robber]
 	if thiefState == nil then
 		showToast(owner, "Lock held — nobody got into your vault")
@@ -987,6 +1092,56 @@ local function finishLock(owner, state)
 	updateStats(robber)
 end
 
+stealUnitFromPedestal = function(thief, base, slot, model)
+	local thiefState = states[thief]
+	if thiefState == nil then
+		return
+	end
+	local owner = base:GetAttribute("OwnerUserId")
+	local ownerPlayer = owner and Players:GetPlayerByUserId(owner)
+	local ownerState = ownerPlayer and states[ownerPlayer]
+	-- The pedestal must still hold exactly this unit (guards stale prompts).
+	if ownerState == nil or ownerState.pedestals[slot] == nil
+		or ownerState.pedestals[slot].model ~= model then
+		return
+	end
+	if thief == ownerPlayer then
+		showToast(thief, "That's your own unit!")
+		return
+	end
+	if thiefState.carried then
+		showToast(thief, "You're already carrying something!")
+		return
+	end
+	if thiefState.baseIndex == nil then
+		showToast(thief, "Claim a base first — you need somewhere to stash it!")
+		return
+	end
+
+	local unit = ownerState.pedestals[slot]
+	ownerState.pedestals[slot] = nil
+	BrainrotModels.retire(model)
+	model.Name = "Carried"
+	thiefState.carried = { entry = unit.entry, mutation = unit.mutation, traits = unit.traits }
+	thiefState.carriedModel = model
+	thiefState.carriedVisual = model
+	thiefState.carriedFeetOffset = unit.feetOffset or feetOffsetOf(model)
+	resetPedestalVisual(base, slot, ownerState.slots)
+
+	-- Alarm on the owner's base; the unit is already taken, so tell finishLock
+	-- not to pay out a second time.
+	startLock(ownerPlayer, ownerState, thief)
+	ownerState.lockResolved = true
+	showToast(ownerPlayer, string.format("ROBBED! %s stole your %s", thief.DisplayName, unit.entry.name))
+	showToast(thief, string.format("You stole %s! Bring it to your base",
+		Config.unitTitle(unit.entry, unit.mutation, unit.traits)))
+	setHint(thief, "Bring it to YOUR base to keep it")
+	playSfx(thief, SFX_PING, 0.7, 0.6)
+	playSfx(ownerPlayer, SFX_SPLASH, 1, 0.6)
+	updateStats(ownerPlayer)
+	updateStats(thief)
+end
+
 local function onBaseTouched(base, hit)
 	local player = playerFromHit(hit)
 	if player == nil or states[player] == nil then
@@ -996,13 +1151,9 @@ local function onBaseTouched(base, hit)
 	local index = base:GetAttribute("Index")
 	local owner = base:GetAttribute("OwnerUserId")
 
-	-- Someone else steps on a claimed island: their base is being robbed now.
+	-- Other players' bases ignore touch: stealing happens through the [E]
+	-- prompt on their placed units now.
 	if owner ~= nil and owner ~= player.UserId then
-		local ownerPlayer = Players:GetPlayerByUserId(owner)
-		local ownerState = ownerPlayer and states[ownerPlayer]
-		if ownerState and ownerState.baseIndex == index then
-			startLock(ownerPlayer, ownerState, player)
-		end
 		return
 	end
 
@@ -1150,6 +1301,7 @@ local function onShopAction(player, action)
 		clone.Parent = workspace
 		state.carriedModel = clone
 		state.carriedVisual = clone
+		addMutationAura(clone, mutation)
 		-- Collection tracking (same rule as a road catch).
 		local isNew = state.collectedIds[entry.id] == nil
 		if isNew then
