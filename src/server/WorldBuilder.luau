@@ -584,75 +584,58 @@ local function buildGates()
 	local STONE_LIGHT = Color3.fromRGB(140, 140, 148)
 
 	local function buildGate(z)
-		-- Two side pillars (thick, stone)
+		-- Two side pillars (smaller, Plastic studs like baseplate)
 		for _, sx in ipairs({-1, 1}) do
 			-- Pillar base
-			local base = bp({Name="GateBase", Size=Vector3.new(8, 4, 12), Color=STONE_DARK, Material=Enum.Material.Slate})
-			base.CFrame = CFrame.new(sx * 16, 2, z)
+			local base = bp({Name="GateBase", Size=Vector3.new(5, 2.5, 7), Color=STONE_DARK, Material=Enum.Material.Plastic})
+			base.CFrame = CFrame.new(sx * 14, 1.25, z)
 			studAllFaces(base)
 			base.Parent = m
 
-			-- Pillar body (stacked stone blocks for texture)
-			for row = 0, 5 do
-				local block = bp({Name="GatePillar", Size=Vector3.new(7, 4, 10), Color=STONE, Material=Enum.Material.Slate})
-				block.CFrame = CFrame.new(sx * 16, 6 + row * 4, z)
+			-- Pillar body (3 blocks)
+			for row = 0, 2 do
+				local block = bp({Name="GatePillar", Size=Vector3.new(4.5, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
+				block.CFrame = CFrame.new(sx * 14, 4.75 + row * 3.5, z)
 				studAllFaces(block)
 				block.Parent = m
 			end
 
 			-- Pillar cap
-			local cap = bp({Name="GateCap", Size=Vector3.new(9, 3, 12), Color=STONE_LIGHT, Material=Enum.Material.Slate})
-			cap.CFrame = CFrame.new(sx * 16, 31, z)
+			local cap = bp({Name="GateCap", Size=Vector3.new(5.5, 2, 7), Color=STONE_LIGHT, Material=Enum.Material.Plastic})
+			cap.CFrame = CFrame.new(sx * 14, 16.5, z)
 			studAllFaces(cap)
 			cap.Parent = m
 		end
 
-		-- Arch: curved stone blocks over the road
-		local archY = 30
-		local R = 16
-		for i = 0, 8 do
-			local t = math.pi * i / 8
+		-- Arch: curved blocks over the road
+		local archY = 16
+		local R = 14
+		for i = 0, 6 do
+			local t = math.pi * i / 6
 			local wx = math.cos(t) * R
-			local wy = archY + math.sin(t) * 8
-			local block = bp({Name="GateArch", Size=Vector3.new(6, 5, 10), Color=STONE, Material=Enum.Material.Slate})
+			local wy = archY + math.sin(t) * 5
+			local block = bp({Name="GateArch", Size=Vector3.new(4, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
 			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
 			studAllFaces(block)
 			block.Parent = m
 		end
 
 		-- Keystone at top
-		local key = bp({Name="GateKeystone", Size=Vector3.new(8, 7, 11), Color=STONE_LIGHT, Material=Enum.Material.Slate})
-		key.CFrame = CFrame.new(0, archY + 10, z)
+		local key = bp({Name="GateKeystone", Size=Vector3.new(5, 4.5, 7), Color=STONE_LIGHT, Material=Enum.Material.Plastic})
+		key.CFrame = CFrame.new(0, archY + 7, z)
 		studAllFaces(key)
 		key.Parent = m
 
-		-- Inner arch trim (lighter stone)
-		for i = 1, 7 do
-			local t = math.pi * i / 8
-			local wx = math.cos(t) * (R - 3)
-			local wy = archY + math.sin(t) * 6
-			local trim = bp({Name="GateTrim", Size=Vector3.new(4, 3, 11), Color=STONE_LIGHT, Material=Enum.Material.Slate})
-			trim.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
-			studAllFaces(trim)
-			trim.Parent = m
-		end
-
-		-- Top wall connecting pillars (above arch)
-		local topWall = bp({Name="GateTopWall", Size=Vector3.new(40, 6, 10), Color=STONE_DARK, Material=Enum.Material.Slate})
-		topWall.CFrame = CFrame.new(0, archY + 16, z)
+		-- Top wall connecting pillars
+		local topWall = bp({Name="GateTopWall", Size=Vector3.new(30, 4, 6), Color=STONE_DARK, Material=Enum.Material.Plastic})
+		topWall.CFrame = CFrame.new(0, archY + 11, z)
 		studAllFaces(topWall)
 		topWall.Parent = m
 
 		-- Grass on top
-		local grassTop = bp({Name="GateGrass", Size=Vector3.new(42, 2, 12), Color=Color3.fromRGB(40,100,30), Material=Enum.Material.Grass})
-		grassTop.CFrame = CFrame.new(0, archY + 20, z)
+		local grassTop = bp({Name="GateGrass", Size=Vector3.new(32, 1.5, 7), Color=Color3.fromRGB(40,100,30), Material=Enum.Material.Grass})
+		grassTop.CFrame = CFrame.new(0, archY + 14, z)
 		grassTop.Parent = m
-
-		-- Dark interior (ceiling + back)
-		local ceil = bp({Name="GateCeiling", Size=Vector3.new(24, 1, 12), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Slate})
-		ceil.CFrame = CFrame.new(0, archY - 2, z)
-		ceil.CanCollide = false
-		ceil.Parent = m
 	end
 
 	buildGate(-125)
