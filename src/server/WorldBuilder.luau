@@ -592,9 +592,9 @@ local function buildGates()
 			studAllFaces(base)
 			base.Parent = m
 
-			-- Pillar body (3 blocks)
-			for row = 0, 2 do
-				local block = bp({Name="GatePillar", Size=Vector3.new(4.5, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
+			-- Pillar body (5 blocks, taller to meet arch)
+			for row = 0, 4 do
+				local block = bp({Name="GatePillar", Size=Vector3.new(5, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
 				block.CFrame = CFrame.new(sx * 14, 4.75 + row * 3.5, z)
 				studAllFaces(block)
 				block.Parent = m
@@ -607,14 +607,15 @@ local function buildGates()
 			cap.Parent = m
 		end
 
-		-- Arch: curved blocks over the road
+		-- Arch: curved blocks over the road (overlapping, no gaps)
 		local archY = 16
 		local R = 14
-		for i = 0, 6 do
-			local t = math.pi * i / 6
+		for i = 0, 12 do
+			local t = math.pi * i / 12
 			local wx = math.cos(t) * R
 			local wy = archY + math.sin(t) * 5
-			local block = bp({Name="GateArch", Size=Vector3.new(4, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
+			-- Bigger blocks (6x5) so they overlap and leave no gaps
+			local block = bp({Name="GateArch", Size=Vector3.new(6, 5, 6), Color=STONE, Material=Enum.Material.Plastic})
 			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
 			studAllFaces(block)
 			block.Parent = m
