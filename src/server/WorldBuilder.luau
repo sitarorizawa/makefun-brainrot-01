@@ -768,25 +768,27 @@ local function buildBase()
 	local GLASS_C = Color3.fromRGB(190, 220, 245)
 
 	-- === THICK FOUNDATION (8 studs tall, concrete) ===
-	local foundation = bp({Name="Foundation", Size=Vector3.new(BASE_W + 6, 8, BASE_D + 6), Color=FOUNDATION, Material=Enum.Material.Concrete})
+	local foundation = bp({Name="Foundation", Size=Vector3.new(BASE_W + 6, 8, BASE_D + 6), Color=FOUNDATION, Material=Enum.Material.Plastic})
 	foundation.CFrame = CFrame.new(BASE_X, -3, 0)
 	studAllFaces(foundation)
 	foundation.Parent = m
 
 	-- Foundation trim (slightly wider, darker, at top edge)
-	local trim = bp({Name="FoundationTrim", Size=Vector3.new(BASE_W + 8, 1.5, BASE_D + 8), Color=Color3.fromRGB(70, 70, 76), Material=Enum.Material.Concrete})
+	local trim = bp({Name="FoundationTrim", Size=Vector3.new(BASE_W + 8, 1.5, BASE_D + 8), Color=Color3.fromRGB(70, 70, 76), Material=Enum.Material.Plastic})
 	trim.CFrame = CFrame.new(BASE_X, 1.75, 0)
+	studAllFaces(trim)
 	trim.Parent = m
 
 	-- === FLOOR (checkerboard) ===
-	local floorBase = bp({Name="Floor", Size=Vector3.new(BASE_W, 1, BASE_D), Color=FLOOR_DARK, Material=Enum.Material.SmoothPlastic})
+	local floorBase = bp({Name="Floor", Size=Vector3.new(BASE_W, 1, BASE_D), Color=FLOOR_DARK, Material=Enum.Material.Plastic})
 	floorBase.CFrame = CFrame.new(BASE_X, 3, 0)
+	studAllFaces(floorBase)
 	floorBase.Parent = m
 
 	for tx = 0, 9 do
 		for tz = 0, 7 do
 			if (tx + tz) % 2 == 0 then
-				local tile = bp({Name="FloorTile", Size=Vector3.new(5, 0.1, 5), Color=FLOOR_LIGHT, Material=Enum.Material.SmoothPlastic})
+				local tile = bp({Name="FloorTile", Size=Vector3.new(5, 0.1, 5), Color=FLOOR_LIGHT, Material=Enum.Material.Plastic})
 				tile.CFrame = CFrame.new(BASE_X - BASE_W/2 + 2.5 + tx*5, 3.55, -BASE_D/2 + 2.5 + tz*5)
 				tile.CanCollide = false
 				tile.Parent = m
@@ -796,8 +798,9 @@ local function buildBase()
 
 	-- === WALLS ===
 	local wallY = BASE_H/2 + 3.5  -- sit on top of floor
-	local back = bp({Name="BackWall", Size=Vector3.new(1, BASE_H, BASE_D), Color=WALL, Material=Enum.Material.SmoothPlastic})
+	local back = bp({Name="BackWall", Size=Vector3.new(1, BASE_H, BASE_D), Color=WALL, Material=Enum.Material.Plastic})
 	back.CFrame = CFrame.new(BASE_X + BASE_W/2, wallY, 0)
+	studAllFaces(back)
 	back.Parent = m
 
 	for _, sz in ipairs({-1, 1}) do
@@ -807,23 +810,25 @@ local function buildBase()
 		wall.Parent = m
 
 		-- Wall top frame
-		local frame = bp({Name="WallFrame", Size=Vector3.new(BASE_W + 1, 1, 1), Color=WALL, Material=Enum.Material.SmoothPlastic})
+		local frame = bp({Name="WallFrame", Size=Vector3.new(BASE_W + 1, 1, 1), Color=WALL, Material=Enum.Material.Plastic})
 		frame.CFrame = CFrame.new(BASE_X, BASE_H + 4, sz * BASE_D/2)
 		frame.Parent = m
 	end
 
 	-- Ceiling
-	local ceil = bp({Name="Ceiling", Size=Vector3.new(BASE_W + 1, 1, BASE_D + 1), Color=CEIL, Material=Enum.Material.SmoothPlastic})
+	local ceil = bp({Name="Ceiling", Size=Vector3.new(BASE_W + 1, 1, BASE_D + 1), Color=CEIL, Material=Enum.Material.Plastic})
 	ceil.CFrame = CFrame.new(BASE_X, BASE_H + 4.5, 0)
+	studAllFaces(ceil)
 	ceil.Parent = m
 
 	-- === FRONT FRAME (open, orange accent beam) ===
-	local topBeam = bp({Name="FrontBeam", Size=Vector3.new(1.5, 3, BASE_D), Color=ACCENT, Material=Enum.Material.SmoothPlastic})
+	local topBeam = bp({Name="FrontBeam", Size=Vector3.new(1.5, 3, BASE_D), Color=ACCENT, Material=Enum.Material.Plastic})
 	topBeam.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 5.5, 0)
+	studAllFaces(topBeam)
 	topBeam.Parent = m
 
 	for _, sz in ipairs({-1, 1}) do
-		local pil = bp({Name="FrontPillar", Size=Vector3.new(2.5, BASE_H + 5, 2.5), Color=WALL, Material=Enum.Material.SmoothPlastic})
+		local pil = bp({Name="FrontPillar", Size=Vector3.new(2.5, BASE_H + 5, 2.5), Color=WALL, Material=Enum.Material.Plastic})
 		pil.CFrame = CFrame.new(BASE_X - BASE_W/2, (BASE_H + 5)/2 + 3, sz * BASE_D/2)
 		studAllFaces(pil)
 		pil.Parent = m
@@ -833,6 +838,7 @@ local function buildBase()
 	for row = 1, 3 do
 		local shelf = bp({Name="DisplayShelf", Size=Vector3.new(4, 0.6, BASE_D - 8), Color=SHELF, Material=Enum.Material.Wood})
 		shelf.CFrame = CFrame.new(BASE_X + BASE_W/2 - 4, row * 4 + 5, 0)
+		studAllFaces(shelf)
 		shelf.Parent = m
 
 		local panel = bp({Name="ShelfPanel", Size=Vector3.new(0.3, 3.5, BASE_D - 8), Color=Color3.fromRGB(70, 50, 35), Material=Enum.Material.Wood})
@@ -849,30 +855,31 @@ local function buildBase()
 	}
 	local pedPositions = {{-8, -12}, {-8, 12}, {8, -12}, {8, 12}}
 	for i, pos in ipairs(pedPositions) do
-		local ped = bp({Name="BrainrotPedestal", Size=Vector3.new(5, 2.5, 5), Color=pedColors[i], Material=Enum.Material.SmoothPlastic, Shape=Enum.PartType.Cylinder})
+		local ped = bp({Name="BrainrotPedestal", Size=Vector3.new(5, 2.5, 5), Color=pedColors[i], Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
 		ped.CFrame = CFrame.new(BASE_X + pos[1], 4.75, pos[2]) * CFrame.Angles(0, 0, math.rad(90))
+		studAllFaces(ped)
 		ped.Parent = m
 
-		local plate = bp({Name="PedestalTop", Size=Vector3.new(5.5, 0.3, 5.5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.SmoothPlastic})
+		local plate = bp({Name="PedestalTop", Size=Vector3.new(5.5, 0.3, 5.5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
 		plate.CFrame = CFrame.new(BASE_X + pos[1], 6.15, pos[2])
 		plate.Parent = m
 	end
 
 	-- === FRONT STEPS (thick, sturdy) ===
 	for i = 1, 3 do
-		local step = bp({Name="Step", Size=Vector3.new(3, 1, BASE_D - 4), Color=FOUNDATION, Material=Enum.Material.Concrete})
+		local step = bp({Name="Step", Size=Vector3.new(3, 1, BASE_D - 4), Color=FOUNDATION, Material=Enum.Material.Plastic})
 		step.CFrame = CFrame.new(BASE_X - BASE_W/2 - i * 2.5, 3.5 - i, 0)
 		studAllFaces(step)
 		step.Parent = m
 	end
 
 	-- === SIGN ===
-	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 4, 22), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.SmoothPlastic})
+	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 4, 22), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.Plastic})
 	sign.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 8, 0)
 	sign.CanCollide = false
 	sign.Parent = m
 
-	local stripe = bp({Name="SignStripe", Size=Vector3.new(0.3, 0.8, 22), Color=ACCENT, Material=Enum.Material.SmoothPlastic})
+	local stripe = bp({Name="SignStripe", Size=Vector3.new(0.3, 0.8, 22), Color=ACCENT, Material=Enum.Material.Plastic})
 	stripe.CFrame = CFrame.new(BASE_X - BASE_W/2 - 0.2, BASE_H + 6.5, 0)
 	stripe.CanCollide = false
 	stripe.Parent = m
