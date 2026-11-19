@@ -458,12 +458,7 @@ local function buildLamps()
 			head.CanCollide = false
 			head.Parent = m
 
-			local light = Instance.new("PointLight")
-			light.Name = "LampLight"
-			light.Range = 20
-			light.Brightness = 1
-			light.Color = GLOW
-			light.Parent = head
+			-- LampLight disabled (noon lighting)
 		end
 	end
 
