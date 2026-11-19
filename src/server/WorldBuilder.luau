@@ -2587,6 +2587,961 @@ local function buildPandanoVault(posX, posZ)
 end
 
 -- ---------------------------------------------------------------------------
+-- Characters24-28: Tortuga, Viperino, Aquilino, Cucumbro, Gelatino.
+-- ---------------------------------------------------------------------------
+
+local function buildTortugaLedger(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "TortugaLedger"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local SHELL=Color3.fromRGB(90,140,60); local SKIN=Color3.fromRGB(160,190,120); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Turtle head
+	local head=bp({Name="Head", Size=Vector3.new(2.5,2.2,2.5), Color=SKIN, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,9,-1.5); studAllFaces(head); head.Parent=m
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.5,0.5,0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,9.7,-2.4); e.Parent=m
+	end
+	-- Shell body (ledger book inside)
+	local shell=bp({Name="Shell", Size=Vector3.new(4.5,3,4.5), Color=SHELL, Material=Enum.Material.Plastic})
+	shell.CFrame=cf(0,5.5,0.5); studAllFaces(shell); shell.Parent=m
+	-- Ledger book on shell
+	local book=bp({Name="Ledger", Size=Vector3.new(3.5,1,3), Color=Color3.fromRGB(70,50,120), Material=Enum.Material.Plastic})
+	book.CFrame=cf(0,7.5,0.5); studAllFaces(book); book.Parent=m
+	local pages=bp({Name="Pages", Size=Vector3.new(3.2,0.6,2.7), Color=WHITE, Material=Enum.Material.Plastic})
+	pages.CFrame=cf(0,7.7,0.5); pages.Parent=m
+	-- Legs
+	for _,sx in ipairs({-1,1}) do
+		for _,sz in ipairs({-1,2}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(1,1.5,1), Color=SKIN, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(sx*2,0.75,sz); studAllFaces(leg); leg.Parent=m
+		end
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Tortuga Ledger [COMMON]", Color3.fromRGB(200,200,210))
+	m.Parent=workspace; return m
+end
+
+local function buildViperinoNode(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "ViperinoNode"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local VIPER=Color3.fromRGB(70,160,90); local VIPER2=Color3.fromRGB(50,130,70); local BLACK=Color3.fromRGB(25,25,30)
+	-- Viper head (triangle-ish)
+	local head=bp({Name="Head", Size=Vector3.new(2.2,1.8,2.8), Color=VIPER, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,-0.5); studAllFaces(head); head.Parent=m
+	local snout=bp({Name="Snout", Size=Vector3.new(1.5,0.8,1.8), Color=VIPER, Material=Enum.Material.Plastic})
+	snout.CFrame=cf(0,11.5,-2.5); studAllFaces(snout); snout.Parent=m
+	for _,ex in ipairs({-0.6,0.6}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.5,0.5,0.5), Color=Color3.fromRGB(255,200,50), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.4,-1.4); e.Parent=m
+	end
+	local tongue=bp({Name="Tongue", Size=Vector3.new(0.2,0.15,1.2), Color=Color3.fromRGB(230,60,80), Material=Enum.Material.Plastic})
+	tongue.CFrame=cf(0,11.3,-3.6); tongue.CanCollide=false; tongue.Parent=m
+	-- Node tower body (server)
+	local tower=bp({Name="NodeTower", Size=Vector3.new(3,6,3), Color=Color3.fromRGB(50,50,56), Material=Enum.Material.Plastic})
+	tower.CFrame=cf(0,6,0.5); studAllFaces(tower); tower.Parent=m
+	for i=0,4 do
+		local led=bp({Name="LED", Size=Vector3.new(0.4,0.3,0.2), Color=(i%2==0) and Color3.fromRGB(50,255,100) or Color3.fromRGB(255,70,60), Material=Enum.Material.Plastic})
+		led.CFrame=cf(-0.5,3.5+i*1,-1.1); led.CanCollide=false; led.Parent=m
+	end
+	-- Snake coils around tower
+	for i=0,5 do
+		local ang=math.rad(i*60)
+		local coil=bp({Name="Coil", Size=Vector3.new(1.5,1.2,1.5), Color=(i%2==0) and VIPER or VIPER2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		coil.CFrame=cf(math.cos(ang)*2.5, 3.5+math.sin(ang)*2.5, 0.5)
+		coil.Parent=m
+	end
+	-- Tail
+	for i=0,2 do
+		local t=bp({Name="Tail", Size=Vector3.new(1-i*0.25,0.8,1-i*0.25), Color=VIPER, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		t.CFrame=cf(0,1.5+i*0.3,2.5+i*1); t.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Viperino Node [UNCOMMON]", Color3.fromRGB(150,255,150))
+	m.Parent=workspace; return m
+end
+
+local function buildAquilinoStake(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "AquilinoStake"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local FEATHER=Color3.fromRGB(90,70,50); local FEATHER2=Color3.fromRGB(120,95,65); local BEAK=Color3.fromRGB(255,180,50); local BLACK=Color3.fromRGB(25,25,30)
+	-- Eagle head
+	local head=bp({Name="Head", Size=Vector3.new(2.5,2.5,2.8), Color=FEATHER, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,13,0); studAllFaces(head); head.Parent=m
+	local beak=bp({Name="Beak", Size=Vector3.new(1,1,1.8), Color=BEAK, Material=Enum.Material.Plastic})
+	beak.CFrame=cf(0,12.5,-2.2)*CFrame.Angles(math.rad(20),0,0); studAllFaces(beak); beak.Parent=m
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.55,0.55,0.55), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,13.7,-1.2); e.Parent=m
+	end
+	-- Body with wings
+	local body=bp({Name="Body", Size=Vector3.new(3,4,2.8), Color=FEATHER, Material=Enum.Material.Plastic})
+	body.CFrame=cf(0,8,0.5); studAllFaces(body); body.Parent=m
+	for _,sx in ipairs({-1,1}) do
+		local wing=bp({Name="Wing", Size=Vector3.new(1,3.5,3), Color=FEATHER2, Material=Enum.Material.Plastic})
+		wing.CFrame=cf(sx*2.2,8.5,0.5)*CFrame.Angles(0,0,math.rad(sx*25)); studAllFaces(wing); wing.Parent=m
+	end
+	-- Staking platform (body is on platform)
+	local platform=bp({Name="StakePlatform", Size=Vector3.new(5,2,5), Color=Color3.fromRGB(60,130,200), Material=Enum.Material.Plastic})
+	platform.CFrame=cf(0,4,0.5); studAllFaces(platform); platform.Parent=m
+	local pole=bp({Name="StakePole", Size=Vector3.new(0.8,4,0.8), Color=Color3.fromRGB(180,180,190), Material=Enum.Material.Plastic})
+	pole.CFrame=cf(2.5,6,2); studAllFaces(pole); pole.Parent=m
+	-- Flag
+	local flag=bp({Name="Flag", Size=Vector3.new(2.5,1.5,0.2), Color=Color3.fromRGB(60,130,200), Material=Enum.Material.Plastic})
+	flag.CFrame=cf(3.8,7.3,2); flag.CanCollide=false; flag.Parent=m
+	-- Legs + talons
+	for _,lx in ipairs({-1,1}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(0.7,2,0.7), Color=BEAK, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.5,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Aquilino Stake [RARE]", Color3.fromRGB(100,255,150))
+	m.Parent=workspace; return m
+end
+
+local function buildCucumbroChain(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "CucumbroChain"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local CUC=Color3.fromRGB(80,165,70); local CUC2=Color3.fromRGB(60,140,55); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Cucumber head (round top)
+	local head=bp({Name="Head", Size=Vector3.new(3,3.5,3), Color=CUC, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Cucumber bumps
+	for i=0,4 do
+		local bump=bp({Name="Bump", Size=Vector3.new(0.5,0.5,0.5), Color=CUC2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		bump.CFrame=cf(math.sin(i*1.5)*1.4, 13+math.cos(i*1.5), math.cos(i*1.5)*1.4); bump.Parent=m
+	end
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.7,0.7,0.7), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.3,-1.3); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.35,0.35,0.35), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.3,-1.7); p.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.2,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,11,-1.4); mouth.CanCollide=false; mouth.Parent=m
+	-- Body (cucumber segment)
+	local body=bp({Name="Body", Size=Vector3.new(3.2,4.5,3.2), Color=CUC, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	body.CFrame=cf(0,6,0.5); studAllFaces(body); body.Parent=m
+	-- Chain links around body
+	for i=0,7 do
+		local ang=math.rad(i*45)
+		local link=bp({Name="ChainLink", Size=Vector3.new(1.2,0.6,1.2), Color=Color3.fromRGB(180,180,190), Material=Enum.Material.Plastic})
+		link.CFrame=cf(math.cos(ang)*2.4, 6+math.sin(ang)*2.4, 0.5)*CFrame.Angles(0,0,ang)
+		link.Parent=m
+	end
+	-- Legs
+	for _,lx in ipairs({-1,1}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1,2,1), Color=CUC2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.5,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Cucumbro Chain [UNCOMMON]", Color3.fromRGB(150,255,150))
+	m.Parent=workspace; return m
+end
+
+local function buildGelatinoMint(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "GelatinoMint"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local JELLY=Color3.fromRGB(100,220,140); local MINT=Color3.fromRGB(60,180,100); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Jelly head (wobbly dome)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3,3.5), Color=JELLY, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	head.CFrame=cf(0,11.5,0); studAllFaces(head); head.Parent=m
+	head.Transparency=0.15
+	-- Big eyes inside jelly
+	for _,ex in ipairs({-0.9,0.9}) do
+		local e=bp({Name="Eye", Size=Vector3.new(1,1,1), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.8,-1.3); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.5,0.5,0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,11.8,-1.8); p.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.5,0.4,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,10.5,-1.5); mouth.CanCollide=false; mouth.Parent=m
+	-- Mint machine body
+	local machine=bp({Name="MintMachine", Size=Vector3.new(4,5,3.5), Color=Color3.fromRGB(140,142,150), Material=Enum.Material.Plastic})
+	machine.CFrame=cf(0,5.5,0.5); studAllFaces(machine); machine.Parent=m
+	-- Mint leaf logo
+	local leaf=bp({Name="MintLeaf", Size=Vector3.new(1.5,1.5,0.3), Color=MINT, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	leaf.CFrame=cf(0,6.5,-1.4); leaf.CanCollide=false; leaf.Parent=m
+	-- Output slot with mint coin
+	local slot=bp({Name="Slot", Size=Vector3.new(2,0.6,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	slot.CFrame=cf(0,4,-1.3); slot.CanCollide=false; slot.Parent=m
+	local coin=bp({Name="MintCoin", Size=Vector3.new(1.3,0.4,1.3), Color=MINT, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	coin.CFrame=cf(0,3.3,-2)*CFrame.Angles(math.rad(90),0,0); coin.CanCollide=false; coin.Parent=m
+	-- Legs
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2.5,1.2), Color=JELLY, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Gelatino Mint [RARE]", Color3.fromRGB(100,255,170))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
+-- Characters29-33: Piccione, Gattino, Bruschetta, Volpe, Zucchino.
+-- ---------------------------------------------------------------------------
+
+local function buildPiccioneBridge(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "PiccioneBridge"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local FEATHER=Color3.fromRGB(130,135,150); local NECK=Color3.fromRGB(100,170,130); local BEAK=Color3.fromRGB(255,180,50); local BLACK=Color3.fromRGB(25,25,30)
+	-- Pigeon head
+	local head=bp({Name="Head", Size=Vector3.new(2.2,2.2,2.2), Color=FEATHER, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,-0.5); studAllFaces(head); head.Parent=m
+	local beak=bp({Name="Beak", Size=Vector3.new(0.6,0.5,1.2), Color=BEAK, Material=Enum.Material.Plastic})
+	beak.CFrame=cf(0,11.7,-1.9); studAllFaces(beak); beak.Parent=m
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.45,0.45,0.45), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.5,-1.4); e.Parent=m
+	end
+	-- Neck (iridescent green)
+	local neck=bp({Name="Neck", Size=Vector3.new(1.5,2,1.5), Color=NECK, Material=Enum.Material.Plastic})
+	neck.CFrame=cf(0,10,0); studAllFaces(neck); neck.Parent=m
+	-- Pigeon body
+	local body=bp({Name="Body", Size=Vector3.new(3,3,3.8), Color=FEATHER, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	body.CFrame=cf(0,7,0.5); studAllFaces(body); body.Parent=m
+	-- Bridge deck body (the joke - body IS a small bridge)
+	local deck=bp({Name="Deck", Size=Vector3.new(4,1,5), Color=Color3.fromRGB(130,95,60), Material=Enum.Material.Plastic})
+	deck.CFrame=cf(0,5.5,0.5); studAllFaces(deck); deck.Parent=m
+	for _,sx in ipairs({-1,1}) do
+		local rail=bp({Name="Rail", Size=Vector3.new(0.25,1,5), Color=Color3.fromRGB(90,65,40), Material=Enum.Material.Plastic})
+		rail.CFrame=cf(sx*2,6.5,0.5); studAllFaces(rail); rail.Parent=m
+	end
+	-- Wings + feet
+	for _,sx in ipairs({-1,1}) do
+		local wing=bp({Name="Wing", Size=Vector3.new(0.8,2.5,3), Color=Color3.fromRGB(110,115,130), Material=Enum.Material.Plastic})
+		wing.CFrame=cf(sx*1.9,7.5,0.5); studAllFaces(wing); wing.Parent=m
+	end
+	for _,lx in ipairs({-0.8,0.8}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(0.5,1.5,0.5), Color=BEAK, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,2.25,0.5); studAllFaces(leg); leg.Parent=m
+		local foot=bp({Name="Foot", Size=Vector3.new(0.9,0.4,1.3), Color=BEAK, Material=Enum.Material.Plastic})
+		foot.CFrame=cf(lx,1.5,0.2); foot.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Piccione Bridge [RARE]", Color3.fromRGB(100,255,150))
+	m.Parent=workspace; return m
+end
+
+local function buildGattinoSwap(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "GattinoSwap"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local CAT=Color3.fromRGB(250,200,120); local CAT2=Color3.fromRGB(220,170,90); local PINK=Color3.fromRGB(245,170,175); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Kitten head
+	local head=bp({Name="Head", Size=Vector3.new(3,2.7,3), Color=CAT, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	for _,sx in ipairs({-1,1}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1,1.2,0.5), Color=CAT, Material=Enum.Material.Plastic})
+		ear.CFrame=cf(sx*1.1,13.7,0)*CFrame.Angles(0,0,math.rad(sx*-25)); studAllFaces(ear); ear.Parent=m
+		local earIn=bp({Name="EarIn", Size=Vector3.new(0.5,0.7,0.3), Color=PINK, Material=Enum.Material.Plastic})
+		earIn.CFrame=cf(sx*1.1,13.7,-0.15); earIn.CanCollide=false; earIn.Parent=m
+	end
+	local muzzle=bp({Name="Muzzle", Size=Vector3.new(1.6,1,1), Color=WHITE, Material=Enum.Material.Plastic})
+	muzzle.CFrame=cf(0,11.3,-1.6); studAllFaces(muzzle); muzzle.Parent=m
+	local nose=bp({Name="Nose", Size=Vector3.new(0.4,0.3,0.3), Color=PINK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	nose.CFrame=cf(0,11.7,-2.2); nose.Parent=m
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=Color3.fromRGB(80,220,100), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.4,-1.4); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.4,-1.7); p.Parent=m
+	end
+	-- Body
+	local body=bp({Name="Body", Size=Vector3.new(3,3.5,2.8), Color=CAT, Material=Enum.Material.Plastic})
+	body.CFrame=cf(0,7,0.5); studAllFaces(body); body.Parent=m
+	local belly=bp({Name="Belly", Size=Vector3.new(2,2.5,0.4), Color=WHITE, Material=Enum.Material.Plastic})
+	belly.CFrame=cf(0,7,-1); belly.CanCollide=false; belly.Parent=m
+	-- SWAP arrows on chest (two arrows crossing)
+	local arrow1=bp({Name="SwapArrow1", Size=Vector3.new(2,0.5,0.3), Color=Color3.fromRGB(60,130,220), Material=Enum.Material.Plastic})
+	arrow1.CFrame=cf(0,7.5,-1.3)*CFrame.Angles(0,0,math.rad(30)); arrow1.CanCollide=false; arrow1.Parent=m
+	local arrow2=bp({Name="SwapArrow2", Size=Vector3.new(2,0.5,0.3), Color=Color3.fromRGB(60,130,220), Material=Enum.Material.Plastic})
+	arrow2.CFrame=cf(0,7.5,-1.3)*CFrame.Angles(0,0,math.rad(-30)); arrow2.CanCollide=false; arrow2.Parent=m
+	-- Legs + tail
+	for _,lx in ipairs({-1,1}) do
+		for _,lz in ipairs({-0.3,1.3}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(0.9,2.5,0.9), Color=CAT2, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(lx,1.75,lz); studAllFaces(leg); leg.Parent=m
+		end
+	end
+	for i=0,3 do
+		local tailSeg=bp({Name="Tail", Size=Vector3.new(0.7,0.7,0.7), Color=CAT2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		tailSeg.CFrame=cf(1.5+i*0.3, 4+i*0.8, 2+i*0.4); tailSeg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Gattino Swap [EPIC]", Color3.fromRGB(255,220,100))
+	m.Parent=workspace; return m
+end
+
+local function buildBruschettaBlock(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "BruschettaBlock"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local BREAD=Color3.fromRGB(220,185,120); local CRUST=Color3.fromRGB(180,140,80); local TOMATO=Color3.fromRGB(220,70,60); local BASIL=Color3.fromRGB(60,160,70); local BLACK=Color3.fromRGB(25,25,30)
+	-- Bread slice head (square, crusty)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3.5,1.5), Color=BREAD, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,11.5,0); studAllFaces(head); head.Parent=m
+	-- Crust border
+	local crust=bp({Name="Crust", Size=Vector3.new(3.8,3.8,1.2), Color=CRUST, Material=Enum.Material.Plastic})
+	crust.CFrame=cf(0,11.5,0.3); studAllFaces(crust); crust.Parent=m
+	-- Topping (tomato + basil on face)
+	local tomato=bp({Name="Tomato", Size=Vector3.new(2.5,2.5,0.4), Color=TOMATO, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	tomato.CFrame=cf(0,11.5,-0.9)*CFrame.Angles(math.rad(90),0,0); tomato.CanCollide=false; tomato.Parent=m
+	for i=0,2 do
+		local basilLeaf=bp({Name="Basil", Size=Vector3.new(0.8,0.5,0.2), Color=BASIL, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		basilLeaf.CFrame=cf(math.sin(i*2)*0.8, 11.5+math.cos(i*2)*0.8, -1.15); basilLeaf.CanCollide=false; basilLeaf.Parent=m
+	end
+	-- Eyes (on tomato)
+	for _,ex in ipairs({-0.6,0.6}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.5,0.5,0.4), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.9,-1.3); e.CanCollide=false; e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.25,0.25,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,11.9,-1.5); p.CanCollide=false; p.Parent=m
+	end
+	-- Blockchain block body (the joke - body is a ledger block)
+	local block=bp({Name="BlockBody", Size=Vector3.new(4,4.5,3), Color=Color3.fromRGB(90,90,160), Material=Enum.Material.Plastic})
+	block.CFrame=cf(0,6,0.5); studAllFaces(block); block.Parent=m
+	-- Hash lines on block
+	for i=0,2 do
+		local line=bp({Name="HashLine", Size=Vector3.new(3,0.4,0.2), Color=Color3.fromRGB(140,140,200), Material=Enum.Material.Plastic})
+		line.CFrame=cf(0,7-i*1,-1.1); line.CanCollide=false; line.Parent=m
+	end
+	-- Legs + arms
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2.5,1.2), Color=CRUST, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1,3,1), Color=CRUST, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*2.7,7,0.5)*CFrame.Angles(0,0,math.rad(sx*20)); studAllFaces(arm); arm.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Bruschetta Block [RARE]", Color3.fromRGB(100,255,150))
+	m.Parent=workspace; return m
+end
+
+local function buildVolpeOracle(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "VolpeOracle"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local FOX=Color3.fromRGB(230,130,50); local FOX2=Color3.fromRGB(200,105,35); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Fox head (pointy snout)
+	local head=bp({Name="Head", Size=Vector3.new(3,2.8,3.2), Color=FOX, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	local snout=bp({Name="Snout", Size=Vector3.new(1.8,1.2,2), Color=WHITE, Material=Enum.Material.Plastic})
+	snout.CFrame=cf(0,11.3,-2.3); studAllFaces(snout); snout.Parent=m
+	local nose=bp({Name="Nose", Size=Vector3.new(0.5,0.4,0.4), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	nose.CFrame=cf(0,11.7,-3.4); nose.Parent=m
+	-- Pointy ears
+	for _,sx in ipairs({-1,1}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1,1.5,0.5), Color=FOX, Material=Enum.Material.Plastic})
+		ear.CFrame=cf(sx*1.2,14,0)*CFrame.Angles(0,0,math.rad(sx*-15)); studAllFaces(ear); ear.Parent=m
+		local earTip=bp({Name="EarTip", Size=Vector3.new(0.5,0.5,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+		earTip.CFrame=cf(sx*1.4,14.9,0); earTip.CanCollide=false; earTip.Parent=m
+	end
+	-- Eyes (clever fox look)
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=Color3.fromRGB(120,220,90), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.6,-1.3); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.6,-1.6); p.Parent=m
+	end
+	-- Body
+	local body=bp({Name="Body", Size=Vector3.new(3.2,4,3), Color=FOX, Material=Enum.Material.Plastic})
+	body.CFrame=cf(0,6.5,0.5); studAllFaces(body); body.Parent=m
+	local chest=bp({Name="Chest", Size=Vector3.new(2.2,2.5,0.4), Color=WHITE, Material=Enum.Material.Plastic})
+	chest.CFrame=cf(0,6.5,-1.2); chest.CanCollide=false; chest.Parent=m
+	-- Oracle screen on body
+	local screen=bp({Name="OracleScreen", Size=Vector3.new(2.5,2,0.3), Color=Color3.fromRGB(40,30,80), Material=Enum.Material.Plastic})
+	screen.CFrame=cf(0,6.5,2.1); screen.CanCollide=false; screen.Parent=m
+	local eye=bp({Name="OracleEye", Size=Vector3.new(1.2,1.2,0.2), Color=Color3.fromRGB(150,100,255), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	eye.CFrame=cf(0,6.5,2.3); eye.CanCollide=false; eye.Parent=m
+	-- Legs + bushy tail
+	for _,lx in ipairs({-1.1,1.1}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.1,2.5,1.1), Color=FOX2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for i=0,3 do
+		local tailSeg=bp({Name="Tail", Size=Vector3.new(1.5-i*0.2,1.5-i*0.2,1.5-i*0.2), Color=(i==3) and WHITE or FOX, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		tailSeg.CFrame=cf(1.5+i*0.35, 5-i*0.5, 2.5+i*0.5); tailSeg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Volpe Oracle [EPIC]", Color3.fromRGB(255,180,100))
+	m.Parent=workspace; return m
+end
+
+local function buildZucchinoVault(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "ZucchinoVault"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local ZUC=Color3.fromRGB(70,150,60); local ZUC2=Color3.fromRGB(50,125,45); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Zucchini head (elongated top)
+	local head=bp({Name="Head", Size=Vector3.new(2.8,3.5,2.8), Color=ZUC, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12.5,0); studAllFaces(head); head.Parent=m
+	-- Stem on top
+	local stem=bp({Name="Stem", Size=Vector3.new(0.7,1,0.7), Color=ZUC2, Material=Enum.Material.Plastic})
+	stem.CFrame=cf(0,14.7,0); studAllFaces(stem); stem.Parent=m
+	-- Face
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,13,-1.3); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,13,-1.7); p.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.2,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,11.7,-1.3); mouth.CanCollide=false; mouth.Parent=m
+	-- Vault body (zucchini lower = big green cylinder)
+	local vault=bp({Name="VaultBody", Size=Vector3.new(4.5,5.5,4.5), Color=ZUC, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	vault.CFrame=cf(0,5.5,0.5)*CFrame.Angles(math.rad(90),0,0); studAllFaces(vault); vault.Parent=m
+	-- Vault door
+	local door=bp({Name="Door", Size=Vector3.new(3,3,0.5), Color=Color3.fromRGB(100,100,110), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	door.CFrame=cf(0,5.5,-2)*CFrame.Angles(math.rad(90),0,0); studAllFaces(door); door.Parent=m
+	local dial=bp({Name="Dial", Size=Vector3.new(1.3,1.3,0.4), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	dial.CFrame=cf(0,5.5,-2.3)*CFrame.Angles(math.rad(90),0,0); dial.Parent=m
+	-- Legs + arms
+	for _,lx in ipairs({-1.5,1.5}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.3,2.5,1.3), Color=ZUC2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1,3,1), Color=ZUC, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*3,7,0.5)*CFrame.Angles(0,0,math.rad(sx*25)); studAllFaces(arm); arm.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Zucchino Vault [EPIC]", Color3.fromRGB(100,255,130))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
+-- Characters34-38: Moscato, Cannoli, Gnocchi, Focaccia, Pesto.
+-- ---------------------------------------------------------------------------
+
+local function buildMoscatoWhale(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "MoscatoWhale"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local WINE=Color3.fromRGB(150,60,100); local WINE2=Color3.fromRGB(120,45,80); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Whale head (wine-colored)
+	local head=bp({Name="Head", Size=Vector3.new(4,3.2,3.8), Color=WINE, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,11.5,-0.5); studAllFaces(head); head.Parent=m
+	local snout=bp({Name="Snout", Size=Vector3.new(3.6,1.8,1.8), Color=WINE, Material=Enum.Material.Plastic})
+	snout.CFrame=cf(0,10.5,-2.8); studAllFaces(snout); snout.Parent=m
+	local mouth=bp({Name="Mouth", Size=Vector3.new(3.2,0.25,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,10,-3.7); mouth.CanCollide=false; mouth.Parent=m
+	for _,ex in ipairs({-1.4,1.4}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.9,0.9,0.9), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.3,-1.8); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.45,0.45,0.45), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.3,-2.2); p.Parent=m
+	end
+	-- Wine bottle body (the joke)
+	local bottle=bp({Name="Bottle", Size=Vector3.new(3.5,6,3.5), Color=WINE2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	bottle.CFrame=cf(0,5,0.5); studAllFaces(bottle); bottle.Parent=m
+	local neck=bp({Name="BottleNeck", Size=Vector3.new(1.5,2,1.5), Color=WINE2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	neck.CFrame=cf(0,9,0.5); studAllFaces(neck); neck.Parent=m
+	-- Label on bottle
+	local label=bp({Name="WineLabel", Size=Vector3.new(2.5,2.5,0.3), Color=WHITE, Material=Enum.Material.Plastic})
+	label.CFrame=cf(0,5,-1.6); label.CanCollide=false; label.Parent=m
+	local grape=bp({Name="Grape", Size=Vector3.new(1,1,0.2), Color=WINE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	grape.CFrame=cf(0,5,-1.8); grape.CanCollide=false; grape.Parent=m
+	-- Fins + tail
+	for _,sx in ipairs({-1,1}) do
+		local fin=bp({Name="Fin", Size=Vector3.new(2.2,1,1.5), Color=WINE, Material=Enum.Material.Plastic})
+		fin.CFrame=cf(sx*3,6.5,0.5)*CFrame.Angles(0,0,math.rad(sx*30)); studAllFaces(fin); fin.Parent=m
+	end
+	for i=0,1 do
+		local fluke=bp({Name="Fluke", Size=Vector3.new(2-i*0.5,0.6,1.5), Color=WINE, Material=Enum.Material.Plastic})
+		fluke.CFrame=cf(0,2,3+i*1.2)*CFrame.Angles(math.rad(-20),0,0); studAllFaces(fluke); fluke.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Moscato Whale [MYTHIC]", Color3.fromRGB(255,120,180))
+	m.Parent=workspace; return m
+end
+
+local function buildCannoliBlaster(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "CannoliBlaster"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local SHELL=Color3.fromRGB(230,195,130); local CREAM=Color3.fromRGB(250,245,235); local CHOC=Color3.fromRGB(100,60,40); local BLACK=Color3.fromRGB(25,25,30)
+	-- Cannoli head (cylinder tube)
+	local head=bp({Name="Head", Size=Vector3.new(3,3,3.5), Color=SHELL, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	head.CFrame=cf(0,12,0)*CFrame.Angles(0,0,math.rad(90)); studAllFaces(head); head.Parent=m
+	-- Cream poking out both ends
+	for _,sx in ipairs({-1,1}) do
+		local cream=bp({Name="Cream", Size=Vector3.new(2,2,1), Color=CREAM, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		cream.CFrame=cf(sx*2,12,0); cream.Parent=m
+		local chip=bp({Name="Chip", Size=Vector3.new(0.4,0.4,0.4), Color=CHOC, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		chip.CFrame=cf(sx*2.3,12.5,0.3); chip.CanCollide=false; chip.Parent=m
+	end
+	-- Eyes on cream front
+	for _,ex in ipairs({-0.6,0.6}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.55,0.55,0.55), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.5,-1.7); e.Parent=m
+	end
+	-- Body (cream filling cylinder)
+	local body=bp({Name="Body", Size=Vector3.new(3.5,4.5,3.5), Color=CREAM, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	body.CFrame=cf(0,6,0.5)*CFrame.Angles(0,0,math.rad(90)); studAllFaces(body); body.Parent=m
+	-- Water blaster prop (the joke)
+	local blaster=bp({Name="Blaster", Size=Vector3.new(1,1.5,5), Color=Color3.fromRGB(60,160,230), Material=Enum.Material.Plastic})
+	blaster.CFrame=cf(3,7,-1)*CFrame.Angles(math.rad(-15),0,0); studAllFaces(blaster); blaster.Parent=m
+	local nozzle=bp({Name="Nozzle", Size=Vector3.new(1.2,1.2,1), Color=Color3.fromRGB(40,120,190), Material=Enum.Material.Plastic})
+	nozzle.CFrame=cf(3,7.6,-4); studAllFaces(nozzle); nozzle.Parent=m
+	-- Water drop coming out
+	local drop=bp({Name="WaterDrop", Size=Vector3.new(0.8,0.8,0.8), Color=Color3.fromRGB(100,190,255), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	drop.CFrame=cf(3,7.6,-5); drop.CanCollide=false; drop.Parent=m
+	-- Legs
+	for _,lx in ipairs({-1.2,1.2}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2.5,1.2), Color=SHELL, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	-- Left arm
+	local armL=bp({Name="ArmL", Size=Vector3.new(1,3,1), Color=CREAM, Material=Enum.Material.Plastic})
+	armL.CFrame=cf(-2.5,7,0.5); studAllFaces(armL); armL.Parent=m
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Cannoli Blaster [LEGENDARY]", Color3.fromRGB(255,230,130))
+	m.Parent=workspace; return m
+end
+
+local function buildGnocchiGolem(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "GnocchiGolem"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local DOUGH=Color3.fromRGB(240,225,180); local DOUGH2=Color3.fromRGB(215,195,145); local SAGE=Color3.fromRGB(120,140,80); local BLACK=Color3.fromRGB(25,25,30)
+	-- Gnocchi head (round dough ball with fork marks)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3,3.5), Color=DOUGH, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Fork ridge marks
+	for i=0,2 do
+		local ridge=bp({Name="Ridge", Size=Vector3.new(2.5,0.3,0.3), Color=DOUGH2, Material=Enum.Material.Plastic})
+		ridge.CFrame=cf(0,13-i*0.7,-1.4)*CFrame.Angles(math.rad(i*10),0,0); ridge.CanCollide=false; ridge.Parent=m
+	end
+	-- Eyes (deep-set in dough)
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.3,-1.5); e.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.5,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,11,-1.5); mouth.CanCollide=false; mouth.Parent=m
+	-- Golem body (stacked dough blocks, stone-like)
+	local body=bp({Name="Body", Size=Vector3.new(4.5,4.5,4), Color=DOUGH, Material=Enum.Material.Plastic})
+	body.CFrame=cf(0,6,0.5); studAllFaces(body); body.Parent=m
+	-- Sage butter sauce dripping (the topping = decoration)
+	for i=0,3 do
+		local butter=bp({Name="Butter", Size=Vector3.new(1,0.5,1), Color=SAGE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		butter.CFrame=cf(math.sin(i*1.8)*1.8, 8.3, math.cos(i*1.8)*1.5); butter.CanCollide=false; butter.Parent=m
+	end
+	-- Big golem arms (dough)
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1.8,4,1.8), Color=DOUGH, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*3.3,6,0.5)*CFrame.Angles(0,0,math.rad(sx*15)); studAllFaces(arm); arm.Parent=m
+		local fist=bp({Name="Fist", Size=Vector3.new(2.2,2,2.2), Color=DOUGH2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		fist.CFrame=cf(sx*4,3.5,0.5); studAllFaces(fist); fist.Parent=m
+	end
+	-- Golem legs (stubby dough)
+	for _,lx in ipairs({-1.5,1.5}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(2,2.5,2), Color=DOUGH, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Gnocchi Golem [MYTHIC]", Color3.fromRGB(255,220,120))
+	m.Parent=workspace; return m
+end
+
+local function buildFocacciaNode(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "FocacciaNode"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local BREAD=Color3.fromRGB(235,200,140); local CRUST=Color3.fromRGB(195,155,95); local ROSE=Color3.fromRGB(220,90,110); local OLIVE=Color3.fromRGB(70,110,50); local BLACK=Color3.fromRGB(25,25,30)
+	-- Focaccia head (flat bread square)
+	local head=bp({Name="Head", Size=Vector3.new(4,1.8,4), Color=BREAD, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,11,0); studAllFaces(head); head.Parent=m
+	-- Dimples + toppings on top
+	for i=0,5 do
+		local rosemary=bp({Name="Rosemary", Size=Vector3.new(0.8,0.3,0.8), Color=ROSE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		rosemary.CFrame=cf(math.sin(i*1.2)*1.5, 12, math.cos(i*1.2)*1.5); rosemary.CanCollide=false; rosemary.Parent=m
+	end
+	for i=0,2 do
+		local olive=bp({Name="Olive", Size=Vector3.new(0.7,0.4,0.7), Color=OLIVE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		olive.CFrame=cf(-1+i, 12, 1.5); olive.CanCollide=false; olive.Parent=m
+	end
+	-- Eyes on front face
+	for _,ex in ipairs({-1,1}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.7,0.7,0.4), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11,-2); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.35,0.35,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,11,-2.2); p.Parent=m
+	end
+	-- Node server body (below bread)
+	local server=bp({Name="NodeServer", Size=Vector3.new(3.5,5,3), Color=Color3.fromRGB(55,55,62), Material=Enum.Material.Plastic})
+	server.CFrame=cf(0,6,0.5); studAllFaces(server); server.Parent=m
+	for i=0,3 do
+		local led=bp({Name="LED", Size=Vector3.new(0.4,0.3,0.2), Color=(i%2==0) and Color3.fromRGB(50,255,100) or Color3.fromRGB(50,80,255), Material=Enum.Material.Plastic})
+		led.CFrame=cf(-0.8+i*0.5, 4.5, -1.1); led.CanCollide=false; led.Parent=m
+	end
+	-- Legs + arms
+	for _,lx in ipairs({-1.2,1.2}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.3,2.5,1.3), Color=CRUST, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1,3,1), Color=BREAD, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*2.7,7,0.5)*CFrame.Angles(0,0,math.rad(sx*20)); studAllFaces(arm); arm.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Focaccia Node [RARE]", Color3.fromRGB(255,200,130))
+	m.Parent=workspace; return m
+end
+
+local function buildPestoPirate(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "PestoPirate"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local PESTO=Color3.fromRGB(60,140,65); local PESTO2=Color3.fromRGB(45,115,50); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Basil head (leafy green)
+	local head=bp({Name="Head", Size=Vector3.new(3.2,3,3.2), Color=PESTO, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Leafy crown (basil leaves sticking up)
+	for i=0,4 do
+		local leaf=bp({Name="Leaf", Size=Vector3.new(1.5,0.3,2), Color=PESTO2, Material=Enum.Material.Plastic})
+		leaf.CFrame=cf(math.sin(i*1.3)*1.2, 14, math.cos(i*1.3)*1.2)*CFrame.Angles(math.rad(20),i*1.3,0)
+		studAllFaces(leaf); leaf.Parent=m
+	end
+	-- Pirate hat
+	local hatBrim=bp({Name="HatBrim", Size=Vector3.new(4,0.5,4), Color=BLACK, Material=Enum.Material.Plastic})
+	hatBrim.CFrame=cf(0,14,0); studAllFaces(hatBrim); hatBrim.Parent=m
+	local hatTop=bp({Name="HatTop", Size=Vector3.new(2.5,2,2.5), Color=BLACK, Material=Enum.Material.Plastic})
+	hatTop.CFrame=cf(0,15.3,0); studAllFaces(hatTop); hatTop.Parent=m
+	local skull=bp({Name="HatSkull", Size=Vector3.new(1,1,0.3), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	skull.CFrame=cf(0,15.3,-1.4); skull.CanCollide=false; skull.Parent=m
+	-- Face
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.3,-1.5); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.3,-1.8); p.Parent=m
+	end
+	-- Pesto jar body
+	local jar=bp({Name="Jar", Size=Vector3.new(3.5,4.5,3.5), Color=PESTO, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	jar.CFrame=cf(0,5.5,0.5); studAllFaces(jar); jar.Parent=m
+	local lid=bp({Name="Lid", Size=Vector3.new(3.7,0.8,3.7), Color=Color3.fromRGB(180,180,190), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	lid.CFrame=cf(0,8.1,0.5); studAllFaces(lid); lid.Parent=m
+	-- Label
+	local label=bp({Name="Label", Size=Vector3.new(2.5,2,0.3), Color=WHITE, Material=Enum.Material.Plastic})
+	label.CFrame=cf(0,5.5,-1.7); label.CanCollide=false; label.Parent=m
+	-- Legs + cutlass arm
+	for _,lx in ipairs({-1.2,1.2}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2.5,1.2), Color=PESTO2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local armR=bp({Name="ArmR", Size=Vector3.new(1,3,1), Color=PESTO, Material=Enum.Material.Plastic})
+	armR.CFrame=cf(2.7,7.5,0)*CFrame.Angles(0,0,math.rad(-40)); studAllFaces(armR); armR.Parent=m
+	-- Cutlass
+	local blade=bp({Name="Cutlass", Size=Vector3.new(0.3,4,0.8), Color=Color3.fromRGB(200,200,210), Material=Enum.Material.Plastic})
+	blade.CFrame=cf(4.2,10.5,0)*CFrame.Angles(0,0,math.rad(-30)); studAllFaces(blade); blade.Parent=m
+	local hilt=bp({Name="Hilt", Size=Vector3.new(0.5,1,1.5), Color=Color3.fromRGB(160,120,60), Material=Enum.Material.Plastic})
+	hilt.CFrame=cf(3.4,8.5,0); studAllFaces(hilt); hilt.Parent=m
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Pesto Pirate [EPIC]", Color3.fromRGB(130,255,140))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
+-- Characters39-43: Tiramisu, Arancino, Limone, Prosciutto, Polenta.
+-- ---------------------------------------------------------------------------
+
+local function buildTiramisuTower(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "TiramisuTower"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local CREAM=Color3.fromRGB(245,235,210); local COCO=Color3.fromRGB(110,75,50); local SPONGE=Color3.fromRGB(200,170,120); local BLACK=Color3.fromRGB(25,25,30)
+	-- Tiramisu layers head/body (stacked)
+	local layer1=bp({Name="Layer1", Size=Vector3.new(4,1.5,4), Color=SPONGE, Material=Enum.Material.Plastic})
+	layer1.CFrame=cf(0,4,0.5); studAllFaces(layer1); layer1.Parent=m
+	local layer2=bp({Name="Layer2", Size=Vector3.new(3.7,1.5,3.7), Color=CREAM, Material=Enum.Material.Plastic})
+	layer2.CFrame=cf(0,5.5,0.5); studAllFaces(layer2); layer2.Parent=m
+	local layer3=bp({Name="Layer3", Size=Vector3.new(4,1.5,4), Color=SPONGE, Material=Enum.Material.Plastic})
+	layer3.CFrame=cf(0,7,0.5); studAllFaces(layer3); layer3.Parent=m
+	local layer4=bp({Name="Layer4", Size=Vector3.new(3.7,1.5,3.7), Color=CREAM, Material=Enum.Material.Plastic})
+	layer4.CFrame=cf(0,8.5,0.5); studAllFaces(layer4); layer4.Parent=m
+	-- Cocoa dusting on top
+	local cocoa=bp({Name="Cocoa", Size=Vector3.new(3.8,0.4,3.8), Color=COCO, Material=Enum.Material.Plastic})
+	cocoa.CFrame=cf(0,9.5,0.5); studAllFaces(cocoa); cocoa.Parent=m
+	-- Head (top cake layer with face)
+	local head=bp({Name="Head", Size=Vector3.new(3.2,2.5,3.2), Color=CREAM, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,11.5,0); studAllFaces(head); head.Parent=m
+	local cocoaTop=bp({Name="CocoaTop", Size=Vector3.new(3.3,0.5,3.3), Color=COCO, Material=Enum.Material.Plastic})
+	cocoaTop.CFrame=cf(0,13,0); studAllFaces(cocoaTop); cocoaTop.Parent=m
+	-- Face
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.7,-1.5); e.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.2,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,10.8,-1.5); mouth.CanCollide=false; mouth.Parent=m
+	-- Ladyfinger legs
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.3,2.5,1.3), Color=SPONGE, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Tiramisu Tower [MYTHIC]", Color3.fromRGB(255,220,140))
+	m.Parent=workspace; return m
+end
+
+local function buildArancinoBomb(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "ArancinoBomb"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local RICE=Color3.fromRGB(240,215,150); local CRUMB=Color3.fromRGB(210,175,105); local TOMATO=Color3.fromRGB(220,75,60); local FUSE=Color3.fromRGB(90,90,95); local FLAME=Color3.fromRGB(255,140,30); local BLACK=Color3.fromRGB(25,25,30)
+	-- Arancino head (round rice ball)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3.5,3.5), Color=RICE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Crumbs on top
+	for i=0,5 do
+		local crumb=bp({Name="Crumb", Size=Vector3.new(0.5,0.5,0.5), Color=CRUMB, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		crumb.CFrame=cf(math.sin(i)*1.3, 13.6, math.cos(i)*1.3); crumb.CanCollide=false; crumb.Parent=m
+	end
+	-- Face (peeking tomato sauce)
+	local sauce=bp({Name="Sauce", Size=Vector3.new(2.2,1.5,0.3), Color=TOMATO, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	sauce.CFrame=cf(0,11.5,-1.6); sauce.CanCollide=false; sauce.Parent=m
+	for _,ex in ipairs({-0.6,0.6}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.55,0.55,0.4), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.8,-1.8); e.CanCollide=false; e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,11.8,-2); p.CanCollide=false; p.Parent=m
+	end
+	-- Fuse sticking out of top (the bomb joke)
+	local fuse=bp({Name="Fuse", Size=Vector3.new(0.4,2,0.4), Color=FUSE, Material=Enum.Material.Plastic})
+	fuse.CFrame=cf(0,15,0)*CFrame.Angles(0,0,math.rad(15)); studAllFaces(fuse); fuse.Parent=m
+	local flame=bp({Name="Flame", Size=Vector3.new(1,1.2,1), Color=FLAME, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	flame.CFrame=cf(0.5,16.3,0); flame.CanCollide=false; flame.Parent=m
+	local flame2=bp({Name="Flame2", Size=Vector3.new(0.6,0.7,0.6), Color=Color3.fromRGB(255,230,90), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	flame2.CFrame=cf(0.6,16.9,0); flame2.CanCollide=false; flame2.Parent=m
+	-- Body (bigger rice ball)
+	local body=bp({Name="Body", Size=Vector3.new(4.5,5,4.5), Color=RICE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	body.CFrame=cf(0,6,0.5); studAllFaces(body); body.Parent=m
+	-- Legs + arms
+	for _,lx in ipairs({-1.5,1.5}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.5,2.5,1.5), Color=CRUMB, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1.2,3,1.2), Color=RICE, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*3.2,7,0.5)*CFrame.Angles(0,0,math.rad(sx*25)); studAllFaces(arm); arm.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Arancino Bomb [LEGENDARY]", Color3.fromRGB(255,170,90))
+	m.Parent=workspace; return m
+end
+
+local function buildLimoneFrost(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "LimoneFrost"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local LEMON=Color3.fromRGB(255,230,70); local LEMON2=Color3.fromRGB(230,200,50); local ICE=Color3.fromRGB(180,230,255); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+	-- Lemon head (oval, pointy ends)
+	local head=bp({Name="Head", Size=Vector3.new(3.2,3.5,3.2), Color=LEMON, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Lemon tip on top
+	local tip=bp({Name="LemonTip", Size=Vector3.new(0.6,0.8,0.6), Color=LEMON2, Material=Enum.Material.Plastic})
+	tip.CFrame=cf(0,14,0); studAllFaces(tip); tip.Parent=m
+	-- Frost cap (ice on top of lemon)
+	local frost=bp({Name="Frost", Size=Vector3.new(3.4,1,3.4), Color=ICE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	frost.CFrame=cf(0,13.7,0); frost.Parent=m
+	-- Face
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.2,-1.4); e.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.3,0.4,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,11,-1.4); mouth.CanCollide=false; mouth.Parent=m
+	-- Frosty body (lemonade glass)
+	local glass=bp({Name="Glass", Size=Vector3.new(3.8,5,3.8), Color=ICE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	glass.CFrame=cf(0,5.5,0.5); glass.Transparency=0.3; studAllFaces(glass); glass.Parent=m
+	-- Lemonade liquid inside
+	local liquid=bp({Name="Liquid", Size=Vector3.new(3.4,3.5,3.4), Color=LEMON, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	liquid.CFrame=cf(0,4.8,0.5); liquid.Parent=m
+	-- Straw
+	local straw=bp({Name="Straw", Size=Vector3.new(0.5,4,0.5), Color=Color3.fromRGB(255,100,120), Material=Enum.Material.Plastic})
+	straw.CFrame=cf(1.3,8.5,0.5)*CFrame.Angles(0,0,math.rad(15)); studAllFaces(straw); straw.Parent=m
+	-- Ice cubes floating
+	for i=0,2 do
+		local cube=bp({Name="IceCube", Size=Vector3.new(0.8,0.8,0.8), Color=WHITE, Material=Enum.Material.Plastic})
+		cube.Transparency=0.4
+		cube.CFrame=cf(math.sin(i*2)*1, 6.5+i*0.5, math.cos(i*2)*1+0.5); cube.CanCollide=false; cube.Parent=m
+	end
+	-- Legs
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2.5,1.2), Color=LEMON2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Limone Frost [EPIC]", Color3.fromRGB(255,240,120))
+	m.Parent=workspace; return m
+end
+
+local function buildProsciuttoSmoke(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "ProsciuttoSmoke"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local HAM=Color3.fromRGB(230,140,140); local FAT=Color3.fromRGB(250,225,215); local RIND=Color3.fromRGB(190,150,120); local BLACK=Color3.fromRGB(25,25,30)
+	-- Ham slice head (flat, draped)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,2.5,3.5), Color=HAM, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Fat marbling on head
+	for i=0,2 do
+		local marble=bp({Name="Marble", Size=Vector3.new(2,0.3,0.3), Color=FAT, Material=Enum.Material.Plastic})
+		marble.CFrame=cf(math.sin(i*2)*0.8, 12.5+i*0.4, math.cos(i*2)*0.8); marble.CanCollide=false; marble.Parent=m
+	end
+	-- Face
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.8,-1.5); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,11.8,-1.8); p.Parent=m
+	end
+	-- Smokehouse body (brick oven)
+	local oven=bp({Name="Smokehouse", Size=Vector3.new(4.5,5.5,4), Color=Color3.fromRGB(150,90,70), Material=Enum.Material.Plastic})
+	oven.CFrame=cf(0,5.5,0.5); studAllFaces(oven); oven.Parent=m
+	-- Oven door (arched dark)
+	local door=bp({Name="OvenDoor", Size=Vector3.new(2.5,3,0.4), Color=BLACK, Material=Enum.Material.Plastic})
+	door.CFrame=cf(0,5,-1.6); door.CanCollide=false; door.Parent=m
+	-- Smoke coming out chimney
+	local chimney=bp({Name="Chimney", Size=Vector3.new(1.5,3,1.5), Color=Color3.fromRGB(130,75,60), Material=Enum.Material.Plastic})
+	chimney.CFrame=cf(1.5,9.5,1.5); studAllFaces(chimney); chimney.Parent=m
+	for i=0,2 do
+		local smoke=bp({Name="Smoke", Size=Vector3.new(1.5+i*0.5,1.5+i*0.5,1.5+i*0.5), Color=Color3.fromRGB(200,200,210), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		smoke.Transparency=0.5+i*0.15
+		smoke.CFrame=cf(1.5, 11.5+i*1.3, 1.5); smoke.CanCollide=false; smoke.Parent=m
+	end
+	-- Hanging ham legs (side decoration)
+	for _,sx in ipairs({-1,1}) do
+		local hamLeg=bp({Name="HamLeg", Size=Vector3.new(1.5,3,1.5), Color=HAM, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		hamLeg.CFrame=cf(sx*3.2,8,0.5)*CFrame.Angles(math.rad(20),0,math.rad(sx*20)); studAllFaces(hamLeg); hamLeg.Parent=m
+	end
+	-- Legs
+	for _,lx in ipairs({-1.5,1.5}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.5,2.5,1.5), Color=RIND, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Prosciutto Smoke [RARE]", Color3.fromRGB(255,160,160))
+	m.Parent=workspace; return m
+end
+
+local function buildPolentaPillar(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "PolentaPillar"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local POLENTA=Color3.fromRGB(250,215,90); local POLENTA2=Color3.fromRGB(230,190,70); local BUTTER=Color3.fromRGB(255,240,150); local BLACK=Color3.fromRGB(25,25,30)
+	-- Polenta head (corn mush lump, slightly squared)
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3,3.5), Color=POLENTA, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Butter melting on top
+	local butter=bp({Name="Butter", Size=Vector3.new(2,0.8,2), Color=BUTTER, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	butter.CFrame=cf(0,13.7,0); butter.Parent=m
+	-- Corn kernels embedded
+	for i=0,5 do
+		local kernel=bp({Name="Kernel", Size=Vector3.new(0.5,0.5,0.5), Color=Color3.fromRGB(255,200,60), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		kernel.CFrame=cf(math.sin(i*1.1)*1.4, 11.5+math.cos(i*1.7)*1, math.cos(i*1.1)*1.4); kernel.CanCollide=false; kernel.Parent=m
+	end
+	-- Face
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,11.8,-1.5); e.Parent=m
+	end
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.4,0.4,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,10.8,-1.5); mouth.CanCollide=false; mouth.Parent=m
+	-- Pillar body (classical column, polenta-colored)
+	local pillar=bp({Name="Pillar", Size=Vector3.new(3.5,6,3.5), Color=POLENTA, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	pillar.CFrame=cf(0,5,0.5); studAllFaces(pillar); pillar.Parent=m
+	-- Column flutes (vertical ridges)
+	for i=0,5 do
+		local ang=math.rad(i*60)
+		local flute=bp({Name="Flute", Size=Vector3.new(0.4,5.5,0.4), Color=POLENTA2, Material=Enum.Material.Plastic})
+		flute.CFrame=cf(math.cos(ang)*1.9, 5, 0.5+math.sin(ang)*1.9); flute.CanCollide=false; flute.Parent=m
+	end
+	-- Column capital (top) + base (bottom)
+	local capital=bp({Name="Capital", Size=Vector3.new(4.5,1,4.5), Color=POLENTA2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	capital.CFrame=cf(0,8.3,0.5); studAllFaces(capital); capital.Parent=m
+	local base=bp({Name="Base", Size=Vector3.new(4.5,1,4.5), Color=POLENTA2, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	base.CFrame=cf(0,1.8,0.5); studAllFaces(base); base.Parent=m
+	-- Legs
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,1.5,1.2), Color=POLENTA2, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,0.75,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Polenta Pillar [UNCOMMON]", Color3.fromRGB(255,230,110))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
 -- Satoshino Crocodilo — Mythic brainrot character (display model).
 -- Crocodile head + Bitcoin mining rig body + gold pickaxe prop.
 -- ---------------------------------------------------------------------------
@@ -3057,6 +4012,27 @@ function WorldBuilder.build()
 	safeStep("buildElephanteBridge", function() buildElephanteBridge(30, -66) end)
 	safeStep("buildCrabettoCex", function() buildCrabettoCex(30, -78) end)
 	safeStep("buildPandanoVault", function() buildPandanoVault(30, -90) end)
+	-- Chars24-43: north side (z=-25..-116), away from market/bases/statues/walls
+	safeStep("buildTortugaLedger", function() buildTortugaLedger(-50, -25) end)
+	safeStep("buildViperinoNode", function() buildViperinoNode(-50, -38) end)
+	safeStep("buildAquilinoStake", function() buildAquilinoStake(-50, -51) end)
+	safeStep("buildCucumbroChain", function() buildCucumbroChain(-50, -64) end)
+	safeStep("buildGelatinoMint", function() buildGelatinoMint(-50, -77) end)
+	safeStep("buildPiccioneBridge", function() buildPiccioneBridge(-50, -90) end)
+	safeStep("buildGattinoSwap", function() buildGattinoSwap(-50, -103) end)
+	safeStep("buildBruschettaBlock", function() buildBruschettaBlock(-30, -25) end)
+	safeStep("buildVolpeOracle", function() buildVolpeOracle(-30, -38) end)
+	safeStep("buildZucchinoVault", function() buildZucchinoVault(-30, -51) end)
+	safeStep("buildMoscatoWhale", function() buildMoscatoWhale(-30, -64) end)
+	safeStep("buildCannoliBlaster", function() buildCannoliBlaster(-30, -77) end)
+	safeStep("buildGnocchiGolem", function() buildGnocchiGolem(-30, -90) end)
+	safeStep("buildFocacciaNode", function() buildFocacciaNode(-30, -103) end)
+	safeStep("buildPestoPirate", function() buildPestoPirate(-30, -116) end)
+	safeStep("buildTiramisuTower", function() buildTiramisuTower(-20, -30) end)
+	safeStep("buildArancinoBomb", function() buildArancinoBomb(-20, -45) end)
+	safeStep("buildLimoneFrost", function() buildLimoneFrost(-20, -75) end)
+	safeStep("buildProsciuttoSmoke", function() buildProsciuttoSmoke(-20, -90) end)
+	safeStep("buildPolentaPillar", function() buildPolentaPillar(-20, -105) end)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
 		baseModel = b1
