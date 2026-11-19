@@ -920,9 +920,12 @@ local function placeUnit(player, base)
 	end
 	local feetOffset = state.carriedFeetOffset or 3
 	local pedestalTop = pedestal.Position.Y + 1
-	local placedPivot = model:GetPivot()
+	-- Face the ROAD: parade characters are built front=-Z. Right-side bases
+	-- (CenterX>0) look toward -X, left-side bases toward +X.
+	local centerX = base:GetAttribute("CenterX") or 0
+	local faceAngle = centerX > 0 and math.rad(90) or math.rad(-90)
 	model:PivotTo(CFrame.new(pedestal.Position.X, pedestalTop + feetOffset, pedestal.Position.Z)
-		* placedPivot.Rotation)
+		* CFrame.Angles(0, faceAngle, 0))
 	model.Parent = workspace
 	BrainrotModels.startSway(model)
 
