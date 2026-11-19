@@ -285,6 +285,7 @@ function WorldBuilder.build()
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
+	safeStep("buildTunnels", buildTunnels)
 
 	return { pads = {}, bases = {} }
 end
