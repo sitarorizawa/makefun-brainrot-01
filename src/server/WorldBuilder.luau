@@ -281,20 +281,6 @@ local function buildTunnels()
 
 			-- Torch (neon ball + light)
 			local torch = addPart({
-				Name = "Torch",
-				Shape = Enum.PartType.Ball,
-				Size = Vector3.new(1, 1, 1),
-				Color = TORCH_COLOR,
-				Material = Enum.Material.Neon,
-			})
-			torch.CFrame = CFrame.new(side * 14, 11, z)
-			torch.CanCollide = false
-			torch.Parent = m
-			local light = Instance.new("PointLight")
-			light.Color = TORCH_COLOR
-			light.Range = 12
-			light.Brightness = 1.5
-			light.Parent = torch
 		end
 
 		-- Curved arch: 7 wedges in a semicircle
