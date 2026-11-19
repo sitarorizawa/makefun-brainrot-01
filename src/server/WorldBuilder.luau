@@ -441,15 +441,15 @@ local function buildShop()
 	end
 
 	-- === SIGN above entrance ===
-	local sign = bp({Name="Sign", Size=Vector3.new(1, 4, 18), Color=Color3.fromRGB(25, 25, 30), Material=Enum.Material.Plastic})
-	sign.CFrame = CFrame.new(SX + SW/2, SH + 7, 0)
+	local sign = bp({Name="Sign", Size=Vector3.new(1, 7, 30), Color=Color3.fromRGB(25, 25, 30), Material=Enum.Material.Plastic})
+	sign.CFrame = CFrame.new(SX + SW/2, SH + 11, 0)
 	studAllFaces(sign)
 	sign.CanCollide = false
 	sign.Parent = m
 
 	-- Neon green stripe on sign
-	local stripe2 = bp({Name="SignStripe", Size=Vector3.new(0.5, 1, 18), Color=SIGN_C, Material=Enum.Material.Plastic})
-	stripe2.CFrame = CFrame.new(SX + SW/2 + 0.5, SH + 5.5, 0)
+	local stripe2 = bp({Name="SignStripe", Size=Vector3.new(0.5, 1.2, 30), Color=SIGN_C, Material=Enum.Material.Plastic})
+	stripe2.CFrame = CFrame.new(SX + SW/2 + 0.5, SH + 6.8, 0)
 	stripe2.CanCollide = false
 	stripe2.Parent = m
 
@@ -3988,55 +3988,6 @@ local baseModel2 = nil
 local baseModel3 = nil
 
 function WorldBuilder.setBaseSign(model, title, subtitle, color)
-	-- Floating owner billboard above the base (visible from the road).
-	local anchor = model:FindFirstChild("OwnerBillboard")
-	if anchor == nil then
-		local cfr = model:GetBoundingBox()
-		anchor = Instance.new("Part")
-		anchor.Name = "OwnerBillboard"
-		anchor.Anchored = true
-		anchor.CanCollide = false
-		anchor.Transparency = 1
-		anchor.Size = Vector3.new(1, 1, 1)
-		anchor.CFrame = CFrame.new(cfr.Position.X, 32, cfr.Position.Z)
-		anchor.Parent = model
-		local bb = Instance.new("BillboardGui")
-		bb.Name = "OwnerBill"
-		bb.Size = UDim2.new(0, 420, 0, 110)
-		bb.StudsOffset = Vector3.new(0, 4, 0)
-		bb.MaxDistance = 220
-		bb.AlwaysOnTop = false
-		bb.Parent = anchor
-		local titleL = Instance.new("TextLabel")
-		titleL.Name = "Title"
-		titleL.Size = UDim2.new(1, 0, 0.55, 0)
-		titleL.BackgroundTransparency = 1
-		titleL.TextScaled = true
-		titleL.Font = Enum.Font.GothamBold
-		titleL.Parent = bb
-		local subL = Instance.new("TextLabel")
-		subL.Name = "Subtitle"
-		subL.Size = UDim2.new(1, 0, 0.4, 0)
-		subL.Position = UDim2.new(0, 0, 0.58, 0)
-		subL.BackgroundTransparency = 1
-		subL.TextScaled = true
-		subL.Font = Enum.Font.Gotham
-		subL.Parent = bb
-	end
-	local bb = anchor:FindFirstChild("OwnerBill")
-	if bb then
-		local t = bb:FindFirstChild("Title")
-		local s = bb:FindFirstChild("Subtitle")
-		if t then
-			t.Text = title
-			t.TextColor3 = color
-		end
-		if s then
-			s.Text = subtitle
-			s.TextColor3 = Color3.fromRGB(235, 235, 240)
-		end
-	end
-
 	local sign = model:FindFirstChild("Sign")
 	if sign == nil then
 		return
