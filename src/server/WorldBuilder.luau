@@ -424,38 +424,73 @@ end
 local function buildTrees()
 	local m = Instance.new("Model")
 	m.Name = "Trees"
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
 
-	local TRUNK = Color3.fromRGB(120, 80, 40)
-	local LEAF = Color3.fromRGB(50, 160, 50)
+	local TRUNK = Color3.fromRGB(100, 65, 35)
+	local LEAF_DARK = Color3.fromRGB(35, 130, 40)
+	local LEAF_MID = Color3.fromRGB(50, 160, 55)
+	local LEAF_LIGHT = Color3.fromRGB(70, 190, 75)
 
 	local spots = {
-		{-110, -110}, {-110, -40}, {-110, 40}, {-110, 110},
-		{-70, -120}, {-30, -120}, {30, -120}, {90, -120},
-		{-70, 120}, {-30, 120}, {30, 120}, {90, 120},
-		{110, -80}, {110, -30}, {110, 30}, {110, 80},
+		{-130, -130}, {-130, -60}, {-130, 60}, {-130, 130},
+		{-80, -140}, {-20, -140}, {40, -140}, {100, -140},
+		{130, -130}, {130, -60}, {130, 60}, {130, 130},
+		{-80, 140}, {-20, 140}, {40, 140}, {100, 140},
 	}
 
 	for i, pos in ipairs(spots) do
 		local x, z = pos[1], pos[2]
+		-- Slight random variation per tree
+		local scale = 1 + ((i * 37) % 5) * 0.15  -- 1.0 to 1.6
 
-		local trunk = solid({Name = "Trunk" .. i, Size = Vector3.new(1, 6, 1), Color = TRUNK, Material = Enum.Material.Plastic})
-		trunk.CFrame = CFrame.new(x, 3, z)
+		-- Trunk (thicker, taller)
+		local trunkH = 10 * scale
+		local trunk = bp({Name="Trunk" .. i, Size=Vector3.new(2.5 * scale, trunkH, 2.5 * scale), Color=TRUNK, Material=Enum.Material.Plastic})
+		trunk.CFrame = CFrame.new(x, trunkH/2, z)
 		studAllFaces(trunk)
 		trunk.Parent = m
 
-		local lower = solid({Name = "Canopy" .. i, Size = Vector3.new(5, 4, 5), Color = LEAF, Material = Enum.Material.Plastic})
-		lower.CFrame = CFrame.new(x, 7, z)
-		studAllFaces(lower)
-		lower.Parent = m
+		-- Canopy layer 1 (big, wide - bottom)
+		local c1w = 12 * scale
+		local c1 = bp({Name="Canopy1_" .. i, Size=Vector3.new(c1w, 7 * scale, c1w), Color=LEAF_DARK, Material=Enum.Material.Plastic})
+		c1.CFrame = CFrame.new(x, trunkH + 3 * scale, z) * CFrame.Angles(0, math.rad(i * 23 % 45), 0)
+		studAllFaces(c1)
+		c1.Parent = m
 
-		local top = solid({Name = "CanopyTop" .. i, Size = Vector3.new(3, 3, 3), Color = LEAF, Material = Enum.Material.Plastic})
-		top.CFrame = CFrame.new(x, 10.5, z)
-		studAllFaces(top)
-		top.Parent = m
+		-- Canopy layer 2 (medium - middle)
+		local c2w = 9 * scale
+		local c2 = bp({Name="Canopy2_" .. i, Size=Vector3.new(c2w, 6 * scale, c2w), Color=LEAF_MID, Material=Enum.Material.Plastic})
+		c2.CFrame = CFrame.new(x + math.sin(i) * 1.5, trunkH + 8 * scale, z + math.cos(i) * 1.5) * CFrame.Angles(0, math.rad(i * 47 % 60), 0)
+		studAllFaces(c2)
+		c2.Parent = m
+
+		-- Canopy layer 3 (small - top)
+		local c3w = 6 * scale
+		local c3 = bp({Name="Canopy3_" .. i, Size=Vector3.new(c3w, 5 * scale, c3w), Color=LEAF_LIGHT, Material=Enum.Material.Plastic})
+		c3.CFrame = CFrame.new(x - math.cos(i) * 1, trunkH + 12.5 * scale, z + math.sin(i) * 1) * CFrame.Angles(0, math.rad(i * 31 % 40), 0)
+		studAllFaces(c3)
+		c3.Parent = m
+
+		-- Bush at base (extra rindang)
+		local bush = bp({Name="Bush" .. i, Size=Vector3.new(5 * scale, 3, 5 * scale), Color=LEAF_DARK, Material=Enum.Material.Plastic})
+		bush.CFrame = CFrame.new(x + 4, 1.5, z + 4) * CFrame.Angles(0, math.rad(i * 67), 0)
+		studAllFaces(bush)
+		bush.Parent = m
+
+		local bush2 = bp({Name="Bush2_" .. i, Size=Vector3.new(4 * scale, 2.5, 4 * scale), Color=LEAF_MID, Material=Enum.Material.Plastic})
+		bush2.CFrame = CFrame.new(x - 4, 1.25, z - 3) * CFrame.Angles(0, math.rad(i * 89), 0)
+		studAllFaces(bush2)
+		bush2.Parent = m
 	end
 
 	m.Parent = workspace
 end
+
 
 -- Street lamps: 5 positions along the road, both sides — 10 in total.
 local function buildLamps()
