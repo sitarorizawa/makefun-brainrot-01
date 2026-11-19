@@ -1278,6 +1278,714 @@ local function buildBananitaWhalebit(posX, posZ)
 end
 
 -- ---------------------------------------------------------------------------
+--4 more brainrot characters: Rugpull, Gasfee, Airdrop, Arbitrage.
+-- ---------------------------------------------------------------------------
+
+local function buildTralaleroRugpull(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "TralaleroRugpull"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+
+	-- SHARK HEAD
+	local skull = bp({Name="Head", Size=Vector3.new(4,2.5,4), Color=Color3.fromRGB(120,140,160), Material=Enum.Material.Plastic})
+	skull.CFrame=cf(0,11,0); studAllFaces(skull); skull.Parent=m
+	-- Upper jaw
+	local ujaw = bp({Name="UJaw", Size=Vector3.new(3.8,1.2,2.5), Color=Color3.fromRGB(130,150,170), Material=Enum.Material.Plastic})
+	ujaw.CFrame=cf(0,10.2,-2.5); studAllFaces(ujaw); ujaw.Parent=m
+	-- Lower jaw (open)
+	local ljaw = bp({Name="LJaw", Size=Vector3.new(3.6,1,2.3), Color=Color3.fromRGB(170,190,210), Material=Enum.Material.Plastic})
+	ljaw.CFrame=cf(0,8.6,-2.4)*CFrame.Angles(math.rad(-20),0,0); studAllFaces(ljaw); ljaw.Parent=m
+	-- Teeth (top row)
+	for i=-3,3 do
+		local t=bp({Name="Tooth", Size=Vector3.new(0.5,0.8,0.4), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic})
+		t.CFrame=cf(i*0.55,9.6,-3.5); t.Parent=m
+	end
+	-- Teeth (bottom row)
+	for i=-3,3 do
+		local t=bp({Name="Tooth", Size=Vector3.new(0.5,0.7,0.4), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic})
+		t.CFrame=cf(i*0.55,9.3,-3.4)*CFrame.Angles(math.rad(-15),0,0); t.Parent=m
+	end
+	-- Eyes
+	for _,ex in ipairs({-1.5,1.5}) do
+		local ew=bp({Name="Eye", Size=Vector3.new(1,1,1), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		ew.CFrame=cf(ex,12,-1.2); ew.Parent=m
+		local pup=bp({Name="Pupil", Size=Vector3.new(0.5,0.5,0.5), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		pup.CFrame=cf(ex,12,-1.6); pup.Parent=m
+	end
+	-- Gill slits
+	for _,sx in ipairs({-1,1}) do
+		for g=0,2 do
+			local gl=bp({Name="Gill", Size=Vector3.new(0.15,1,0.4), Color=Color3.fromRGB(90,110,130), Material=Enum.Material.Plastic})
+			gl.CFrame=cf(sx*2.05,10.5,g*0.7-0.7); gl.CanCollide=false; gl.Parent=m
+		end
+	end
+
+	-- MONEY BAG BODY (with hole at bottom)
+	local bag1=bp({Name="BagBottom", Size=Vector3.new(4,3.5,3.5), Color=Color3.fromRGB(60,160,70), Material=Enum.Material.Plastic})
+	bag1.CFrame=cf(0,6,0.5); studAllFaces(bag1); bag1.Parent=m
+	local bag2=bp({Name="BagTop", Size=Vector3.new(2.5,2,2.5), Color=Color3.fromRGB(70,175,80), Material=Enum.Material.Plastic})
+	bag2.CFrame=cf(0,8.8,0.5); studAllFaces(bag2); bag2.Parent=m
+	-- $ symbol
+	local dollar=bp({Name="Dollar", Size=Vector3.new(0.3,2,1.2), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+	dollar.CFrame=cf(0,6,-1.3); dollar.CanCollide=false; dollar.Parent=m
+	-- HOLE at bottom (dark)
+	local hole=bp({Name="Hole", Size=Vector3.new(2,1,1.5), Color=Color3.fromRGB(20,20,22), Material=Enum.Material.Plastic})
+	hole.CFrame=cf(0,4.2,0.5); hole.CanCollide=false; hole.Parent=m
+
+	-- BLUE SNEAKERS (Tralalero signature)
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.2,2,1.2), Color=Color3.fromRGB(140,160,180), Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,2.2,0.5); studAllFaces(leg); leg.Parent=m
+		local shoe=bp({Name="Sneaker", Size=Vector3.new(1.5,1,2.4), Color=Color3.fromRGB(50,80,220), Material=Enum.Material.Plastic})
+		shoe.CFrame=cf(lx,0.9,-0.2); studAllFaces(shoe); shoe.Parent=m
+		local sole=bp({Name="Sole", Size=Vector3.new(1.6,0.4,2.5), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic})
+		sole.CFrame=cf(lx,0.35,-0.2); sole.Parent=m
+	end
+
+	-- Falling coins from hole
+	for i=1,3 do
+		local coin=bp({Name="Coin", Size=Vector3.new(0.8,0.3,0.8), Color=Color3.fromRGB(255,200,50), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		coin.CFrame=cf(math.sin(i*2)*1,3-i*0.9,0.5+math.cos(i)*0.6)*CFrame.Angles(math.rad(60*i),0,0)
+		coin.CanCollide=false; coin.Parent=m
+	end
+
+	-- LABEL
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(skull, "Tralalero Rugpull [GOD]", Color3.fromRGB(255,100,255))
+
+	m.Parent=workspace; return m
+end
+
+local function buildBombombiniGasfee(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "BombombiniGasfee"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- GOOSE NECK (segments curving up)
+	local neckY=8
+	for i=0,3 do
+		local seg=bp({Name="Neck", Size=Vector3.new(1.5,1.5,1.5), Color=WHITE, Material=Enum.Material.Plastic})
+		seg.CFrame=cf(0,neckY+i*1.5,-0.5-i*0.3); studAllFaces(seg); seg.Parent=m
+	end
+	-- GOOSE HEAD
+	local head=bp({Name="Head", Size=Vector3.new(2.8,2.5,3), Color=WHITE, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,15,-1.8); studAllFaces(head); head.Parent=m
+	-- BEAK
+	local beak=bp({Name="Beak", Size=Vector3.new(1.5,1,2), Color=Color3.fromRGB(255,150,50), Material=Enum.Material.Plastic})
+	beak.CFrame=cf(0,14.5,-3.8); studAllFaces(beak); beak.Parent=m
+	-- Eyes
+	for _,ex in ipairs({-0.9,0.9}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,15.5,-3); e.Parent=m
+	end
+
+	-- GAS CANISTER BODY
+	local can=bp({Name="Canister", Size=Vector3.new(3.5,5,3.5), Color=Color3.fromRGB(50,50,55), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	can.CFrame=cf(0,5,0.5)*CFrame.Angles(0,0,math.rad(90)); studAllFaces(can); can.Parent=m
+	-- Yellow hazard stripe
+	local stripe=bp({Name="Stripe", Size=Vector3.new(3.7,1.2,3.7), Color=Color3.fromRGB(255,220,50), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	stripe.CFrame=cf(0,5.5,0.5)*CFrame.Angles(0,0,math.rad(90)); stripe.Parent=m
+	-- Valve on top
+	local valve=bp({Name="Valve", Size=Vector3.new(1,1,1), Color=Color3.fromRGB(100,100,108), Material=Enum.Material.Plastic})
+	valve.CFrame=cf(0,8,0.5); studAllFaces(valve); valve.Parent=m
+	local wheel=bp({Name="ValveWheel", Size=Vector3.new(1.5,0.3,1.5), Color=Color3.fromRGB(200,50,50), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	wheel.CFrame=cf(0,8.7,0.5)*CFrame.Angles(0,0,math.rad(90)); wheel.Parent=m
+
+	-- GOOSE LEGS
+	for _,lx in ipairs({-0.9,0.9}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(0.7,3,0.7), Color=Color3.fromRGB(255,150,50), Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,1.5,0.5); studAllFaces(leg); leg.Parent=m
+		local foot=bp({Name="Foot", Size=Vector3.new(1,0.5,1.8), Color=Color3.fromRGB(255,150,50), Material=Enum.Material.Plastic})
+		foot.CFrame=cf(lx,0.35,0.1); foot.Parent=m
+	end
+
+	-- WINGS (folded at sides)
+	for _,sx in ipairs({-1,1}) do
+		local wing=bp({Name="Wing", Size=Vector3.new(1.5,2.5,3.5), Color=WHITE, Material=Enum.Material.Plastic})
+		wing.CFrame=cf(sx*2.5,6,0.5)*CFrame.Angles(0,0,math.rad(sx*15)); studAllFaces(wing); wing.Parent=m
+	end
+
+	-- FLAME at valve
+	local flame=bp({Name="Flame", Size=Vector3.new(1,1.5,1), Color=Color3.fromRGB(255,120,30), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	flame.CFrame=cf(0,9.5,0.5); flame.CanCollide=false; flame.Parent=m
+	local flame2=bp({Name="Flame2", Size=Vector3.new(0.6,1,0.6), Color=Color3.fromRGB(255,220,80), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	flame2.CFrame=cf(0,10.2,0.5); flame2.CanCollide=false; flame2.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Bombombini Gasfee [MYTHIC]", Color3.fromRGB(255,200,50))
+
+	m.Parent=workspace; return m
+end
+
+local function buildBombardiroAirdrop(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "BombardiroAirdrop"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local GD=Color3.fromRGB(45,110,40); local PLANE=Color3.fromRGB(60,62,68); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- CROC HEAD
+	local skull=bp({Name="Head", Size=Vector3.new(3.5,2.5,3.5), Color=GD, Material=Enum.Material.Plastic})
+	skull.CFrame=cf(0,9,-1); studAllFaces(skull); skull.Parent=m
+	local snout=bp({Name="Snout", Size=Vector3.new(3,1.5,3), Color=GD, Material=Enum.Material.Plastic})
+	snout.CFrame=cf(0,8.2,-3.5); studAllFaces(snout); snout.Parent=m
+	for i=-2,2 do
+		local t=bp({Name="Tooth", Size=Vector3.new(0.5,0.6,0.5), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic})
+		t.CFrame=cf(i*0.6,7.5,-4.8); t.Parent=m
+	end
+	for _,ex in ipairs({-1.2,1.2}) do
+		local e=bp({Name="Eye", Size=Vector3.new(1,1,1), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,10,-1.8); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.5,0.5,0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,10,-2.2); p.Parent=m
+	end
+
+	-- BOMBER PLANE BODY (the joke body)
+	local fuselage=bp({Name="Fuselage", Size=Vector3.new(3,3,8), Color=PLANE, Material=Enum.Material.Plastic})
+	fuselage.CFrame=cf(0,6,1); studAllFaces(fuselage); fuselage.Parent=m
+	-- Wings
+	for _,sx in ipairs({-1,1}) do
+		local wing=bp({Name="Wing", Size=Vector3.new(7,0.5,2.5), Color=Color3.fromRGB(50,52,58), Material=Enum.Material.Plastic})
+		wing.CFrame=cf(sx*4.5,6,1); studAllFaces(wing); wing.Parent=m
+	end
+	-- Tail fin
+	local fin=bp({Name="TailFin", Size=Vector3.new(0.5,2.5,2), Color=Color3.fromRGB(50,52,58), Material=Enum.Material.Plastic})
+	fin.CFrame=cf(0,8.5,4.5); studAllFaces(fin); fin.Parent=m
+	-- Propeller
+	local prop=bp({Name="Prop", Size=Vector3.new(0.4,4,0.4), Color=Color3.fromRGB(40,40,44), Material=Enum.Material.Plastic})
+	prop.CFrame=cf(0,6,-3.5)*CFrame.Angles(0,0,math.rad(45)); prop.Parent=m
+	local prop2=bp({Name="Prop2", Size=Vector3.new(0.4,4,0.4), Color=Color3.fromRGB(40,40,44), Material=Enum.Material.Plastic})
+	prop2.CFrame=cf(0,6,-3.5)*CFrame.Angles(0,0,math.rad(-45)); prop2.Parent=m
+	-- Landing gear / croc legs
+	for _,lx in ipairs({-1.5,1.5}) do
+		for _,lz in ipairs({-1,2}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(0.8,2.5,0.8), Color=GD, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(lx,2.5,lz); studAllFaces(leg); leg.Parent=m
+		end
+	end
+
+	-- PARACHUTE floating above
+	local chuteY=16
+	-- Canopy (4 wedge panels)
+	for i=0,3 do
+		local ang=math.rad(i*90)
+		local panel=bp({Name="Chute", Size=Vector3.new(5,0.5,5), Color=Color3.fromRGB(80,220,100), Material=Enum.Material.Plastic})
+		panel.CFrame=cf(math.cos(ang)*1.5, chuteY, math.sin(ang)*1.5+1)*CFrame.Angles(math.rad(25),ang,0)
+		panel.CanCollide=false; panel.Parent=m
+	end
+	-- Strings
+	for _,sx in ipairs({-1,1}) do
+		for _,sz in ipairs({-1,1}) do
+			local str=bp({Name="ChuteString", Size=Vector3.new(0.15,6,0.15), Color=Color3.fromRGB(200,200,200), Material=Enum.Material.Plastic})
+			str.CFrame=cf(sx*2.5, chuteY-3, 1+sz*1.5)*CFrame.Angles(math.rad(sz*15),0,math.rad(-sx*15))
+			str.CanCollide=false; str.Parent=m
+		end
+	end
+	-- Airdrop crate (hanging below chute, above plane)
+	local crate=bp({Name="AirdropCrate", Size=Vector3.new(2.5,2.5,2.5), Color=Color3.fromRGB(150,110,70), Material=Enum.Material.Plastic})
+	crate.CFrame=cf(0, chuteY-6.5, 1); studAllFaces(crate); crate.Parent=m
+	local crateDollar=bp({Name="CrateDollar", Size=Vector3.new(0.2,1.5,0.8), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+	crateDollar.CFrame=cf(0, chuteY-6.5, -0.3); crateDollar.CanCollide=false; crateDollar.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(skull, "Bombardiro Airdrop [MYTHIC]", Color3.fromRGB(255,200,50))
+
+	m.Parent=workspace; return m
+end
+
+local function buildBanditoreArbitrage(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "BanditoreArbitrage"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local BEAR=Color3.fromRGB(120,80,50); local TAN=Color3.fromRGB(200,165,115); local GOLD=Color3.fromRGB(230,180,60); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- BEAR HEAD
+	local head=bp({Name="Head", Size=Vector3.new(3.5,3,3.5), Color=BEAR, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,11.5,0); studAllFaces(head); head.Parent=m
+	for _,ex in ipairs({-1.3,1.3}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1.2,1.2,0.6), Color=BEAR, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		ear.CFrame=cf(ex,13.3,0.2); ear.Parent=m
+	end
+	local muzzle=bp({Name="Muzzle", Size=Vector3.new(2,1.2,1.5), Color=TAN, Material=Enum.Material.Plastic})
+	muzzle.CFrame=cf(0,10.8,-1.8); studAllFaces(muzzle); muzzle.Parent=m
+	local nose=bp({Name="Nose", Size=Vector3.new(0.8,0.6,0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	nose.CFrame=cf(0,11.3,-2.6); nose.Parent=m
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12,-1.5); e.Parent=m
+	end
+
+	-- BALANCE SCALE BODY
+	local base=bp({Name="ScaleBase", Size=Vector3.new(3.5,0.6,3.5), Color=GOLD, Material=Enum.Material.Plastic})
+	base.CFrame=cf(0,4.5,0.5); studAllFaces(base); base.Parent=m
+	local post=bp({Name="ScalePost", Size=Vector3.new(0.7,5,0.7), Color=GOLD, Material=Enum.Material.Plastic})
+	post.CFrame=cf(0,7.3,0.5); studAllFaces(post); post.Parent=m
+	local beam=bp({Name="Beam", Size=Vector3.new(6.5,0.5,0.5), Color=GOLD, Material=Enum.Material.Plastic})
+	beam.CFrame=cf(0,9.8,0.5); studAllFaces(beam); beam.Parent=m
+	-- Pans (left green, right red)
+	for _,cfg in ipairs({{-3,Color3.fromRGB(60,200,80),"UP"},{3,Color3.fromRGB(220,70,60),"DOWN"}}) do
+		local chain=bp({Name="Chain", Size=Vector3.new(0.15,2,0.15), Color=Color3.fromRGB(180,180,190), Material=Enum.Material.Plastic})
+		chain.CFrame=cf(cfg[1],8.7,0.5); chain.CanCollide=false; chain.Parent=m
+		local pan=bp({Name="Pan", Size=Vector3.new(2,0.4,2), Color=cfg[2], Material=Enum.Material.Plastic})
+		pan.CFrame=cf(cfg[1],7.6,0.5); studAllFaces(pan); pan.Parent=m
+		-- Arrow on pan
+		local arrow=bp({Name="Arrow", Size=Vector3.new(0.8,1.5,0.2), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic})
+		arrow.CFrame=cf(cfg[1],8.4,0.5); arrow.CanCollide=false; arrow.Parent=m
+	end
+
+	-- LEGS + ARMS
+	for _,lx in ipairs({-1.3,1.3}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.3,2.5,1.3), Color=BEAR, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,2.5,0.5); studAllFaces(leg); leg.Parent=m
+		local foot=bp({Name="Foot", Size=Vector3.new(1.4,0.7,1.8), Color=TAN, Material=Enum.Material.Plastic})
+		foot.CFrame=cf(lx,0.6,0.1); studAllFaces(foot); foot.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(1,3,1), Color=BEAR, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*2.8,8.5,0.5)*CFrame.Angles(0,0,math.rad(sx*20)); studAllFaces(arm); arm.Parent=m
+	end
+
+	-- Calculator prop in right paw
+	local calc=bp({Name="Calc", Size=Vector3.new(1.2,1.8,0.4), Color=Color3.fromRGB(70,70,76), Material=Enum.Material.Plastic})
+	calc.CFrame=cf(4.2,7.5,0); calc.Parent=m
+	local screen=bp({Name="CalcScreen", Size=Vector3.new(0.9,0.5,0.1), Color=Color3.fromRGB(60,255,100), Material=Enum.Material.Plastic})
+	screen.CFrame=cf(4.2,8.1,-0.2); screen.CanCollide=false; screen.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Banditore Arbitrage [LEGENDARY]", Color3.fromRGB(150,255,150))
+
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
+--6 more: Nodek, FrigoWhale, Sahur, Cappuccina, Potato, Solana.
+-- ---------------------------------------------------------------------------
+
+local function buildBrrBrrNodek(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "BrrBrrNodek"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local FUR=Color3.fromRGB(110,75,45); local FACE=Color3.fromRGB(220,160,130); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- MONKEY HEAD
+	local head=bp({Name="Head", Size=Vector3.new(3,2.8,3), Color=FUR, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	local face=bp({Name="Face", Size=Vector3.new(2.4,2.2,0.5), Color=FACE, Material=Enum.Material.Plastic})
+	face.CFrame=cf(0,11.8,-1.6); studAllFaces(face); face.Parent=m
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.7,0.7,0.7), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.4,-1.6); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.35,0.35,0.35), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.4,-1.9); p.Parent=m
+	end
+	for _,ex in ipairs({-1.7,1.7}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1.2,1.2,0.5), Color=FACE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		ear.CFrame=cf(ex,12.3,0.2); ear.Parent=m
+	end
+	-- Smiling mouth
+	local mouth=bp({Name="Mouth", Size=Vector3.new(1.5,0.5,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame=cf(0,10.9,-1.7); mouth.CanCollide=false; mouth.Parent=m
+
+	-- NODE CHAIN BODY (ring of glowing cubes around central block)
+	local NODE_COLORS={Color3.fromRGB(255,50,50), Color3.fromRGB(50,255,50), Color3.fromRGB(50,80,255), Color3.fromRGB(255,220,50)}
+	-- Central node block
+	local center=bp({Name="NodeCenter", Size=Vector3.new(2.5,2.5,2.5), Color=Color3.fromRGB(60,60,66), Material=Enum.Material.Plastic})
+	center.CFrame=cf(0,6.5,0.5); studAllFaces(center); center.Parent=m
+	for i=0,2 do
+		local led=bp({Name="NodeLED", Size=Vector3.new(0.5,0.4,0.3), Color=Color3.fromRGB(50,255,100), Material=Enum.Material.Plastic})
+		led.CFrame=cf(-0.5+i*0.5,6.8,-0.9); led.CanCollide=false; led.Parent=m
+	end
+	-- Chain ring (12 cubes in circle)
+	for i=0,11 do
+		local ang=math.rad(i*30)
+		local cube=bp({Name="ChainCube", Size=Vector3.new(0.9,0.9,0.9), Color=NODE_COLORS[(i%4)+1], Material=Enum.Material.Plastic})
+		cube.CFrame=cf(math.cos(ang)*3.5, 6.5+math.sin(ang)*3.5, 0.5)
+		cube.CanCollide=false; cube.Parent=m
+	end
+
+	-- LEGS + ARMS
+	for _,lx in ipairs({-0.8,0.8}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1,2.5,1), Color=FUR, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,2.5,0.5); studAllFaces(leg); leg.Parent=m
+	end
+	for _,sx in ipairs({-1,1}) do
+		local arm=bp({Name="Arm", Size=Vector3.new(0.8,3,0.8), Color=FUR, Material=Enum.Material.Plastic})
+		arm.CFrame=cf(sx*2,8.5,0.5)*CFrame.Angles(0,0,math.rad(sx*40)); studAllFaces(arm); arm.Parent=m
+	end
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Brr Brr Nodek [EPIC]", Color3.fromRGB(100,200,255))
+	m.Parent=workspace; return m
+end
+
+local function buildFrigoCameloWhale(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "FrigoCameloWhale"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local SANDY=Color3.fromRGB(210,175,115); local FRIDGE=Color3.fromRGB(235,235,240)
+
+	-- CAMEL HEAD + neck
+	for i=0,2 do
+		local seg=bp({Name="Neck", Size=Vector3.new(2.5,2,2.5), Color=SANDY, Material=Enum.Material.Plastic})
+		seg.CFrame=cf(0,9+i*2,-1-i*0.4); studAllFaces(seg); seg.Parent=m
+	end
+	local head=bp({Name="Head", Size=Vector3.new(3,2.5,3), Color=SANDY, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,16,-2.5); studAllFaces(head); head.Parent=m
+	local snout=bp({Name="Snout", Size=Vector3.new(2,1.2,1.5), Color=Color3.fromRGB(190,155,100), Material=Enum.Material.Plastic})
+	snout.CFrame=cf(0,15.3,-4); studAllFaces(snout); snout.Parent=m
+	for _,ex in ipairs({-1,1}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(0.6,1,0.4), Color=SANDY, Material=Enum.Material.Plastic})
+		ear.CFrame=cf(ex*1.3,17.3,-1.5); studAllFaces(ear); ear.Parent=m
+		local e=bp({Name="Eye", Size=Vector3.new(0.7,0.7,0.7), Color=Color3.fromRGB(25,25,30), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,16.3,-3.5); e.Parent=m
+	end
+
+	-- FRIDGE BODY
+	local fridge=bp({Name="Fridge", Size=Vector3.new(4,7,3), Color=FRIDGE, Material=Enum.Material.Plastic})
+	fridge.CFrame=cf(0,7,1); studAllFaces(fridge); fridge.Parent=m
+	-- Door split line
+	local doorLine=bp({Name="DoorLine", Size=Vector3.new(0.1,6.5,3.1), Color=Color3.fromRGB(180,180,188), Material=Enum.Material.Plastic})
+	doorLine.CFrame=cf(0,7,1); doorLine.CanCollide=false; doorLine.Parent=m
+	-- Handle
+	local handle=bp({Name="Handle", Size=Vector3.new(0.3,3,0.4), Color=Color3.fromRGB(150,150,158), Material=Enum.Material.Plastic})
+	handle.CFrame=cf(1.6,7,-0.6); handle.Parent=m
+	-- Magnets (decorations)
+	local magColors={Color3.fromRGB(255,100,100), Color3.fromRGB(100,150,255), Color3.fromRGB(255,220,80)}
+	for i,c in ipairs(magColors) do
+		local mag=bp({Name="Magnet", Size=Vector3.new(0.8,0.8,0.2), Color=c, Material=Enum.Material.Plastic})
+		mag.CFrame=cf(-1+i*1, 9-i*1.5, -0.6); mag.CanCollide=false; mag.Parent=m
+	end
+
+	-- CAMEL LEGS (4, tall thin)
+	for _,lx in ipairs({-1.5,1.5}) do
+		for _,lz in ipairs({-0.5,2.5}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(1,3.5,1), Color=SANDY, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(lx,1.75,lz); studAllFaces(leg); leg.Parent=m
+			local hoof=bp({Name="Hoof", Size=Vector3.new(1.1,0.5,1.3), Color=Color3.fromRGB(60,45,30), Material=Enum.Material.Plastic})
+			hoof.CFrame=cf(lx,0.25,lz-0.2); hoof.Parent=m
+		end
+	end
+
+	-- WHALE POPSICLE on fridge top
+	local stick=bp({Name="Stick", Size=Vector3.new(0.4,2,0.4), Color=Color3.fromRGB(200,170,120), Material=Enum.Material.Plastic})
+	stick.CFrame=cf(1,12,1); stick.Parent=m
+	local whalePop=bp({Name="WhalePop", Size=Vector3.new(2.5,1.5,1.5), Color=Color3.fromRGB(80,150,220), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	whalePop.CFrame=cf(1,13.5,1); whalePop.Parent=m
+	local popTail=bp({Name="PopTail", Size=Vector3.new(1,0.5,1), Color=Color3.fromRGB(80,150,220), Material=Enum.Material.Plastic})
+	popTail.CFrame=cf(2,13.8,1); popTail.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Frigo Camelo Whale [EPIC]", Color3.fromRGB(100,200,255))
+	m.Parent=workspace; return m
+end
+
+local function buildTungTungSahur(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "TungTungSahur"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local WOOD=Color3.fromRGB(140,95,55); local SPIDER=Color3.fromRGB(70,50,35); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- WOODEN BAT HEAD (tall, elongated)
+	local head=bp({Name="Head", Size=Vector3.new(2.5,4,2.5), Color=WOOD, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,13,0); studAllFaces(head); head.Parent=m
+	-- Carved face
+	for _,ex in ipairs({-0.5,0.5}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+		e.CFrame=cf(ex,13.8,-1.3); e.CanCollide=false; e.Parent=m
+	end
+	for i=-1,1 do
+		local tooth=bp({Name="Mouth", Size=Vector3.new(0.5,0.5,0.3), Color=BLACK, Material=Enum.Material.Plastic})
+		tooth.CFrame=cf(i*0.5,12,-1.3); tooth.CanCollide=false; tooth.Parent=m
+	end
+	-- Grain lines
+	for i=0,2 do
+		local grain=bp({Name="Grain", Size=Vector3.new(0.1,3.5,0.1), Color=Color3.fromRGB(110,75,40), Material=Enum.Material.Plastic})
+		grain.CFrame=cf(-1.26,13,-0.5+i*0.5); grain.CanCollide=false; grain.Parent=m
+	end
+
+	-- Waist
+	local waist=bp({Name="Waist", Size=Vector3.new(1.5,2,1.5), Color=WOOD, Material=Enum.Material.Plastic})
+	waist.CFrame=cf(0,9.5,0); studAllFaces(waist); waist.Parent=m
+
+	-- SPIDER ABDOMEN (body)
+	local abdomen=bp({Name="Abdomen", Size=Vector3.new(4,4,4), Color=SPIDER, Material=Enum.Material.Plastic})
+	abdomen.CFrame=cf(0,6,1.5); studAllFaces(abdomen); abdomen.Parent=m
+	-- Eyes on abdomen
+	for _,ex in ipairs({-0.7,0.7}) do
+		local e=bp({Name="AbEye", Size=Vector3.new(0.6,0.6,0.6), Color=Color3.fromRGB(245,245,245), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,6.5,-0.4); e.Parent=m
+		local p=bp({Name="AbPupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,6.5,-0.7); p.Parent=m
+	end
+
+	-- 8 SPIDER LEGS
+	for _,sx in ipairs({-1,1}) do
+		for i=0,3 do
+			local ang=(i-1.5)*25
+			local leg=bp({Name="SpLeg", Size=Vector3.new(0.4,5,0.4), Color=SPIDER, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(sx*3,4.5,1.5)*CFrame.Angles(0,0,math.rad(sx*(60+ang)))*CFrame.Angles(math.rad((i-1.5)*15),0,0)
+			studAllFaces(leg); leg.Parent=m
+		end
+	end
+
+	-- WOODEN BAT prop (held up)
+	local bat=bp({Name="Bat", Size=Vector3.new(0.5,6,0.5), Color=Color3.fromRGB(120,80,45), Material=Enum.Material.Plastic})
+	bat.CFrame=cf(3.5,10,0)*CFrame.Angles(0,0,math.rad(-30)); studAllFaces(bat); bat.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Tung Tung Sahur [SECRET]", Color3.fromRGB(255,50,50))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
+-- Final3: Cappuccina, Potato, Solana.
+-- ---------------------------------------------------------------------------
+
+local function buildCapuccinaMining(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "CapuccinaMining"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local CAT=Color3.fromRGB(235,150,60); local CAT_DARK=Color3.fromRGB(200,120,40); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- CAT HEAD
+	local head=bp({Name="Head", Size=Vector3.new(3,2.6,3), Color=CAT, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Ears (triangular wedges)
+	for _,sx in ipairs({-1,1}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1,1.2,0.6), Color=CAT, Material=Enum.Material.Plastic})
+		ear.CFrame=cf(sx*1.1,13.7,0)*CFrame.Angles(0,0,math.rad(sx*-25)); studAllFaces(ear); ear.Parent=m
+	end
+	-- Muzzle + nose
+	local muzzle=bp({Name="Muzzle", Size=Vector3.new(1.8,1,1), Color=WHITE, Material=Enum.Material.Plastic})
+	muzzle.CFrame=cf(0,11.3,-1.7); studAllFaces(muzzle); muzzle.Parent=m
+	local nose=bp({Name="Nose", Size=Vector3.new(0.5,0.3,0.3), Color=Color3.fromRGB(240,140,150), Material=Enum.Material.Plastic})
+	nose.CFrame=cf(0,11.7,-2.3); nose.Parent=m
+	-- Green eyes
+	for _,ex in ipairs({-0.8,0.8}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.65,0.65,0.65), Color=Color3.fromRGB(80,220,100), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.4,-1.4); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.4,-1.7); p.Parent=m
+	end
+	-- Whiskers
+	for _,sx in ipairs({-1,1}) do
+		for w=0,1 do
+			local wh=bp({Name="Whisker", Size=Vector3.new(1.5,0.1,0.1), Color=WHITE, Material=Enum.Material.Plastic})
+			wh.CFrame=cf(sx*1.8,11.3+w*0.4,-1.5)*CFrame.Angles(0,0,math.rad(sx*(w*10-5))); wh.CanCollide=false; wh.Parent=m
+		end
+	end
+	-- Forehead stripes
+	for i=-1,1 do
+		local st=bp({Name="Stripe", Size=Vector3.new(0.4,0.5,1.5), Color=CAT_DARK, Material=Enum.Material.Plastic})
+		st.CFrame=cf(i*0.7,13.4,-0.3); st.CanCollide=false; st.Parent=m
+	end
+
+	-- ESPRESSO MACHINE BODY
+	local machine=bp({Name="Espresso", Size=Vector3.new(3.5,5,3), Color=Color3.fromRGB(170,170,178), Material=Enum.Material.Plastic})
+	machine.CFrame=cf(0,6.5,0.5); studAllFaces(machine); machine.Parent=m
+	-- Red accent panel
+	local panel=bp({Name="RedPanel", Size=Vector3.new(3,1.5,0.3), Color=Color3.fromRGB(200,50,50), Material=Enum.Material.Plastic})
+	panel.CFrame=cf(0,8,-1.1); panel.CanCollide=false; panel.Parent=m
+	-- Portafilter spouts
+	for _,sx in ipairs({-0.7,0.7}) do
+		local spout=bp({Name="Spout", Size=Vector3.new(0.5,1,0.5), Color=Color3.fromRGB(120,120,128), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		spout.CFrame=cf(sx,4.5,-1)*CFrame.Angles(math.rad(90),0,0); spout.Parent=m
+	end
+	-- Steam wand
+	local wand=bp({Name="Wand", Size=Vector3.new(0.3,2.5,0.3), Color=Color3.fromRGB(120,120,128), Material=Enum.Material.Plastic})
+	wand.CFrame=cf(2,6,-0.5)*CFrame.Angles(math.rad(20),0,0); wand.Parent=m
+
+	-- CAT LEGS (4)
+	for _,lx in ipairs({-1.3,1.3}) do
+		for _,lz in ipairs({-0.5,1.5}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(0.9,2.5,0.9), Color=CAT, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(lx,1.75,lz); studAllFaces(leg); leg.Parent=m
+		end
+	end
+
+	-- COFFEE CUP on top
+	local cup=bp({Name="Cup", Size=Vector3.new(1.5,1.5,1.5), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	cup.CFrame=cf(0,9.8,0.5); studAllFaces(cup); cup.Parent=m
+	local coffee=bp({Name="Coffee", Size=Vector3.new(1.3,0.3,1.3), Color=Color3.fromRGB(90,55,30), Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	coffee.CFrame=cf(0,10.5,0.5); coffee.Parent=m
+	-- Steam (translucent balls rising)
+	for i=0,2 do
+		local steam=bp({Name="Steam", Size=Vector3.new(0.6,0.6,0.6), Color=Color3.fromRGB(230,230,235), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		steam.Transparency=0.6-i*0.15
+		steam.CFrame=cf(0,11+i*0.8,0.5+math.sin(i)*0.3)
+		steam.CanCollide=false; steam.Parent=m
+	end
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Capuccina Mining [RARE]", Color3.fromRGB(255,190,110))
+	m.Parent=workspace; return m
+end
+
+local function buildPipiPotatoStake(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "PipiPotatoStake"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local PIG=Color3.fromRGB(245,170,170); local PIG_DARK=Color3.fromRGB(220,130,130); local POTATO=Color3.fromRGB(200,165,110); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- PIG HEAD
+	local head=bp({Name="Head", Size=Vector3.new(3,2.6,3), Color=PIG, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Ears
+	for _,sx in ipairs({-1,1}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1,1,0.5), Color=PIG, Material=Enum.Material.Plastic})
+		ear.CFrame=cf(sx*1,13.6,-0.3)*CFrame.Angles(0,0,math.rad(sx*-20)); studAllFaces(ear); ear.Parent=m
+	end
+	-- Snout
+	local snout=bp({Name="Snout", Size=Vector3.new(1.5,1,0.8), Color=PIG_DARK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	snout.CFrame=cf(0,11.5,-1.7)*CFrame.Angles(math.rad(90),0,0); studAllFaces(snout); snout.Parent=m
+	for _,ex in ipairs({-0.3,0.3}) do
+		local nostril=bp({Name="Nostril", Size=Vector3.new(0.25,0.25,0.1), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		nostril.CFrame=cf(ex,11.5,-2.2)*CFrame.Angles(math.rad(90),0,0); nostril.CanCollide=false; nostril.Parent=m
+	end
+	-- Eyes + blush
+	for _,ex in ipairs({-0.9,0.9}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.5,-1.4); e.Parent=m
+	end
+
+	-- POTATO BODY (lumpy, rotated)
+	local potato=bp({Name="Potato", Size=Vector3.new(4,4.5,3.5), Color=POTATO, Material=Enum.Material.Plastic})
+	potato.CFrame=cf(0,6.5,0.5)*CFrame.Angles(math.rad(5),math.rad(8),math.rad(3)); studAllFaces(potato); potato.Parent=m
+	-- Potato eyes (dark divots)
+	local potEyeSpots={{1,7.5,-1.4},{-1.2,6,-1.5},{0.5,5,1.8}}
+	for _,s in ipairs(potEyeSpots) do
+		local pe=bp({Name="PotEye", Size=Vector3.new(0.5,0.5,0.3), Color=Color3.fromRGB(130,100,60), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		pe.CFrame=cf(s[1],s[2],s[3]); pe.CanCollide=false; pe.Parent=m
+	end
+
+	-- PIG LEGS (4)
+	for _,lx in ipairs({-1.3,1.3}) do
+		for _,lz in ipairs({-0.5,1.5}) do
+			local leg=bp({Name="Leg", Size=Vector3.new(0.9,2,0.9), Color=PIG, Material=Enum.Material.Plastic})
+			leg.CFrame=cf(lx,1.5,lz); studAllFaces(leg); leg.Parent=m
+			local trotter=bp({Name="Trotter", Size=Vector3.new(1,0.5,1.2), Color=PIG_DARK, Material=Enum.Material.Plastic})
+			trotter.CFrame=cf(lx,0.25,lz-0.2); trotter.Parent=m
+		end
+	end
+
+	-- WOODEN STAKE FENCE prop (beside pig)
+	for i=0,2 do
+		local post=bp({Name="FencePost", Size=Vector3.new(0.4,3,0.4), Color=Color3.fromRGB(150,110,70), Material=Enum.Material.Plastic})
+		post.CFrame=cf(3,1.5,-1+i*1.5); studAllFaces(post); post.Parent=m
+	end
+	for i=0,1 do
+		local rail=bp({Name="FenceRail", Size=Vector3.new(0.3,0.3,3.5), Color=Color3.fromRGB(150,110,70), Material=Enum.Material.Plastic})
+		rail.CFrame=cf(3,1+i*1.2,0.5); rail.Parent=m
+	end
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Pipi Potato Stake [RARE]", Color3.fromRGB(255,180,190))
+	m.Parent=workspace; return m
+end
+
+local function buildChimpanziniSolana(posX, posZ)
+	local m = Instance.new("Model"); m.Name = "ChimpanziniSolana"
+	local function bp(p) local x=part(p); x.Anchored=true; x.CanCollide=true; return x end
+	local function cf(x,y,z,ry) return CFrame.new(posX+x,2+y,posZ+z)*CFrame.Angles(0,math.rad(ry or 0),0) end
+	local FUR=Color3.fromRGB(60,50,40); local SKIN=Color3.fromRGB(90,70,55); local WHITE=Color3.fromRGB(245,245,245); local BLACK=Color3.fromRGB(25,25,30)
+
+	-- CHIMP HEAD
+	local head=bp({Name="Head", Size=Vector3.new(3,2.8,3), Color=FUR, Material=Enum.Material.Plastic})
+	head.CFrame=cf(0,12,0); studAllFaces(head); head.Parent=m
+	-- Big flat face
+	local face=bp({Name="Face", Size=Vector3.new(2.6,2.4,0.6), Color=SKIN, Material=Enum.Material.Plastic})
+	face.CFrame=cf(0,11.8,-1.6); studAllFaces(face); face.Parent=m
+	-- Eyes (close-set)
+	for _,ex in ipairs({-0.6,0.6}) do
+		local e=bp({Name="Eye", Size=Vector3.new(0.6,0.6,0.6), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		e.CFrame=cf(ex,12.4,-1.7); e.Parent=m
+		local p=bp({Name="Pupil", Size=Vector3.new(0.3,0.3,0.3), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		p.CFrame=cf(ex,12.4,-2); p.Parent=m
+	end
+	-- Big grin
+	local grin=bp({Name="Grin", Size=Vector3.new(2,0.6,0.3), Color=WHITE, Material=Enum.Material.Plastic})
+	grin.CFrame=cf(0,10.8,-1.7); grin.CanCollide=false; grin.Parent=m
+	-- Round ears
+	for _,ex in ipairs({-1.7,1.7}) do
+		local ear=bp({Name="Ear", Size=Vector3.new(1,1,0.5), Color=SKIN, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		ear.CFrame=cf(ex,12.3,0.2); ear.Parent=m
+	end
+
+	-- PHONE BODY (Solana phone, vertical slab)
+	local phone=bp({Name="Phone", Size=Vector3.new(3,5,0.8), Color=Color3.fromRGB(30,30,36), Material=Enum.Material.Plastic})
+	phone.CFrame=cf(0,6.5,0.5); studAllFaces(phone); phone.Parent=m
+	-- Screen (purple gradient-ish)
+	local screen=bp({Name="Screen", Size=Vector3.new(2.6,4.5,0.2), Color=Color3.fromRGB(150,60,255), Material=Enum.Material.Plastic})
+	screen.CFrame=cf(0,6.5,-0.05); screen.CanCollide=false; screen.Parent=m
+	-- Solana logo (3 slanted bars)
+	for i=0,2 do
+		local bar=bp({Name="SolBar", Size=Vector3.new(1.8,0.4,0.1), Color=WHITE, Material=Enum.Material.Plastic})
+		bar.CFrame=cf(0,7.6-i*0.7,-0.2)*CFrame.Angles(0,0,math.rad(-12)); bar.CanCollide=false; bar.Parent=m
+	end
+	-- Phone notch
+	local notch=bp({Name="Notch", Size=Vector3.new(1,0.3,0.15), Color=BLACK, Material=Enum.Material.Plastic})
+	notch.CFrame=cf(0,8.5,-0.1); notch.CanCollide=false; notch.Parent=m
+
+	-- CHIMP LEGS (bent)
+	for _,lx in ipairs({-0.9,0.9}) do
+		local leg=bp({Name="Leg", Size=Vector3.new(1.1,2.5,1.1), Color=FUR, Material=Enum.Material.Plastic})
+		leg.CFrame=cf(lx,2.5,0.5)*CFrame.Angles(math.rad(10),0,0); studAllFaces(leg); leg.Parent=m
+		local foot=bp({Name="Foot", Size=Vector3.new(1.2,0.7,1.8), Color=SKIN, Material=Enum.Material.Plastic})
+		foot.CFrame=cf(lx,0.6,0.1); studAllFaces(foot); foot.Parent=m
+	end
+
+	-- LONG ARMS (chimp knuckle arms)
+	local armL=bp({Name="ArmL", Size=Vector3.new(1,4.5,1), Color=FUR, Material=Enum.Material.Plastic})
+	armL.CFrame=cf(-2.3,6,0.5)*CFrame.Angles(0,0,math.rad(15)); studAllFaces(armL); armL.Parent=m
+	local armR=bp({Name="ArmR", Size=Vector3.new(1,4.5,1), Color=FUR, Material=Enum.Material.Plastic})
+	armR.CFrame=cf(2.3,6.5,0)*CFrame.Angles(0,0,math.rad(-40)); studAllFaces(armR); armR.Parent=m
+
+	-- BANANA prop in right hand
+	local handR=bp({Name="HandR", Size=Vector3.new(1,0.8,1), Color=SKIN, Material=Enum.Material.Plastic})
+	handR.CFrame=cf(4,8.8,0); handR.Parent=m
+	for i=0,2 do
+		local seg=bp({Name="Banana", Size=Vector3.new(0.7,1.2,0.7), Color=Color3.fromRGB(255,220,80), Material=Enum.Material.Plastic})
+		seg.CFrame=cf(4,9.5+i*0.9,0)*CFrame.Angles(math.rad(i*15),0,math.rad(10)); studAllFaces(seg); seg.Parent=m
+	end
+	local tip=bp({Name="BananaTip", Size=Vector3.new(0.5,0.5,0.5), Color=Color3.fromRGB(80,160,50), Material=Enum.Material.Plastic})
+	tip.CFrame=cf(4.2,12,0); tip.Parent=m
+
+	local function addLabel(part, text, color)
+		local bb=Instance.new("BillboardGui"); bb.Size=UDim2.new(0,340,0,68); bb.StudsOffset=Vector3.new(0,4,0); bb.MaxDistance=50; bb.Parent=part
+		local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,0,1,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=color; l.TextStrokeColor3=Color3.fromRGB(0,0,0); l.TextStrokeTransparency=0.25; l.TextScaled=false; l.TextSize=18; l.Font=Enum.Font.GothamBold; l.Parent=bb
+	end
+	addLabel(head, "Chimpanzini Solana [UNCOMMON]", Color3.fromRGB(170,100,255))
+	m.Parent=workspace; return m
+end
+
+-- ---------------------------------------------------------------------------
 -- Satoshino Crocodilo — Mythic brainrot character (display model).
 -- Crocodile head + Bitcoin mining rig body + gold pickaxe prop.
 -- ---------------------------------------------------------------------------
@@ -1722,16 +2430,20 @@ function WorldBuilder.build()
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
-	-- Characters lined up beside the market (shop at x=-50)
-	safeStep("buildSatoshinoCroc", function()
-		buildSatoshinoCroc(-50, 25)
-	end)
-	safeStep("buildBananitaWhalebit", function()
-		buildBananitaWhalebit(-50, 38)
-	end)
-	safeStep("buildPatapimNode", function()
-		buildPatapimNode(-50, 51)
-	end)
+	-- 13 characters lined up beside the market (shop at x=-50)
+	safeStep("buildSatoshinoCroc", function() buildSatoshinoCroc(-50, 25) end)
+	safeStep("buildBananitaWhalebit", function() buildBananitaWhalebit(-50, 38) end)
+	safeStep("buildPatapimNode", function() buildPatapimNode(-50, 51) end)
+	safeStep("buildTralaleroRugpull", function() buildTralaleroRugpull(-50, 64) end)
+	safeStep("buildBombombiniGasfee", function() buildBombombiniGasfee(-50, 77) end)
+	safeStep("buildBombardiroAirdrop", function() buildBombardiroAirdrop(-50, 90) end)
+	safeStep("buildBanditoreArbitrage", function() buildBanditoreArbitrage(-50, 103) end)
+	safeStep("buildBrrBrrNodek", function() buildBrrBrrNodek(-50, 116) end)
+	safeStep("buildFrigoCameloWhale", function() buildFrigoCameloWhale(-50, 129) end)
+	safeStep("buildTungTungSahur", function() buildTungTungSahur(-50, 142) end)
+	safeStep("buildCapuccinaMining", function() buildCapuccinaMining(-50, 155) end)
+	safeStep("buildPipiPotatoStake", function() buildPipiPotatoStake(-50, 168) end)
+	safeStep("buildChimpanziniSolana", function() buildChimpanziniSolana(-50, 181) end)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
 		baseModel = b1
