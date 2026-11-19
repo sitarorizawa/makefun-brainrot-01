@@ -246,6 +246,21 @@ local function buildTunnels()
 		local p = part(props)
 		studAllFaces(p)
 		return p
+	-- MeshPart tunnel (FBX import)
+	local mesh = Instance.new("MeshPart")
+	mesh.Name = "TunnelMesh"
+	mesh.MeshId = "rbxassetid://121370385967065"
+	mesh.Size = Vector3.new(40, 25, 8)
+	mesh.Anchored = true
+	mesh.CanCollide = true
+	mesh.Color = Color3.fromRGB(110, 110, 120)
+	mesh.Material = Enum.Material.Slate
+	for _, z in ipairs({-120, 120}) do
+		local clone = mesh:Clone()
+		clone.CFrame = CFrame.new(0, 0, z)
+		clone.Parent = m
+	end
+	mesh:Destroy()
 	end
 
 	local function buildOneTunnel(z)
