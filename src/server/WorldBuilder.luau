@@ -279,9 +279,6 @@ local function buildTunnels()
 			cap.CFrame = CFrame.new(side * 16, 16.75, z)
 			cap.Parent = m
 
-			-- Torch (neon ball + light)
-			local torch = addPart({
-		end
 
 		-- Curved arch: 7 wedges in a semicircle
 		local archCenterY = 17
