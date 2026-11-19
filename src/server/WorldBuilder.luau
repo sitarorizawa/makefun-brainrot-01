@@ -3956,16 +3956,27 @@ local function buildBaseAt(bx, mirror)
 	local doorModel = Instance.new("Model")
 	doorModel.Name = "Door"
 	doorModel.Parent = m
-	-- One solid transparent block seals the whole opening (no gaps to slip
-	-- through). Same ClosedY slide mechanism as the old bars.
 	local BAR_H = 18
 	local barClosedY = 3.5 + BAR_H / 2 -- feet on the floor
 	local barOpenY = barClosedY - 22 -- fully sunk under the floor
-	local block = bp({Name="DoorBlock", Size=Vector3.new(0.7, BAR_H, 37), Color=Color3.fromRGB(80, 200, 255), Material=Enum.Material.ForceField})
-	block.Transparency = 0.45
-	block.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY, 0)
-	block:SetAttribute("ClosedY", barClosedY)
-	block.Parent = doorModel
+	local BAR_C = Color3.fromRGB(58, 58, 66)
+	-- Visual: prison bars.
+	for z = -18, 18, 3 do
+		local bar = bp({Name="Bar", Size=Vector3.new(0.7, BAR_H, 0.7), Color=BAR_C, Material=Enum.Material.Metal})
+		bar.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY, z)
+		bar:SetAttribute("ClosedY", barClosedY)
+		bar.Parent = doorModel
+	end
+	local cross = bp({Name="DoorCross", Size=Vector3.new(0.7, 0.9, 37), Color=BAR_C, Material=Enum.Material.Metal})
+	cross.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY + BAR_H / 2 - 1, 0)
+	cross:SetAttribute("ClosedY", 19.5)
+	cross.Parent = doorModel
+	-- Seal: fully invisible block so nothing can slip between the bars.
+	local seal = bp({Name="DoorSeal", Size=Vector3.new(0.7, BAR_H, 37), Color=Color3.fromRGB(80, 200, 255), Material=Enum.Material.Plastic})
+	seal.Transparency = 1
+	seal.CFrame = CFrame.new(frontX + MX * 0.5, barOpenY, 0)
+	seal:SetAttribute("ClosedY", barClosedY)
+	seal.Parent = doorModel
 
 	-- Prompt anchor: a small invisible part at eye level by the entrance.
 	local doorAnchor = bp({Name="DoorAnchor", Size=Vector3.new(1, 2, 1), Color=Color3.fromRGB(80,80,90), Material=Enum.Material.Plastic})
