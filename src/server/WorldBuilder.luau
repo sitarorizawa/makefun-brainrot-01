@@ -908,9 +908,9 @@ local function buildGates()
 
 		-- Dark transparent block filling the box opening: the "shadow" inside
 		-- the gate. Walk-through (no collision), purely visual.
-		local shadowBlock = bp({Name="GateShadow", Size=Vector3.new(20, 16.5, 12), Color=Color3.fromRGB(18, 18, 24), Material=Enum.Material.SmoothPlastic})
+		local shadowBlock = bp({Name="GateShadow", Size=Vector3.new(21, 16.5, 12), Color=Color3.fromRGB(0, 0, 0), Material=Enum.Material.SmoothPlastic})
 		shadowBlock.CFrame = CFrame.new(0, 8.75, z)
-		shadowBlock.Transparency = 0.55
+		shadowBlock.Transparency = 0
 		shadowBlock.CanCollide = false
 		shadowBlock.CastShadow = false
 		shadowBlock.Parent = m
