@@ -361,6 +361,83 @@ local function paradeNameToId(name)
 	return out
 end
 
+-- Big mutation aura (golden/toxic/rainbow): dense sparkles + a huge neon
+-- ring at the feet + a floating halo around the body.
+local function addMutationAura(model, mutation)
+	if mutation == nil or mutation.id == "none" then
+		return
+	end
+	if model:GetAttribute("MutAura") then
+		return
+	end
+	model:SetAttribute("MutAura", true)
+
+	local color = mutation.color or Color3.fromRGB(255, 255, 255)
+	local seq
+	if mutation.id == "rainbow" then
+		seq = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 80)),
+			ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 220, 80)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 255, 120)),
+			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(100, 160, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 120, 255)),
+		})
+	else
+		seq = ColorSequence.new(color)
+	end
+
+	local pivot = model:GetPivot()
+	local cfr, size = model:GetBoundingBox()
+
+	local core = Instance.new("Part")
+	core.Name = "MutAuraCore"
+	core.Size = Vector3.new(1, 1, 1)
+	core.Transparency = 1
+	core.CanCollide = false
+	core.Anchored = true
+	core.CFrame = CFrame.new(pivot.Position)
+	core.Parent = model
+
+	local pe = Instance.new("ParticleEmitter")
+	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	pe.Color = seq
+	pe.Rate = 45
+	pe.Lifetime = NumberRange.new(1, 2)
+	pe.Speed = NumberRange.new(3, 6)
+	pe.SpreadAngle = Vector2.new(180, 180)
+	pe.Size = NumberSequence.new(1.3, 0)
+	pe.Transparency = NumberSequence.new(0.05, 1)
+	pe.LightEmission = 1
+	pe.Parent = core
+
+	-- Huge neon ring at the feet (2x the rarity ring).
+	local ring = Instance.new("Part")
+	ring.Name = "MutAuraRing"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Size = Vector3.new(0.7, 14, 14)
+	ring.Color = color
+	ring.Material = Enum.Material.Neon
+	ring.Transparency = 0.2
+	ring.Anchored = true
+	ring.CanCollide = false
+	local feetY = cfr.Position.Y - size.Y / 2
+	ring.CFrame = CFrame.new(pivot.Position.X, feetY + 0.3, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Parent = model
+
+	-- Floating halo ring around the body.
+	local halo = Instance.new("Part")
+	halo.Name = "MutAuraHalo"
+	halo.Shape = Enum.PartType.Cylinder
+	halo.Size = Vector3.new(0.5, 10, 10)
+	halo.Color = color
+	halo.Material = Enum.Material.Neon
+	halo.Transparency = 0.45
+	halo.Anchored = true
+	halo.CanCollide = false
+	halo.CFrame = CFrame.new(pivot.Position.X, pivot.Position.Y, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	halo.Parent = model
+end
+
 local function catchParade(player, model)
 	local state = states[player]
 	if state == nil or state.carried ~= nil then
@@ -804,83 +881,6 @@ local function resetPedestalVisual(base, slot, slotsUnlocked)
 		pedestal.Color = unlocked and Color3.fromRGB(115, 120, 135) or Color3.fromRGB(58, 60, 70)
 		pedestal.Material = Enum.Material.Slate
 	end
-end
-
--- Big mutation aura (golden/toxic/rainbow): dense sparkles + a huge neon
--- ring at the feet + a floating halo around the body.
-local function addMutationAura(model, mutation)
-	if mutation == nil or mutation.id == "none" then
-		return
-	end
-	if model:GetAttribute("MutAura") then
-		return
-	end
-	model:SetAttribute("MutAura", true)
-
-	local color = mutation.color or Color3.fromRGB(255, 255, 255)
-	local seq
-	if mutation.id == "rainbow" then
-		seq = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 80)),
-			ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 220, 80)),
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 255, 120)),
-			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(100, 160, 255)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 120, 255)),
-		})
-	else
-		seq = ColorSequence.new(color)
-	end
-
-	local pivot = model:GetPivot()
-	local cfr, size = model:GetBoundingBox()
-
-	local core = Instance.new("Part")
-	core.Name = "MutAuraCore"
-	core.Size = Vector3.new(1, 1, 1)
-	core.Transparency = 1
-	core.CanCollide = false
-	core.Anchored = true
-	core.CFrame = CFrame.new(pivot.Position)
-	core.Parent = model
-
-	local pe = Instance.new("ParticleEmitter")
-	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	pe.Color = seq
-	pe.Rate = 45
-	pe.Lifetime = NumberRange.new(1, 2)
-	pe.Speed = NumberRange.new(3, 6)
-	pe.SpreadAngle = Vector2.new(180, 180)
-	pe.Size = NumberSequence.new(1.3, 0)
-	pe.Transparency = NumberSequence.new(0.05, 1)
-	pe.LightEmission = 1
-	pe.Parent = core
-
-	-- Huge neon ring at the feet (2x the rarity ring).
-	local ring = Instance.new("Part")
-	ring.Name = "MutAuraRing"
-	ring.Shape = Enum.PartType.Cylinder
-	ring.Size = Vector3.new(0.7, 14, 14)
-	ring.Color = color
-	ring.Material = Enum.Material.Neon
-	ring.Transparency = 0.2
-	ring.Anchored = true
-	ring.CanCollide = false
-	local feetY = cfr.Position.Y - size.Y / 2
-	ring.CFrame = CFrame.new(pivot.Position.X, feetY + 0.3, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
-	ring.Parent = model
-
-	-- Floating halo ring around the body.
-	local halo = Instance.new("Part")
-	halo.Name = "MutAuraHalo"
-	halo.Shape = Enum.PartType.Cylinder
-	halo.Size = Vector3.new(0.5, 10, 10)
-	halo.Color = color
-	halo.Material = Enum.Material.Neon
-	halo.Transparency = 0.45
-	halo.Anchored = true
-	halo.CanCollide = false
-	halo.CFrame = CFrame.new(pivot.Position.X, pivot.Position.Y, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
-	halo.Parent = model
 end
 
 -- Forward declaration: steal runs off the [E] prompt placed units carry.
