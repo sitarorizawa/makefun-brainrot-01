@@ -271,10 +271,10 @@ end
 -- Base: creative open-front building at x=50, facing the road (x=0).
 -- ---------------------------------------------------------------------------
 
-local BASE_X = 50
-local BASE_W = 40
-local BASE_D = 30
-local BASE_H = 12
+local BASE_X = 65
+local BASE_W = 50
+local BASE_D = 40
+local BASE_H = 18
 
 local baseModel = nil
 
@@ -296,8 +296,8 @@ local function buildBase()
 	floor.Parent = m
 
 	-- Checkerboard tiles (5x5) inside the base
-	for tx = 0, 7 do
-		for tz = 0, 5 do
+	for tx = 0, 9 do
+		for tz = 0, 7 do
 			local c = ((tx + tz) % 2 == 0) and Color3.fromRGB(70,70,75) or Color3.fromRGB(50,50,55)
 			local tile = bp({Name="Tile", Size=Vector3.new(5, 0.15, 5), Color=c, Material=Enum.Material.Plastic})
 			tile.CFrame = CFrame.new(BASE_X - BASE_W/2 + 2.5 + tx*5, 1.07, -BASE_D/2 + 2.5 + tz*5)
@@ -314,7 +314,7 @@ local function buildBase()
 
 	-- Side walls (Z sides)
 	for _, sz in ipairs({-1, 1}) do
-		local wall = bp({Name="SideWall", Size=Vector3.new(BASE_W, BASE_H, 1), Color=Color3.fromRGB(120,80,50), Material=Enum.Material.Plastic})
+		local wall = bp({Name="SideWall", Size=Vector3.new(BASE_W, BASE_H, 0.5), Color=Color3.fromRGB(170,210,230), Material=Enum.Material.Glass})
 		wall.CFrame = CFrame.new(BASE_X, BASE_H/2 + 1, sz * BASE_D/2)
 		studAllFaces(wall)
 		wall.Parent = m
