@@ -4084,6 +4084,69 @@ function WorldBuilder.setBaseSign(model, title, subtitle, color)
 	end
 end
 
+-- Giant Bitcoin coin monument beside the market, facing the road.
+local function buildBitcoinMonument()
+	local m = Instance.new("Model")
+	m.Name = "BitcoinMonument"
+
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
+
+	local ORANGE = Color3.fromRGB(247, 147, 26)
+	local ORANGE_D = Color3.fromRGB(196, 110, 15)
+	local WHITE = Color3.fromRGB(245, 245, 245)
+
+	local CX, CZ = -50, -35 -- beside the market (market ends around z-13)
+	local CY = 26 -- coin center height (radius20, sits on the pedestal)
+
+	-- Pedestal
+	local ped = bp({Name="Pedestal", Size=Vector3.new(12, 6, 36), Color=Color3.fromRGB(95, 95, 102), Material=Enum.Material.Plastic})
+	ped.CFrame = CFrame.new(CX, 3, CZ)
+	studAllFaces(ped)
+	ped.Parent = m
+
+	-- Coin rim (behind, slightly bigger — the coin edge)
+	local rim = bp({Name="CoinRim", Size=Vector3.new(6, 42, 42), Color=ORANGE_D, Material=Enum.Material.Plastic})
+	rim.CFrame = CFrame.new(CX - 2, CY, CZ)
+	studAllFaces(rim)
+	rim.Parent = m
+
+	-- Coin face: cylinder axis = X, so the flat face looks down the road.
+	local coin = bp({Name="Coin", Size=Vector3.new(4, 40, 40), Color=ORANGE, Material=Enum.Material.Plastic})
+	coin.CFrame = CFrame.new(CX, CY, CZ)
+	studAllFaces(coin)
+	coin.Parent = m
+
+	-- White ₿ built from blocks on the road-facing side.
+	local GX = CX + 2
+	local function glyph(height, width, du, dv)
+		local g = bp({Name="Glyph", Size=Vector3.new(4, height, width), Color=WHITE, Material=Enum.Material.Plastic})
+		g.CFrame = CFrame.new(GX, CY + dv, CZ + du)
+		studAllFaces(g)
+		g.Parent = m
+	end
+
+	-- Stem + top/middle/bottom bars (blocky B)
+	glyph(26, 3, -6.5, 0) -- stem
+	glyph(3, 16, 0, 11.5) -- top bar
+	glyph(3, 14, 1, 0) -- middle bar
+	glyph(3, 16, 0, -11.5) -- bottom bar
+	-- Bowl right verticals
+	glyph(8.5, 3, 6.5, 5.75) -- upper right
+	glyph(8.5, 3, 6.5, -5.75) -- lower right
+	-- The two ₿ ticks extending above and below
+	glyph(5, 3, -6.5, 15.5)
+	glyph(5, 3, 6.5, 15.5)
+	glyph(5, 3, -6.5, -15.5)
+	glyph(5, 3, 6.5, -15.5)
+
+	m.Parent = workspace
+end
+
 function WorldBuilder.buildSpawnPad(index)
 	local zOffsets = {[1] = 0, [2] = 95, [3] = -95}
 	local z = zOffsets[index] or 0
@@ -4238,6 +4301,7 @@ safeStep("buildGround", buildGround)
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
+	safeStep("buildBitcoinMonument", buildBitcoinMonument)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
 		baseModel = b1
