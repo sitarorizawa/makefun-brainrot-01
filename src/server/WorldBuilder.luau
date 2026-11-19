@@ -1722,14 +1722,15 @@ function WorldBuilder.build()
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
+	-- Characters lined up OUTSIDE the bases, facing road
 	safeStep("buildSatoshinoCroc", function()
-		buildSatoshinoCroc(57, -12)  -- display step Base1
+		buildSatoshinoCroc(38, -30)
 	end)
 	safeStep("buildBananitaWhalebit", function()
-		buildBananitaWhalebit(57, 12)  -- display step Base1
+		buildBananitaWhalebit(38, 0)
 	end)
 	safeStep("buildPatapimNode", function()
-		buildPatapimNode(73, 95 - 12)  -- display step Base2 (z offset +95)
+		buildPatapimNode(38, 30)
 	end)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
