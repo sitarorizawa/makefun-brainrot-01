@@ -911,6 +911,201 @@ local function buildGates()
 end
 
 -- ---------------------------------------------------------------------------
+-- Patapim Node — Rare brainrot character.
+-- Proboscis monkey head + server rack tower body + ethernet cable prop.
+-- ---------------------------------------------------------------------------
+
+local function buildPatapimNode(posX, posZ)
+	local m = Instance.new("Model")
+	m.Name = "PatapimNode"
+
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
+
+	-- Colors
+	local FUR = Color3.fromRGB(110, 75, 45)
+	local FUR_DARK = Color3.fromRGB(80, 55, 30)
+	local FACE = Color3.fromRGB(220, 160, 130)
+	local NOSE = Color3.fromRGB(200, 100, 110)
+	local SERVER = Color3.fromRGB(40, 40, 46)
+	local SERVER_GREY = Color3.fromRGB(80, 80, 88)
+	local LED_GREEN = Color3.fromRGB(50, 255, 100)
+	local LED_RED = Color3.fromRGB(255, 70, 60)
+	local CABLE = Color3.fromRGB(255, 210, 50)
+	local WHITE = Color3.fromRGB(245, 245, 245)
+	local BLACK = Color3.fromRGB(25, 25, 30)
+
+	local FY = 2
+	local function cf(x, y, z, ry)
+		return CFrame.new(posX + x, FY + y, posZ + z) * CFrame.Angles(0, math.rad(ry or 0), 0)
+	end
+
+	-- === HEAD: Proboscis monkey ===
+	local skull = bp({Name="MonkeyHead", Size=Vector3.new(3.2, 3, 3), Color=FUR, Material=Enum.Material.Plastic})
+	skull.CFrame = cf(0, 12, 0)
+	studAllFaces(skull)
+	skull.Parent = m
+
+	-- Face plate (lighter)
+	local facePlate = bp({Name="FacePlate", Size=Vector3.new(2.6, 2.4, 0.5), Color=FACE, Material=Enum.Material.Plastic})
+	facePlate.CFrame = cf(0, 11.8, -1.6)
+	studAllFaces(facePlate)
+	facePlate.Parent = m
+
+	-- Proboscis nose (long, hanging down - the signature)
+	local nose = bp({Name="Proboscis", Size=Vector3.new(0.9, 2.2, 0.9), Color=NOSE, Material=Enum.Material.Plastic})
+	nose.CFrame = cf(0, 10.5, -2) * CFrame.Angles(math.rad(15), 0, 0)
+	studAllFaces(nose)
+	nose.Parent = m
+
+	-- Nose tip (bulbous)
+	local noseTip = bp({Name="NoseTip", Size=Vector3.new(1.1, 0.8, 1.1), Color=NOSE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+	noseTip.CFrame = cf(0, 9.5, -2.3)
+	noseTip.Parent = m
+
+	-- Eyes (white + pupil)
+	for _, ex in ipairs({-0.7, 0.7}) do
+		local eyeW = bp({Name="EyeWhite", Size=Vector3.new(0.7, 0.7, 0.7), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		eyeW.CFrame = cf(ex, 12.5, -1.6)
+		eyeW.Parent = m
+
+		local pupil = bp({Name="Pupil", Size=Vector3.new(0.35, 0.35, 0.35), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		pupil.CFrame = cf(ex, 12.5, -1.9)
+		pupil.Parent = m
+	end
+
+	-- Ears (2 big round, dark fur)
+	for _, ex in ipairs({-1.8, 1.8}) do
+		local ear = bp({Name="Ear", Size=Vector3.new(1.3, 1.3, 0.6), Color=FUR_DARK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		ear.CFrame = cf(ex, 12.8, 0.2)
+		ear.Parent = m
+	end
+
+	-- Mouth (small line)
+	local mouth = bp({Name="Mouth", Size=Vector3.new(1, 0.2, 0.2), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame = cf(0, 10.8, -1.7)
+	mouth.CanCollide = false
+	mouth.Parent = m
+
+	-- Hair tuft on top
+	for i = -1, 1 do
+		local tuft = bp({Name="HairTuft", Size=Vector3.new(0.5, 1, 0.5), Color=FUR_DARK, Material=Enum.Material.Plastic})
+		tuft.CFrame = cf(i * 0.6, 14, 0) * CFrame.Angles(0, 0, math.rad(i * 20))
+		tuft.Parent = m
+	end
+
+	-- === BODY: Server rack tower ===
+	local server = bp({Name="ServerRack", Size=Vector3.new(3, 6, 2.5), Color=SERVER, Material=Enum.Material.Plastic})
+	server.CFrame = cf(0, 6, 0.5)
+	studAllFaces(server)
+	server.Parent = m
+
+	-- Server top plate
+	local topPlate = bp({Name="ServerTop", Size=Vector3.new(3.3, 0.4, 2.8), Color=SERVER_GREY, Material=Enum.Material.Plastic})
+	topPlate.CFrame = cf(0, 9.2, 0.5)
+	studAllFaces(topPlate)
+	topPlate.Parent = m
+
+	-- LED rows (green/red status lights on front face)
+	for row = 0, 6 do
+		local ledColor = (row % 3 == 0) and LED_RED or LED_GREEN
+		local led = bp({Name="LED", Size=Vector3.new(0.4, 0.3, 0.2), Color=ledColor, Material=Enum.Material.Plastic})
+		led.CFrame = cf(-1, 4 + row * 0.8, -0.85)
+		led.CanCollide = false
+		led.Parent = m
+
+		-- Second column of LEDs
+		local led2 = bp({Name="LED2", Size=Vector3.new(0.4, 0.3, 0.2), Color=LED_GREEN, Material=Enum.Material.Plastic})
+		led2.CFrame = cf(-0.4, 4 + row * 0.8, -0.85)
+		led2.CanCollide = false
+		led2.Parent = m
+	end
+
+	-- Server vents (horizontal slots on front)
+	for i = 0, 3 do
+		local vent = bp({Name="Vent", Size=Vector3.new(2, 0.25, 0.15), Color=SERVER_GREY, Material=Enum.Material.Plastic})
+		vent.CFrame = cf(0.6, 4.5 + i * 1.2, -0.9)
+		vent.CanCollide = false
+		vent.Parent = m
+	end
+
+	-- === LEGS: monkey legs (thin, long) ===
+	for _, lx in ipairs({-0.8, 0.8}) do
+		local leg = bp({Name="Leg", Size=Vector3.new(1, 3, 1), Color=FUR, Material=Enum.Material.Plastic})
+		leg.CFrame = cf(lx, 1.5, 0.5)
+		studAllFaces(leg)
+		leg.Parent = m
+
+		local foot = bp({Name="Foot", Size=Vector3.new(1.2, 0.7, 1.8), Color=FUR_DARK, Material=Enum.Material.Plastic})
+		foot.CFrame = cf(lx, 0.35, 0.1)
+		studAllFaces(foot)
+		foot.Parent = m
+	end
+
+	-- === ARMS (monkey arms, holding cable) ===
+	-- Left arm at side
+	local armL = bp({Name="ArmL", Size=Vector3.new(0.8, 3.5, 0.8), Color=FUR, Material=Enum.Material.Plastic})
+	armL.CFrame = cf(-2.2, 7, 0.5) * CFrame.Angles(0, 0, math.rad(15))
+	studAllFaces(armL)
+	armL.Parent = m
+
+	-- Right arm raised holding cable
+	local armR = bp({Name="ArmR", Size=Vector3.new(0.8, 3.5, 0.8), Color=FUR, Material=Enum.Material.Plastic})
+	armR.CFrame = cf(2.2, 8, 0) * CFrame.Angles(0, 0, math.rad(-35))
+	studAllFaces(armR)
+	armR.Parent = m
+
+	-- Hand (right)
+	local handR = bp({Name="HandR", Size=Vector3.new(0.9, 0.8, 0.9), Color=FACE, Material=Enum.Material.Plastic})
+	handR.CFrame = cf(3.4, 9.8, 0)
+	handR.Parent = m
+
+	-- === PROP: Ethernet cable (yellow, hanging from hand) ===
+	local cable1 = bp({Name="Cable1", Size=Vector3.new(0.3, 3, 0.3), Color=CABLE, Material=Enum.Material.Plastic})
+	cable1.CFrame = cf(3.4, 8, 0) * CFrame.Angles(math.rad(10), 0, 0)
+	cable1.Parent = m
+
+	local cable2 = bp({Name="Cable2", Size=Vector3.new(0.3, 2.5, 0.3), Color=CABLE, Material=Enum.Material.Plastic})
+	cable2.CFrame = cf(3.4, 5.5, 0.3) * CFrame.Angles(math.rad(-15), 0, 0)
+	cable2.Parent = m
+
+	-- RJ45 connector at cable end
+	local rj45 = bp({Name="RJ45", Size=Vector3.new(0.5, 0.7, 0.4), Color=Color3.fromRGB(200, 200, 210), Material=Enum.Material.Plastic})
+	rj45.CFrame = cf(3.4, 4, 0.6)
+	rj45.Parent = m
+
+	-- === LABEL ===
+	local head = m:FindFirstChild("MonkeyHead")
+	if head then
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.new(0, 340, 0, 68)
+		bb.StudsOffset = Vector3.new(0, 4, 0)
+		bb.MaxDistance = 50
+		bb.AlwaysOnTop = false
+		bb.SizeOffset = Vector2.new(0, 0)
+		bb.Parent = head
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.Text = "Patapim Node [RARE]"
+		label.TextColor3 = Color3.fromRGB(100, 255, 130)
+		label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+		label.TextStrokeTransparency = 0.25
+		label.TextScaled = false
+		label.TextSize = 18
+		label.Font = Enum.Font.GothamBold
+		label.Parent = bb
+	end
+
+	m.Parent = workspace
+	return m
+end
+
+-- ---------------------------------------------------------------------------
 -- Bananita Whalebit — Epic brainrot character.
 -- Whale head + Bitcoin golden coin body + fish tail.
 -- ---------------------------------------------------------------------------
@@ -1532,6 +1727,9 @@ function WorldBuilder.build()
 	end)
 	safeStep("buildBananitaWhalebit", function()
 		buildBananitaWhalebit(57, 12)  -- display step Base1
+	end)
+	safeStep("buildPatapimNode", function()
+		buildPatapimNode(73, 95 - 12)  -- display step Base2 (z offset +95)
 	end)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
