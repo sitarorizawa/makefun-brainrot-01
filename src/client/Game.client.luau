@@ -117,6 +117,23 @@ local moneyCounter = label({
 })
 moneyCounter.Parent = moneyPanel
 
+-- Income rate, bottom-right of the money panel.
+local moneyRate = label({
+	Name = "MoneyRate",
+	Text = "$0/s",
+	Font = Enum.Font.GothamBold,
+	TextColor3 = Color3.fromRGB(140, 240, 160),
+	TextStrokeColor3 = Color3.fromRGB(0, 45, 10),
+	TextStrokeTransparency = 0.4,
+	TextScaled = false,
+	TextSize = 16,
+	Size = UDim2.fromOffset(96, 22),
+	Position = UDim2.new(1, -104, 1, -26),
+	ZIndex = 6,
+	TextXAlignment = Enum.TextXAlignment.Right,
+})
+moneyRate.Parent = moneyPanel
+
 local showToast -- forward declaration: the button handler below calls it
 
 -- ---------------------------------------------------------------------------
@@ -128,7 +145,7 @@ shopPanel.Name = "ShopPanel"
 shopPanel.BackgroundColor3 = Color3.fromRGB(18, 20, 28)
 shopPanel.BackgroundTransparency = 0.12
 shopPanel.BorderSizePixel = 0
-shopPanel.Size = UDim2.fromOffset(380, 300)
+shopPanel.Size = UDim2.fromOffset(380, 376)
 shopPanel.Position = UDim2.new(0.5, -190, 0.5, -150)
 shopPanel.Visible = false
 shopPanel.ZIndex = 8
@@ -148,6 +165,7 @@ local rowSpecs = {
 	{ key = "slots",      name = "Extra Pedestal", desc = "One more display slot",     attr = "SlotCost" },
 	{ key = "multiplier", name = "Income Boost",   desc = "+0.5x income, permanent",   attr = "MultiplierCost" },
 	{ key = "speed",      name = "Speed Boost",    desc = "Walk around faster",        attr = "SpeedCost" },
+	{ key = "gacha",      name = "Random Brainrot", desc = "Surprise catch (needs a free slot)", attr = "GachaCost" },
 }
 for i, rs in ipairs(rowSpecs) do
 	local row = Instance.new("Frame")
@@ -455,16 +473,52 @@ carryText.Parent = carryPill
 -- ---------------------------------------------------------------------------
 
 local lastWaveState = "calm"
+local lastCash = nil
+
+-- Floating "+$N" text that rises and fades above the money panel.
+local function floatIncome(amount)
+	local t = Instance.new("TextLabel")
+	t.Text = "+$" .. fmt(amount)
+	t.Font = Enum.Font.GothamBold
+	t.TextSize = 22
+	t.TextColor3 = Color3.fromRGB(140, 255, 160)
+	t.TextStrokeColor3 = Color3.fromRGB(0, 45, 10)
+	t.TextStrokeTransparency = 0.4
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.fromOffset(180, 30)
+	t.Position = UDim2.new(0, 16, 1, -140)
+	t.ZIndex = 7
+	t.Parent = gui
+	local goal = {
+		Position = UDim2.new(0, 16, 1, -215),
+		TextTransparency = 1,
+		TextStrokeTransparency = 1,
+	}
+	TweenService:Create(t, TweenInfo.new(1.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+	game:GetService("Debris"):AddItem(t, 1.2)
+end
 
 RunService.RenderStepped:Connect(function()
-	-- Money counter
+	-- Money counter + income rate
 	local cash = player:GetAttribute("Cash") or 0
 	moneyCounter.Text = "$" .. fmt(cash)
+	moneyRate.Text = "$" .. fmt(player:GetAttribute("CashPerSecond") or 0) .. "/s"
+	if lastCash == nil then
+		lastCash = cash
+	elseif cash > lastCash then
+		floatIncome(cash - lastCash)
+	end
+	lastCash = cash
 
 	-- Shop panel prices (−1 attribute = maxed)
 	if shopPanel.Visible then
 		for _, row in ipairs(shopRows) do
-			local cost = player:GetAttribute(row.attr) or -1
+			local cost
+			if row.attr == "GachaCost" then
+				cost = Config.Economy.gachaCost
+			else
+				cost = player:GetAttribute(row.attr) or -1
+			end
 			if cost < 0 then
 				row.price.Text = "MAXED"
 				row.price.TextColor3 = Color3.fromRGB(150, 155, 170)

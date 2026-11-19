@@ -4205,10 +4205,11 @@ function WorldBuilder.build()
 				local caught = caughtUntil > now
 				local pos = ((i - 1) * SPACING + t) % CYCLE
 				if pos <= SPAN and not caught then
-					if m.Parent ~= workspace then m.Parent = workspace end
 					m:PivotTo(CFrame.new(0, ys[i], 145 - pos) * rots[i])
 				else
-					if m.Parent ~= nil then m.Parent = nil end
+					-- Park underground instead of unparenting: models stay reachable
+					-- (gacha clones them by name) but are invisible and unreachable.
+					m:PivotTo(CFrame.new(0, -600, 0))
 				end
 			end
 		end

@@ -330,6 +330,30 @@ local function feetOffsetOf(m)
 	return m:GetPivot().Position.Y - (cfr.Position.Y - size.Y / 2)
 end
 
+-- ------------------------------------------------------------------
+-- SFX: short built-in sounds, played only for the acting player.
+-- ------------------------------------------------------------------
+local SFX_PING = "rbxasset://sounds/electronicpingshort.wav"
+local SFX_SPLASH = "rbxasset://sounds/impact_water.mp3"
+
+local function playSfx(player, soundId, speed, volume)
+	local pg = player and player:FindFirstChild("PlayerGui")
+	if pg == nil then
+		return
+	end
+	local s = Instance.new("Sound")
+	s.SoundId = soundId
+	s.PlaybackSpeed = speed or 1
+	s.Volume = volume or 0.6
+	s.Parent = pg
+	s:Play()
+	task.delay(4, function()
+		if s.Parent then
+			s:Destroy()
+		end
+	end)
+end
+
 local function paradeNameToId(name)
 	-- "SatoshinoCrocodilo" -> "satoshino-crocodilo"
 	local out = name:sub(1, 1):lower() .. name:sub(2)
@@ -381,6 +405,10 @@ local function catchParade(player, model)
 	if clicker then
 		clicker:Destroy()
 	end
+	local carriedPrompt = carriedModel:FindFirstChildWhichIsA("ProximityPrompt", true)
+	if carriedPrompt then
+		carriedPrompt:Destroy()
+	end
 	carriedModel:SetAttribute("CaughtUntil", nil)
 	state.carriedModel = carriedModel
 	state.carriedVisual = carriedModel
@@ -411,6 +439,7 @@ local function catchParade(player, model)
 	showToast(player, string.format("Caught %s for $%s - bring it to your base!",
 		Config.unitTitle(entry, mutation, traits), fmt(price)))
 	setHint(player, "Walk onto your base to place it on a pedestal")
+	playSfx(player, SFX_PING, 1.1, 0.6)
 end
 
 -- Wire parade ClickDetectors: visible models now, hidden ones when they rejoin.
@@ -488,6 +517,15 @@ for _, obj in ipairs(workspace:GetChildren()) do
 	paintParadeLabel(obj)
 end
 workspace.DescendantAdded:Connect(paintParadeLabel)
+
+-- Registry: entry id -> parade model (all43 stay in the workspace, parked
+-- underground when not walking, so the gacha can always clone them).
+local paradeByName = {}
+for _, obj in ipairs(workspace:GetChildren()) do
+	if obj:IsA("Model") then
+		paradeByName[paradeNameToId(obj.Name)] = obj
+	end
+end
 
 -- Capsules: spawn, catch, respawn
 -- ---------------------------------------------------------------------------
@@ -680,6 +718,7 @@ local function dropCarried(player, reason)
 
 	if reason == "swept" then
 		showToast(player, "SWEPT AWAY! You dropped your catch!")
+		playSfx(player, SFX_SPLASH, 1, 0.7)
 	elseif reason == "died" then
 		showToast(player, "You went down — your catch got away!")
 	end
@@ -772,6 +811,7 @@ local function placeUnit(player, base)
 	showToast(player, string.format("Placed %s — earning $%d/s",
 		Config.unitTitle(carried.entry, carried.mutation, carried.traits), rate))
 	setHint(player, "Catch another brainrot, or open the shop with your cash")
+	playSfx(player, SFX_PING, 1.35, 0.6)
 end
 
 local function claimBase(player, base)
@@ -996,6 +1036,81 @@ local function onShopAction(player, action)
 			humanoid.WalkSpeed = Config.Economy.baseWalkSpeed + state.speedLevel * Config.Economy.speedPerLevel
 		end
 		showToast(player, string.format("Speed boost! ($%s)", fmt(cost)))
+
+	elseif action == "gacha" then
+		local cost = Config.Economy.gachaCost
+		if state.carried then
+			showToast(player, "Finish your current catch first!")
+			return
+		end
+		if state.cash < cost then
+			showToast(player, string.format("Need $%s for a random brainrot", fmt(cost)))
+			return
+		end
+		local freeSlot = false
+		for index = 1, state.slots do
+			if state.pedestals[index] == nil then
+				freeSlot = true
+				break
+			end
+		end
+		if not freeSlot then
+			showToast(player, "No free pedestal — buy more slots first!")
+			return
+		end
+		-- Roll a rarity, then pick a parade-backed entry of that rarity.
+		local rarity = Config.rollRarity(rng)
+		local pool = {}
+		for _, e in ipairs(Config.Brainrots) do
+			if paradeByName[e.id] and e.rarity == rarity.name then
+				pool[#pool + 1] = e
+			end
+		end
+		if #pool == 0 then
+			for _, e in ipairs(Config.Brainrots) do
+				if paradeByName[e.id] then
+					pool[#pool + 1] = e
+				end
+			end
+		end
+		local entry = pool[rng:NextInteger(1, #pool)]
+		local source = paradeByName[entry.id]
+		state.cash -= cost
+		local mutation = Config.rollMutation(rng)
+		local traits = Config.rollTraits(rng)
+		state.carried = { entry = entry, mutation = mutation, traits = traits }
+		state.carriedFeetOffset = feetOffsetOf(source)
+		local clone = source:Clone()
+		clone.Name = "Carried"
+		local cd = clone:FindFirstChildWhichIsA("ClickDetector")
+		if cd then
+			cd:Destroy()
+		end
+		local cp = clone:FindFirstChildWhichIsA("ProximityPrompt", true)
+		if cp then
+			cp:Destroy()
+		end
+		clone:SetAttribute("CaughtUntil", nil)
+		clone.Parent = workspace
+		state.carriedModel = clone
+		state.carriedVisual = clone
+		-- Collection tracking (same rule as a road catch).
+		local isNew = state.collectedIds[entry.id] == nil
+		if isNew then
+			state.collectedIds[entry.id] = true
+			local firstOfRarity = state.rarityCounts[entry.rarity] == nil
+			state.rarityCounts[entry.rarity] = (state.rarityCounts[entry.rarity] or 0) + 1
+			if firstOfRarity then
+				state.cash = state.cash + 1000
+				showToast(player, string.format("INDEX BONUS - first %s! +$1,000", entry.rarity))
+			end
+			publishCollection(player, state)
+		end
+		updateStats(player)
+		showToast(player, string.format("Gacha pull: %s! ($%s)",
+			Config.unitTitle(entry, mutation, traits), fmt(cost)))
+		setHint(player, "Walk onto your base to place it on a pedestal")
+		playSfx(player, SFX_PING, 1.5, 0.6)
 
 	elseif action == "rebirth" then
 		local requirement = Config.rebirthRequirement(state.rebirths)
