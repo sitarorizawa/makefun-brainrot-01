@@ -71,6 +71,13 @@ local function buildGround()
 			tile.TopSurface = Enum.SurfaceType.Studs
 			tile.CFrame = CFrame.new(x + 15, 0, z + 15)
 			tile.Anchored = true
+			tile.TopSurface = Enum.SurfaceType.Studs
+			local tex = Instance.new("Texture")
+			tex.Texture = "rbxassetid://617517142"
+			tex.Face = Enum.NormalId.Top
+			tex.StudsPerTileU = 4
+			tex.StudsPerTileV = 4
+			tex.Parent = tile
 			tile.CanCollide = true
 			tile.Parent = m
 		end
@@ -206,6 +213,13 @@ local function buildSpawnArea()
 	platform.TopSurface = Enum.SurfaceType.Studs
 	platform.CFrame = CFrame.new(0, 0.2, 0)
 	platform.Anchored = true
+	platform.TopSurface = Enum.SurfaceType.Studs
+	local tex = Instance.new("Texture")
+	tex.Texture = "rbxassetid://617517142"
+	tex.Face = Enum.NormalId.Top
+	tex.StudsPerTileU = 4
+	tex.StudsPerTileV = 4
+	tex.Parent = platform
 	platform.CanCollide = true
 	platform.Parent = m
 
