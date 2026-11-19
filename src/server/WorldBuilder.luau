@@ -655,8 +655,8 @@ local function buildGates()
 		ceil.Parent = m
 	end
 
-	buildGate(-150)
-	buildGate(150)
+	buildGate(-125)
+	buildGate(125)
 
 	m.Parent = workspace
 end
