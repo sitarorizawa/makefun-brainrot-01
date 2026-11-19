@@ -1084,7 +1084,7 @@ local function onPlayerRemoving(player)
 				resetPedestalVisual(state.baseModel, slot, state.slots)
 			end
 		end
-		if state.baseModel then
+		if state.baseModel and state.baseIndex then
 			state.baseModel:SetAttribute("OwnerUserId", nil)
 			WorldBuilder.setBaseSign(state.baseModel, "BASE " .. state.baseIndex .. " — OPEN", "stand on it to claim", Color3.fromRGB(120, 230, 140))
 		end

@@ -3960,6 +3960,52 @@ local baseModel = nil
 local baseModel2 = nil
 local baseModel3 = nil
 
+function WorldBuilder.setBaseSign(model, title, subtitle, color)
+	local sign = model:FindFirstChild("Sign")
+	if sign == nil then
+		return
+	end
+	local stripe = model:FindFirstChild("SignStripe")
+	if stripe then
+		stripe.Color = color
+	end
+	for _, face in ipairs({ Enum.NormalId.Left, Enum.NormalId.Right }) do
+		local guiName = "SignGui" .. face.Name
+		local gui = sign:FindFirstChild(guiName)
+		if gui == nil then
+			gui = Instance.new("SurfaceGui")
+			gui.Name = guiName
+			gui.Face = face
+			gui.Parent = sign
+			local titleL = Instance.new("TextLabel")
+			titleL.Name = "Title"
+			titleL.Size = UDim2.new(1, 0, 0.55, 0)
+			titleL.BackgroundTransparency = 1
+			titleL.TextScaled = true
+			titleL.Font = Enum.Font.GothamBold
+			titleL.Parent = gui
+			local subL = Instance.new("TextLabel")
+			subL.Name = "Subtitle"
+			subL.Size = UDim2.new(1, 0, 0.4, 0)
+			subL.Position = UDim2.new(0, 0, 0.58, 0)
+			subL.BackgroundTransparency = 1
+			subL.TextScaled = true
+			subL.Font = Enum.Font.Gotham
+			subL.Parent = gui
+		end
+		local t = gui:FindFirstChild("Title")
+		local s = gui:FindFirstChild("Subtitle")
+		if t then
+			t.Text = title
+			t.TextColor3 = color
+		end
+		if s then
+			s.Text = subtitle
+			s.TextColor3 = Color3.fromRGB(235, 235, 240)
+		end
+	end
+end
+
 function WorldBuilder.buildSpawnPad(index)
 	local zOffsets = {[1] = 0, [2] = 95, [3] = -95}
 	local z = zOffsets[index] or 0
@@ -4106,6 +4152,22 @@ safeStep("buildGround", buildGround)
 		baseModel2 = b2
 		baseModel3 = b3
 	end)
+
+	-- Base attributes used by claim/lock/tsunami (Index, CenterX, CenterZ).
+	local baseInfo = {
+		{ baseModel, 1, 65, 0 },
+		{ baseModel2, 2, 65, 95 },
+		{ baseModel3, 3, 65, -95 },
+	}
+	for _, info in ipairs(baseInfo) do
+		local b, idx, cx, cz = info[1], info[2], info[3], info[4]
+		if b then
+			b.Name = "Base" .. idx
+			b:SetAttribute("Index", idx)
+			b:SetAttribute("CenterX", cx)
+			b:SetAttribute("CenterZ", cz)
+		end
+	end
 
 	return {
 		pads = { WorldBuilder.buildSpawnPad(1), WorldBuilder.buildSpawnPad(2), WorldBuilder.buildSpawnPad(3) },
