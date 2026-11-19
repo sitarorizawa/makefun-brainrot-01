@@ -584,59 +584,134 @@ local function buildGates()
 	local STONE_LIGHT = Color3.fromRGB(140, 140, 148)
 
 	local function buildGate(z)
-		-- Two side pillars (smaller, Plastic studs like baseplate)
-		for _, sx in ipairs({-1, 1}) do
-			-- Pillar base
-			local base = bp({Name="GateBase", Size=Vector3.new(5, 2.5, 7), Color=STONE_DARK, Material=Enum.Material.Plastic})
-			base.CFrame = CFrame.new(sx * 14, 1.25, z)
-			studAllFaces(base)
-			base.Parent = m
+		local MOSS = Color3.fromRGB(70, 130, 50)
+		local MOSS_DARK = Color3.fromRGB(50, 100, 35)
+		local ROOT = Color3.fromRGB(100, 70, 40)
+		local VINE = Color3.fromRGB(45, 140, 40)
+		local FLOWER1 = Color3.fromRGB(255, 100, 150)
+		local FLOWER2 = Color3.fromRGB(255, 220, 80)
 
-			-- Pillar body (5 blocks, taller to meet arch)
-			for row = 0, 4 do
-				local block = bp({Name="GatePillar", Size=Vector3.new(5, 3.5, 6), Color=STONE, Material=Enum.Material.Plastic})
-				block.CFrame = CFrame.new(sx * 14, 4.75 + row * 3.5, z)
-				studAllFaces(block)
-				block.Parent = m
+		-- Big boulder pillars (irregular rock shapes using stacked boxes with rotation)
+		for _, sx in ipairs({-1, 1}) do
+			-- Base boulder (wide, irregular)
+			local b1 = bp({Name="Boulder", Size=Vector3.new(8, 5, 9), Color=Color3.fromRGB(105, 100, 95), Material=Enum.Material.Slate})
+			b1.CFrame = CFrame.new(sx * 14, 2.5, z) * CFrame.Angles(0, math.rad(sx * 8), math.rad(sx * 3))
+			studAllFaces(b1)
+			b1.Parent = m
+
+			-- Mid boulder
+			local b2 = bp({Name="Boulder", Size=Vector3.new(7, 5, 8), Color=Color3.fromRGB(115, 110, 105), Material=Enum.Material.Slate})
+			b2.CFrame = CFrame.new(sx * 14.5, 7, z) * CFrame.Angles(math.rad(2), math.rad(-sx * 5), math.rad(-sx * 2))
+			studAllFaces(b2)
+			b2.Parent = m
+
+			-- Upper boulder
+			local b3 = bp({Name="Boulder", Size=Vector3.new(6, 5, 7), Color=Color3.fromRGB(100, 95, 90), Material=Enum.Material.Slate})
+			b3.CFrame = CFrame.new(sx * 13.5, 11.5, z) * CFrame.Angles(math.rad(-1), math.rad(sx * 6), math.rad(sx * 4))
+			studAllFaces(b3)
+			b3.Parent = m
+
+			-- Top boulder
+			local b4 = bp({Name="Boulder", Size=Vector3.new(5, 4, 6), Color=Color3.fromRGB(110, 105, 100), Material=Enum.Material.Slate})
+			b4.CFrame = CFrame.new(sx * 14, 15.5, z) * CFrame.Angles(math.rad(3), math.rad(-sx * 4), 0)
+			studAllFaces(b4)
+			b4.Parent = m
+
+			-- Moss patches on boulders (green flat boxes)
+			for i = 0, 3 do
+				local moss = bp({Name="Moss", Size=Vector3.new(3 + i, 0.3, 3 + i), Color=MOSS, Material=Enum.Material.Grass})
+				moss.CFrame = CFrame.new(sx * (13 + i * 0.5), 4 + i * 4, z + (i % 2 == 0 and 2 or -2))
+				moss.CanCollide = false
+				moss.Parent = m
 			end
 
-			-- Pillar cap
-			local cap = bp({Name="GateCap", Size=Vector3.new(5.5, 2, 7), Color=STONE_LIGHT, Material=Enum.Material.Plastic})
-			cap.CFrame = CFrame.new(sx * 14, 16.5, z)
-			studAllFaces(cap)
-			cap.Parent = m
+			-- Vine climbing the pillar (stacked small green boxes)
+			for i = 0, 7 do
+				local vine = bp({Name="Vine", Size=Vector3.new(1.5, 2, 1.5), Color=VINE, Material=Enum.Material.Grass})
+				local vx = sx * (14 + math.sin(i * 1.2) * 3)
+				vine.CFrame = CFrame.new(vx, 2 + i * 2, z + math.cos(i * 1.5) * 3)
+				vine.CanCollide = false
+				vine.Parent = m
+			end
+
+			-- Tree root wrapping base
+			for r = 0, 2 do
+				local root = bp({Name="Root", Size=Vector3.new(6 - r, 1.5, 3), Color=ROOT, Material=Enum.Material.Wood})
+				root.CFrame = CFrame.new(sx * (14 + r * 2), 0.75, z + r * 3 - 3) * CFrame.Angles(0, math.rad(sx * 20 * r), 0)
+				root.Parent = m
+			end
+
+			-- Small flowers on top
+			for f = 0, 2 do
+				local stem = bp({Name="Stem", Size=Vector3.new(0.4, 2, 0.4), Color=MOSS_DARK, Material=Enum.Material.Grass})
+				stem.CFrame = CFrame.new(sx * (13 + f), 18.5, z + f * 2 - 2)
+				stem.CanCollide = false
+				stem.Parent = m
+
+				local flower = bp({Name="Flower", Size=Vector3.new(1.2, 1.2, 1.2), Color=(f % 2 == 0) and FLOWER1 or FLOWER2, Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
+				flower.CFrame = CFrame.new(sx * (13 + f), 20, z + f * 2 - 2)
+				flower.CanCollide = false
+				flower.Parent = m
+			end
 		end
 
-		-- Arch: curved blocks over the road (overlapping, no gaps)
-		local archY = 16
+		-- Arch: natural stone rocks in a curve
+		local archY = 17
 		local R = 14
-		for i = 0, 12 do
-			local t = math.pi * i / 12
+		for i = 0, 10 do
+			local t = math.pi * i / 10
 			local wx = math.cos(t) * R
 			local wy = archY + math.sin(t) * 5
-			-- Bigger blocks (6x5) so they overlap and leave no gaps
-			local block = bp({Name="GateArch", Size=Vector3.new(6, 5, 6), Color=STONE, Material=Enum.Material.Plastic})
-			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
+			local sz = 5 + (i % 3)
+			local block = bp({Name="ArchRock", Size=Vector3.new(sz, sz - 1, 7), Color=Color3.fromRGB(105 + (i % 3) * 8, 100 + (i % 3) * 8, 95 + (i % 3) * 8), Material=Enum.Material.Slate})
+			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(math.rad(i * 7 % 10), math.rad(i * 13 % 15), t - math.pi/2)
 			studAllFaces(block)
 			block.Parent = m
+
+			-- Moss on arch rocks (alternating)
+			if i % 2 == 0 then
+				local moss = bp({Name="ArchMoss", Size=Vector3.new(sz - 1, 1, 4), Color=MOSS, Material=Enum.Material.Grass})
+				moss.CFrame = CFrame.new(wx, wy + sz/2, z) * CFrame.Angles(0, 0, t - math.pi/2)
+				moss.CanCollide = false
+				moss.Parent = m
+			end
 		end
 
-		-- Keystone at top
-		local key = bp({Name="GateKeystone", Size=Vector3.new(5, 4.5, 7), Color=STONE_LIGHT, Material=Enum.Material.Plastic})
-		key.CFrame = CFrame.new(0, archY + 7, z)
+		-- Keystone: big round boulder
+		local key = bp({Name="Keystone", Size=Vector3.new(7, 6, 8), Color=Color3.fromRGB(120, 115, 108), Material=Enum.Material.Slate, Shape=Enum.PartType.Ball})
+		key.CFrame = CFrame.new(0, archY + 8, z)
 		studAllFaces(key)
 		key.Parent = m
 
-		-- Top wall connecting pillars
-		local topWall = bp({Name="GateTopWall", Size=Vector3.new(30, 4, 6), Color=STONE_DARK, Material=Enum.Material.Plastic})
-		topWall.CFrame = CFrame.new(0, archY + 11, z)
-		studAllFaces(topWall)
-		topWall.Parent = m
+		-- Moss on keystone
+		local keyMoss = bp({Name="KeyMoss", Size=Vector3.new(5, 1.5, 5), Color=MOSS, Material=Enum.Material.Grass})
+		keyMoss.CFrame = CFrame.new(0, archY + 11, z)
+		keyMoss.CanCollide = false
+		keyMoss.Parent = m
 
-		-- Grass on top
-		local grassTop = bp({Name="GateGrass", Size=Vector3.new(32, 1.5, 7), Color=Color3.fromRGB(40,100,30), Material=Enum.Material.Grass})
-		grassTop.CFrame = CFrame.new(0, archY + 14, z)
-		grassTop.Parent = m
+		-- Vines hanging from arch
+		for v = 0, 4 do
+			local hang = bp({Name="HangingVine", Size=Vector3.new(1, 4 + v, 1), Color=VINE, Material=Enum.Material.Grass})
+			local t = math.pi * (v + 1) / 6
+			hang.CFrame = CFrame.new(math.cos(t) * R, archY + math.sin(t) * 5 - 3, z + math.sin(v * 2) * 2)
+			hang.CanCollide = false
+			hang.Parent = m
+		end
+
+		-- Ground vegetation around base (bushes)
+		for _, bx in ipairs({-18, -10, 10, 18}) do
+			local bush = bp({Name="Bush", Size=Vector3.new(4, 3, 4), Color=MOSS_DARK, Material=Enum.Material.Grass})
+			bush.CFrame = CFrame.new(bx, 1.5, z + (bx > 0 and 5 or -5)) * CFrame.Angles(0, math.rad(bx * 7), 0)
+			bush.CanCollide = false
+			bush.Parent = m
+		end
+
+		-- Small rocks scattered at base
+		for _, rx in ipairs({-20, -7, 7, 20}) do
+			local rock = bp({Name="SmallRock", Size=Vector3.new(2, 1.5, 2), Color=Color3.fromRGB(130, 125, 120), Material=Enum.Material.Slate, Shape=Enum.PartType.Ball})
+			rock.CFrame = CFrame.new(rx, 0.75, z + (rx % 2 == 0 and 4 or -4))
+			rock.Parent = m
+		end
 	end
 
 	buildGate(-125)
