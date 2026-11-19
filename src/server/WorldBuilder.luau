@@ -3975,49 +3975,42 @@ function WorldBuilder.build()
 
 	safeStep("setupLighting", setupLighting)
 	--43 characters walking on asphalt road,10 stud spacing,2 lanes
-	safeStep("buildSatoshinoCroc", function() buildSatoshinoCroc(-6, -105) end)
-	safeStep("buildBananitaWhalebit", function() buildBananitaWhalebit(-6, -95) end)
-	safeStep("buildPatapimNode", function() buildPatapimNode(-6, -85) end)
-	safeStep("buildTralaleroRugpull", function() buildTralaleroRugpull(-6, -75) end)
-	safeStep("buildBombombiniGasfee", function() buildBombombiniGasfee(-6, -65) end)
-	safeStep("buildBombardiroAirdrop", function() buildBombardiroAirdrop(-6, -55) end)
-	safeStep("buildBanditoreArbitrage", function() buildBanditoreArbitrage(-6, -45) end)
-	safeStep("buildBrrBrrNodek", function() buildBrrBrrNodek(-6, -35) end)
-	safeStep("buildFrigoCameloWhale", function() buildFrigoCameloWhale(-6, -25) end)
-	safeStep("buildTungTungSahur", function() buildTungTungSahur(-6, -15) end)
-	safeStep("buildCapuccinaMining", function() buildCapuccinaMining(-6, -5) end)
-	safeStep("buildPipiPotatoStake", function() buildPipiPotatoStake(-6, 5) end)
-	safeStep("buildChimpanziniSolana", function() buildChimpanziniSolana(-6, 15) end)
-	safeStep("buildHamsteroWheel", function() buildHamsteroWheel(-6, 25) end)
-	safeStep("buildLamenoTungsten", function() buildLamenoTungsten(-6, 35) end)
-	safeStep("buildGorillahMemecoin", function() buildGorillahMemecoin(-6, 45) end)
-	safeStep("buildPenguinoStable", function() buildPenguinoStable(-6, 55) end)
-	safeStep("buildFroggoMaker", function() buildFroggoMaker(-6, 65) end)
-	safeStep("buildSerpentinoDex", function() buildSerpentinoDex(-6, 75) end)
-	safeStep("buildOwlcornOracle", function() buildOwlcornOracle(-6, 85) end)
-	safeStep("buildElephanteBridge", function() buildElephanteBridge(-6, 95) end)
-	safeStep("buildCrabettoCex", function() buildCrabettoCex(-6, 105) end)
-	safeStep("buildPandanoVault", function() buildPandanoVault(6, -100) end)
-	safeStep("buildTortugaLedger", function() buildTortugaLedger(6, -90) end)
-	safeStep("buildViperinoNode", function() buildViperinoNode(6, -80) end)
-	safeStep("buildAquilinoStake", function() buildAquilinoStake(6, -70) end)
-	safeStep("buildCucumbroChain", function() buildCucumbroChain(6, -60) end)
-	safeStep("buildGelatinoMint", function() buildGelatinoMint(6, -50) end)
-	safeStep("buildPiccioneBridge", function() buildPiccioneBridge(6, -40) end)
-	safeStep("buildGattinoSwap", function() buildGattinoSwap(6, -30) end)
-	safeStep("buildBruschettaBlock", function() buildBruschettaBlock(6, -20) end)
-	safeStep("buildVolpeOracle", function() buildVolpeOracle(6, -10) end)
-	safeStep("buildZucchinoVault", function() buildZucchinoVault(6, 0) end)
-	safeStep("buildMoscatoWhale", function() buildMoscatoWhale(6, 10) end)
-	safeStep("buildCannoliBlaster", function() buildCannoliBlaster(6, 20) end)
-	safeStep("buildGnocchiGolem", function() buildGnocchiGolem(6, 30) end)
-	safeStep("buildFocacciaNode", function() buildFocacciaNode(6, 40) end)
-	safeStep("buildPestoPirate", function() buildPestoPirate(6, 50) end)
-	safeStep("buildTiramisuTower", function() buildTiramisuTower(6, 60) end)
-	safeStep("buildArancinoBomb", function() buildArancinoBomb(6, 70) end)
-	safeStep("buildLimoneFrost", function() buildLimoneFrost(6, 80) end)
-	safeStep("buildProsciuttoSmoke", function() buildProsciuttoSmoke(6, 90) end)
-	safeStep("buildPolentaPillar", function() buildPolentaPillar(6, 100) end)
+	-- 43 characters:1 baris di tengah aspal, spacing10, LOOP jalan terus
+	local PARADE_NAMES = {"SatoshinoCrocodilo", "BananitaWhalebit", "PatapimNode", "TralaleroRugpull", "BombombiniGasfee", "BombardiroAirdrop", "BanditoreArbitrage", "BrrBrrNodek", "FrigoCameloWhale", "TungTungSahur", "CapuccinaMining", "PipiPotatoStake", "ChimpanziniSolana", "HamsteroWheel", "LamenoTungsten", "GorillahMemecoin", "PenguinoStable", "FroggoMaker", "SerpentinoDex", "OwlcornOracle", "ElephanteBridge", "CrabettoCex", "PandanoVault", "TortugaLedger", "ViperinoNode", "AquilinoStake", "CucumbroChain", "GelatinoMint", "PiccioneBridge", "GattinoSwap", "BruschettaBlock", "VolpeOracle", "ZucchinoVault", "MoscatoWhale", "CannoliBlaster", "GnocchiGolem", "FocacciaNode", "PestoPirate", "TiramisuTower", "ArancinoBomb", "LimoneFrost", "ProsciuttoSmoke", "PolentaPillar"}
+	safeStep("buildParade", function()
+		-- Posisi awal:1 baris, x=0, z mulai dari -145
+		for i, n in ipairs(PARADE_NAMES) do
+			local m = workspace:FindFirstChild(n)
+			if m then
+				local z = -145 + (i - 1) * 10
+				local p = m:GetPivot().Position
+				m:PivotTo(CFrame.new(0, p.Y, z))
+			end
+		end
+
+		-- Loop: semua karakter jalan ke +Z terus, wrap ke -Z (kayak brainrot parade)
+		local RunService = game:GetService("RunService")
+		local SPEED = 6 -- stud per detik
+		local SPAN = 290 -- dari -145 ke +145
+		local t = 0
+		local models = {}
+		local ys = {}
+		for i, n in ipairs(PARADE_NAMES) do
+			local m = workspace:FindFirstChild(n)
+			if m then
+				models[#models + 1] = m
+				ys[#ys + 1] = m:GetPivot().Position.Y
+			end
+		end
+		RunService.Heartbeat:Connect(function(dt)
+			t = t + dt * SPEED
+			for i, m in ipairs(models) do
+				local z = -145 + ((i - 1) * 10 + t) % SPAN
+				m:PivotTo(CFrame.new(0, ys[i], z))
+			end
+		end)
+	end)
+
 	safeStep("buildGround", buildGround)
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildPerimeterWall", buildPerimeterWall)
