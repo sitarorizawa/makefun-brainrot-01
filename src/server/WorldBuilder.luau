@@ -56,35 +56,50 @@ end
 -- ---------------------------------------------------------------------------
 
 local function setupLighting()
-	-- Noon sun: bright overhead light, no shadows
 	local light = game:GetService("Lighting")
-	-- Remove existing DirectionalLights (singleton)
-	for _, obj in ipairs(light:GetChildren()) do
-		if obj:IsA("DirectionalLight") then
-			obj:Destroy()
+
+	-- Modify existing DirectionalLight instead of creating new (avoids singleton error)
+	local sun = light:FindFirstChildWhichIsA("DirectionalLight")
+	if sun then
+		sun.Brightness = 3
+		sun.Color = Color3.fromRGB(255, 250, 240)
+		sun.Shadows = false
+		sun.Angle = 15
+	else
+		-- Only create if none exists
+		local ok, err = pcall(function()
+			local s = Instance.new("DirectionalLight")
+			s.Name = "NoonSun"
+			s.Brightness = 3
+			s.Color = Color3.fromRGB(255, 250, 240)
+			s.Shadows = false
+			s.Angle = 15
+			s.Parent = light
+		end)
+		if not ok then
+			warn("Sun create failed: " .. tostring(err))
 		end
 	end
-	local sun = Instance.new("DirectionalLight")
-	sun.Name = "NoonSun"
-	sun.Brightness = 3
-	sun.Color = Color3.fromRGB(255, 250, 240)
-	sun.Shadows = false
-	sun.Angle = 15
-	-- Point straight down (noon): rotation looking down
-	sun.CFrame = CFrame.new(0, 100, 0) * CFrame.Angles(math.rad(-80), math.rad(10), 0)
-	sun.Parent = light
 
-	-- Ambient: bright so no dark corners
+	-- Kill all shadows
+	light.GlobalShadows = false
 	light.Ambient = Color3.fromRGB(140, 140, 140)
 	light.OutdoorAmbient = Color3.fromRGB(160, 160, 160)
 	light.Brightness = 3
-	light.GlobalShadows = false
 	light.EnvironmentDiffuseScale = 1
 	light.EnvironmentSpecularScale = 1
+	light.ShadowSoftness = 0
 
-	-- Time: noon (12:00)
+	-- Noon (12:00), sun straight overhead
 	light.ClockTime = 12
 	light.GeographicLatitude = 0
+
+	-- Also disable shadows on every part in workspace
+	for _, desc in ipairs(workspace:GetDescendants()) do
+		if desc:IsA("BasePart") then
+			desc.CastShadow = false
+		end
+	end
 end
 
 -- ---------------------------------------------------------------------------
