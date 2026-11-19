@@ -229,6 +229,48 @@ local function buildRoad()
 end
 
 -- ---------------------------------------------------------------------------
+-- Tunnels: one arch over each road end (z = ±150). Side walls stand at
+-- x = ±15 just outside the road edges, a 36-wide arch top spans them at
+-- Y = 12 (level with the wall tops), and a lighter keystone caps the crown.
+-- The gap between the walls is left open so the road passes through.
+-- ---------------------------------------------------------------------------
+
+local KEYSTONE = Color3.fromRGB(150, 100, 65) -- slightly lighter brown
+
+local function buildTunnels()
+	local m = Instance.new("Model")
+	m.Name = "Tunnels"
+
+	local function addBox(name, size, pos, color)
+		local p = part({
+			Name = name,
+			Size = size,
+			Color = color,
+			Material = Enum.Material.Plastic,
+		})
+		p.CFrame = CFrame.new(pos)
+		studAllFaces(p)
+		p.Anchored = true
+		p.CanCollide = true
+		p.Parent = m
+	end
+
+	-- Walls sit on the ground (center Y = height / 2). The arch top's center
+	-- is at Y = 12; the keystone rests on its crown (12 + 3/2 + 4/2).
+	local function addArch(prefix, z)
+		addBox(prefix .. "WallWest", Vector3.new(6, 12, 8), Vector3.new(-15, 6, z), WALL_COLOR)
+		addBox(prefix .. "WallEast", Vector3.new(6, 12, 8), Vector3.new(15, 6, z), WALL_COLOR)
+		addBox(prefix .. "ArchTop", Vector3.new(36, 3, 8), Vector3.new(0, 12, z), WALL_COLOR)
+		addBox(prefix .. "Keystone", Vector3.new(6, 4, 8.5), Vector3.new(0, 15.5, z), KEYSTONE)
+	end
+
+	addArch("North", -ROAD_HALF) -- z = -150
+	addArch("South", ROAD_HALF) -- z = +150
+
+	m.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
 -- setBaseSign / buildSpawnPad: stubs returning empty for Step 1.
 -- ---------------------------------------------------------------------------
 
@@ -262,6 +304,7 @@ function WorldBuilder.build()
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
+	safeStep("buildTunnels", buildTunnels)
 
 	return { pads = {}, bases = {} }
 end
