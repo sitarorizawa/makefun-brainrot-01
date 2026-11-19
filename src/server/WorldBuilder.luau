@@ -910,6 +910,241 @@ local function buildGates()
 	m.Parent = workspace
 end
 
+-- ---------------------------------------------------------------------------
+-- Satoshino Crocodilo — Mythic brainrot character (display model).
+-- Crocodile head + Bitcoin mining rig body + gold pickaxe prop.
+-- ---------------------------------------------------------------------------
+
+local function buildSatoshinoCroc(posX, posZ)
+	local m = Instance.new("Model")
+	m.Name = "SatoshinoCrocodilo"
+
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
+
+	-- Colors
+	local CROC_GREEN = Color3.fromRGB(60, 140, 55)
+	local CROC_BELLY = Color3.fromRGB(140, 190, 100)
+	local RIG_DARK = Color3.fromRGB(45, 45, 50)
+	local RIG_GREY = Color3.fromRGB(80, 80, 88)
+	local GOLD = Color3.fromRGB(255, 200, 50)
+	local GOLD_DARK = Color3.fromRGB(200, 155, 30)
+	local WHITE = Color3.fromRGB(245, 245, 245)
+	local BLACK = Color3.fromRGB(25, 25, 30)
+	local RED = Color3.fromRGB(220, 60, 50)
+
+	local FY = 2  -- floor offset
+	local function cf(x, y, z, ry)
+		return CFrame.new(posX + x, FY + y, posZ + z) * CFrame.Angles(0, math.rad(ry or 0), 0)
+	end
+
+	-- === HEAD: Crocodile (big, 1.5-2x body) ===
+	-- Main skull
+	local skull = bp({Name="CrocSkull", Size=Vector3.new(3.5, 2.8, 3.5), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	skull.CFrame = cf(0, 11, 0)
+	studAllFaces(skull)
+	skull.Parent = m
+
+	-- Snout (long, forward - toward road = -X... but character faces +X for display)
+	-- Face direction: let's face -Z (road is at x=0, base at x=65, so face -X)
+	-- Actually let's just build facing -Z and rotate later if needed
+	local snout = bp({Name="CrocSnout", Size=Vector3.new(3, 1.8, 3.5), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	snout.CFrame = cf(0, 9.8, -3)
+	studAllFaces(snout)
+	snout.Parent = m
+
+	-- Belly jaw (lower snout)
+	local jaw = bp({Name="CrocJaw", Size=Vector3.new(2.8, 1, 3.2), Color=CROC_BELLY, Material=Enum.Material.Plastic})
+	jaw.CFrame = cf(0, 8.5, -3)
+	studAllFaces(jaw)
+	jaw.Parent = m
+
+	-- Teeth (top row - white wedges on snout edge)
+	for i = -2, 2 do
+		local tooth = bp({Name="Tooth", Size=Vector3.new(0.5, 0.7, 0.5), Color=WHITE, Material=Enum.Material.Plastic})
+		tooth.CFrame = cf(i * 0.6, 8.9, -4.5)
+		tooth.Parent = m
+	end
+	-- Teeth (bottom row)
+	for i = -2, 2 do
+		local tooth = bp({Name="Tooth", Size=Vector3.new(0.5, 0.6, 0.5), Color=WHITE, Material=Enum.Material.Plastic})
+		tooth.CFrame = cf(i * 0.6, 9.2, -4.4)
+		tooth.Parent = m
+	end
+
+	-- Eyes (big, on top of head - croc style)
+	for _, ex in ipairs({-1.2, 1.2}) do
+		-- Eye bulge
+		local bulge = bp({Name="EyeBulge", Size=Vector3.new(1.3, 1.3, 1.3), Color=CROC_GREEN, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		bulge.CFrame = cf(ex, 12.5, -0.8)
+		bulge.Parent = m
+
+		-- White eye
+		local eyeW = bp({Name="EyeWhite", Size=Vector3.new(1, 1, 1), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		eyeW.CFrame = cf(ex, 12.6, -1.3)
+		eyeW.Parent = m
+
+		-- Pupil (black)
+		local pupil = bp({Name="Pupil", Size=Vector3.new(0.5, 0.5, 0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		pupil.CFrame = cf(ex, 12.6, -1.7)
+		pupil.Parent = m
+	end
+
+	-- Nostrils (2 small bumps on snout tip)
+	for _, nx2 in ipairs({-0.6, 0.6}) do
+		local nostril = bp({Name="Nostril", Size=Vector3.new(0.5, 0.4, 0.5), Color=Color3.fromRGB(45, 110, 40), Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		nostril.CFrame = cf(nx2, 10.8, -4.5)
+		nostril.Parent = m
+	end
+
+	-- === BODY: Bitcoin Mining Rig (2-3 parts, vertical) ===
+	-- Main rig box
+	local rig = bp({Name="MiningRig", Size=Vector3.new(3.5, 4, 3), Color=RIG_DARK, Material=Enum.Material.Plastic})
+	rig.CFrame = cf(0, 6, 1)
+	studAllFaces(rig)
+	rig.Parent = m
+
+	-- Rig top plate
+	local rigTop = bp({Name="RigTop", Size=Vector3.new(3.8, 0.5, 3.3), Color=RIG_GREY, Material=Enum.Material.Plastic})
+	rigTop.CFrame = cf(0, 8.25, 1)
+	studAllFaces(rigTop)
+	rigTop.Parent = m
+
+	-- GPU fans (3 circles on front face)
+	for i = -1, 1 do
+		local fan = bp({Name="Fan", Size=Vector3.new(1, 1, 0.3), Color=RIG_GREY, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		fan.CFrame = cf(i * 1.1, 6.5, -0.6) * CFrame.Angles(math.rad(90), 0, 0)
+		fan.Parent = m
+
+		-- Fan center (red LED)
+		local led = bp({Name="FanLED", Size=Vector3.new(0.4, 0.4, 0.35), Color=RED, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+		led.CFrame = cf(i * 1.1, 6.5, -0.65) * CFrame.Angles(math.rad(90), 0, 0)
+		led.Parent = m
+	end
+
+	-- Bitcoin symbol plate on rig side (gold square)
+	local btcPlate = bp({Name="BTCPlate", Size=Vector3.new(0.3, 1.5, 1.5), Color=GOLD, Material=Enum.Material.Plastic})
+	btcPlate.CFrame = cf(1.9, 6, 1)
+	btcPlate.Parent = m
+
+	-- Bitcoin "B" (small block on plate)
+	local btcB = bp({Name="BTC_B", Size=Vector3.new(0.2, 0.8, 0.5), Color=BLACK, Material=Enum.Material.Plastic})
+	btcB.CFrame = cf(2.05, 6, 1)
+	btcB.Parent = m
+
+	-- Cable (hanging from back of rig)
+	local cable = bp({Name="Cable", Size=Vector3.new(0.3, 2.5, 0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	cable.CFrame = cf(0, 4.5, 2.8) * CFrame.Angles(math.rad(20), 0, 0)
+	cable.Parent = m
+
+	-- === LEGS: 4 stubby reptile legs ===
+	local legPositions = {
+		{-1.5, -0.5}, {1.5, -0.5},
+		{-1.5, 2.5}, {1.5, 2.5},
+	}
+	for _, lp in ipairs(legPositions) do
+		-- Upper leg
+		local leg = bp({Name="Leg", Size=Vector3.new(1, 2, 1), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+		leg.CFrame = cf(lp[1], 2, lp[2])
+		studAllFaces(leg)
+		leg.Parent = m
+
+		-- Foot (wider, clawed)
+		local foot = bp({Name="Foot", Size=Vector3.new(1.4, 0.6, 1.8), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+		foot.CFrame = cf(lp[1], 0.7, lp[2] - 0.3)
+		studAllFaces(foot)
+		foot.Parent = m
+
+		-- Claws (3 small white wedges per foot)
+		for c = -1, 1 do
+			local claw = bp({Name="Claw", Size=Vector3.new(0.3, 0.3, 0.6), Color=WHITE, Material=Enum.Material.Plastic})
+			claw.CFrame = cf(lp[1] + c * 0.4, 0.6, lp[2] - 1.2)
+			claw.Parent = m
+		end
+	end
+
+	-- === ARMS (holding pickaxe) ===
+	-- Right arm extended holding pickaxe
+	local armR = bp({Name="ArmR", Size=Vector3.new(0.9, 3, 0.9), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	armR.CFrame = cf(2.5, 7, -0.5) * CFrame.Angles(0, 0, math.rad(-30))
+	studAllFaces(armR)
+	armR.Parent = m
+
+	-- Left arm at side
+	local armL = bp({Name="ArmL", Size=Vector3.new(0.9, 3, 0.9), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	armL.CFrame = cf(-2.5, 6.5, 0.5)
+	studAllFaces(armL)
+	armL.Parent = m
+
+	-- === PROP: Gold Pickaxe ===
+	-- Handle (wood)
+	local handle = bp({Name="PickHandle", Size=Vector3.new(0.4, 6, 0.4), Color=Color3.fromRGB(130, 90, 50), Material=Enum.Material.Plastic})
+	handle.CFrame = cf(4, 8, -1) * CFrame.Angles(math.rad(15), 0, math.rad(-25))
+	studAllFaces(handle)
+	handle.Parent = m
+
+	-- Pick head (gold, curved shape from2 parts)
+	local pickTop = bp({Name="PickTop", Size=Vector3.new(3, 0.6, 0.8), Color=GOLD, Material=Enum.Material.Plastic})
+	pickTop.CFrame = cf(4.8, 11, -1.8) * CFrame.Angles(0, 0, math.rad(-25))
+	studAllFaces(pickTop)
+	pickTop.Parent = m
+
+	local pickTip = bp({Name="PickTip", Size=Vector3.new(1, 0.5, 0.6), Color=GOLD_DARK, Material=Enum.Material.Plastic})
+	pickTip.CFrame = cf(6.2, 11.6, -2.2) * CFrame.Angles(0, 0, math.rad(-40))
+	studAllFaces(pickTip)
+	pickTip.Parent = m
+
+	-- === BACK RIDGE (croc spines) ===
+	for i = 0, 5 do
+		local spine = bp({Name="Spine", Size=Vector3.new(0.5, 1 + i * 0.15, 0.5), Color=Color3.fromRGB(45, 110, 40), Material=Enum.Material.Plastic})
+		spine.CFrame = cf(0, 9 + i * 0.3, 1.5 + i * 0.8)
+		spine.Parent = m
+	end
+
+	-- === TAIL (croc tail, tapering) ===
+	local tail1 = bp({Name="Tail1", Size=Vector3.new(2, 1.5, 3), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	tail1.CFrame = cf(0, 3.5, 4) * CFrame.Angles(math.rad(15), 0, 0)
+	studAllFaces(tail1)
+	tail1.Parent = m
+
+	local tail2 = bp({Name="Tail2", Size=Vector3.new(1.2, 1, 3), Color=CROC_GREEN, Material=Enum.Material.Plastic})
+	tail2.CFrame = cf(0, 2.8, 6.5) * CFrame.Angles(math.rad(25), 0, 0)
+	studAllFaces(tail2)
+	tail2.Parent = m
+
+	local tail3 = bp({Name="Tail3", Size=Vector3.new(0.6, 0.7, 2), Color=CROC_BELLY, Material=Enum.Material.Plastic})
+	tail3.CFrame = cf(0, 2.2, 8.5) * CFrame.Angles(math.rad(35), 0, 0)
+	studAllFaces(tail3)
+	tail3.Parent = m
+
+	-- === LABEL ===
+	local head = m:FindFirstChild("CrocSkull")
+	if head then
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.new(0, 340, 0, 68)
+		bb.StudsOffset = Vector3.new(0, 4, 0)
+		bb.MaxDistance = 200
+		bb.Parent = head
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.Text = "Satoshino Crocodilo [MYTHIC]"
+		label.TextColor3 = Color3.fromRGB(255, 200, 50)
+		label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+		label.TextStrokeTransparency = 0.25
+		label.TextScaled = true
+		label.Font = Enum.Font.GothamBold
+		label.Parent = bb
+	end
+
+	m.Parent = workspace
+	return m
+end
+
 local function buildBaseAt(bx, mirror)
 	local m = Instance.new("Model")
 	m.Name = mirror and "Base2" or "Base1"
@@ -1117,6 +1352,9 @@ function WorldBuilder.build()
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
+	safeStep("buildSatoshinoCroc", function()
+		buildSatoshinoCroc(57, -12)  -- on first display step of Base1
+	end)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
 		baseModel = b1
