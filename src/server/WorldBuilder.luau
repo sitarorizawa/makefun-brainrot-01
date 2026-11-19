@@ -63,7 +63,7 @@ local function setupLighting()
 	if sun then
 		sun.Brightness = 3
 		sun.Color = Color3.fromRGB(255, 250, 240)
-		sun.Shadows = true
+		sun.Shadows = false
 		sun.Angle = 15
 	else
 		-- Only create if none exists
@@ -82,7 +82,7 @@ local function setupLighting()
 	end
 
 	-- Kill all shadows
-	light.GlobalShadows = true
+	light.GlobalShadows = false
 	light.Ambient = Color3.fromRGB(140, 140, 140)
 	light.OutdoorAmbient = Color3.fromRGB(160, 160, 160)
 	light.Brightness = 3
@@ -905,6 +905,15 @@ local function buildGates()
 		local blackFloor = bp({Name="GateFloor", Size=Vector3.new(26, 0.5, 14), Color=Color3.fromRGB(25, 25, 28), Material=Enum.Material.SmoothPlastic})
 		blackFloor.CFrame = CFrame.new(0, 0.25, z)
 		blackFloor.Parent = m
+
+		-- Dark transparent block filling the box opening: the "shadow" inside
+		-- the gate. Walk-through (no collision), purely visual.
+		local shadowBlock = bp({Name="GateShadow", Size=Vector3.new(20, 16.5, 12), Color=Color3.fromRGB(18, 18, 24), Material=Enum.Material.SmoothPlastic})
+		shadowBlock.CFrame = CFrame.new(0, 8.75, z)
+		shadowBlock.Transparency = 0.55
+		shadowBlock.CanCollide = false
+		shadowBlock.CastShadow = false
+		shadowBlock.Parent = m
 
 		-- Small rocks scattered at base
 		for _, rx in ipairs({-20, -7, 7, 20}) do
@@ -4250,22 +4259,6 @@ safeStep("buildGround", buildGround)
 			b:SetAttribute("CenterX", cx)
 			b:SetAttribute("CenterZ", cz)
 			WorldBuilder.setBaseSign(b, "OPEN BASE", "stand on it to claim", Color3.fromRGB(120, 230, 140))
-		end
-	end
-
-	-- Shadows: ONLY the gate structure casts (the shadow inside the arch).
-	-- Everything else stays shadowless to keep the clean noon look.
-	for _, desc in ipairs(workspace:GetDescendants()) do
-		if desc:IsA("BasePart") then
-			desc.CastShadow = false
-		end
-	end
-	local gates = workspace:FindFirstChild("Gates")
-	if gates then
-		for _, desc in ipairs(gates:GetDescendants()) do
-			if desc:IsA("BasePart") then
-				desc.CastShadow = true
-			end
 		end
 	end
 
