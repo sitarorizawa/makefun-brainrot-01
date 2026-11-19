@@ -688,6 +688,7 @@ local function placeUnit(player, base)
 
 	local pedestal = base:FindFirstChild("Pedestal" .. slot)
 	if pedestal == nil then
+		showToast(player, "No pedestal here — unlock more slots in the shop!")
 		return
 	end
 
@@ -853,7 +854,7 @@ local function onBaseTouched(base, hit)
 
 	if state.baseIndex == nil and (owner == nil or owner == player.UserId) then
 		claimBase(player, base)
-		return
+		-- Falls through: if the player is already carrying, the same touch places it.
 	end
 	if state.baseIndex == index and state.carried ~= nil then
 		placeUnit(player, base)

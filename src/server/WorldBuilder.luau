@@ -3890,15 +3890,33 @@ local function buildBaseAt(bx, mirror)
 		Color3.fromRGB(60, 120, 220),
 		Color3.fromRGB(230, 180, 40),
 	}
+	-- Pedestal1..4 (starter slots). Named "Pedestal"..slot so placeUnit,
+	-- unlockPedestalVisual and resetPedestalVisual find them by name.
 	local pedPositions = {{-8, -12}, {-8, 12}, {8, -12}, {8, 12}}
 	for i, pos in ipairs(pedPositions) do
 		local px = bx + pos[1]
-		local step1 = bp({Name="DisplayStep", Size=Vector3.new(7, 1, 7), Color=pedColors[i], Material=Enum.Material.Plastic})
+		local step1 = bp({Name="Pedestal" .. i, Size=Vector3.new(7, 1, 7), Color=pedColors[i], Material=Enum.Material.Plastic})
 		step1.CFrame = CFrame.new(px, 4, pos[2])
 		studAllFaces(step1)
 		step1.Parent = m
 
-		local step2 = bp({Name="DisplayStepTop", Size=Vector3.new(5, 0.5, 5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+		local step2 = bp({Name="PedestalTop" .. i, Size=Vector3.new(5, 0.5, 5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+		step2.CFrame = CFrame.new(px, 4.75, pos[2])
+		studAllFaces(step2)
+		step2.Parent = m
+	end
+
+	-- Pedestal5..10: unlocked later via the shop (slots up to maxSlots=10).
+	local pedExtra = {{-16, -6}, {-16, 6}, {16, -6}, {16, 6}, {0, -16}, {0, 16}}
+	for j, pos in ipairs(pedExtra) do
+		local slot = 4 + j
+		local px = bx + pos[1]
+		local step1 = bp({Name="Pedestal" .. slot, Size=Vector3.new(6, 1, 6), Color=Color3.fromRGB(95, 100, 115), Material=Enum.Material.Plastic})
+		step1.CFrame = CFrame.new(px, 4, pos[2])
+		studAllFaces(step1)
+		step1.Parent = m
+
+		local step2 = bp({Name="PedestalTop" .. slot, Size=Vector3.new(4.5, 0.5, 4.5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
 		step2.CFrame = CFrame.new(px, 4.75, pos[2])
 		studAllFaces(step2)
 		step2.Parent = m
