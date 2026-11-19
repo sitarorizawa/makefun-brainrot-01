@@ -235,7 +235,7 @@ end
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
-	local meshId = "rbxassetid://121370385967065"
+	local meshId = "rbxassetid://140277265814117"
 	for _, z in ipairs({-120, 120}) do
 		local mesh = Instance.new("MeshPart")
 		mesh.Name = "Tunnel"
