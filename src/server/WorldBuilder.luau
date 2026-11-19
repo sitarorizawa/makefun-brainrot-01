@@ -4008,10 +4008,10 @@ end
 
 -- Build 3 bases on the RIGHT side (x=65), spaced apart along Z
 local function buildBase()
-	local base1 = buildBaseAt(65, false)
+	local base1 = buildBaseAt(75, false)
 	base1.Name = "Base1"
 	-- Shift base1 to z=0 is default; add two more at z=±100
-	local base2 = buildBaseAt(65, false)
+	local base2 = buildBaseAt(75, false)
 	base2.Name = "Base2"
 	-- Move base2 to z=100
 	for _, p in ipairs(base2:GetDescendants()) do
@@ -4019,7 +4019,7 @@ local function buildBase()
 			p.CFrame = p.CFrame + Vector3.new(0, 0, 95)
 		end
 	end
-	local base3 = buildBaseAt(65, false)
+	local base3 = buildBaseAt(75, false)
 	base3.Name = "Base3"
 	-- Move base3 to z=-100
 	for _, p in ipairs(base3:GetDescendants()) do
@@ -4109,7 +4109,7 @@ function WorldBuilder.buildSpawnPad(index)
 	pad.Anchored = true
 	pad.CanCollide = true
 	pad.TopSurface = Enum.SurfaceType.Studs
-	pad.CFrame = CFrame.new(index >= 4 and -35 or 36, 0.5, z)
+	pad.CFrame = CFrame.new(index >= 4 and -35 or 46, 0.5, z)
 	pad.Parent = workspace
 	return pad
 end
@@ -4267,9 +4267,9 @@ safeStep("buildGround", buildGround)
 
 	-- Base attributes used by claim/lock/tsunami (Index, CenterX, CenterZ).
 	local baseInfo = {
-		{ baseModel, 1, 65, 0 },
-		{ baseModel2, 2, 65, 95 },
-		{ baseModel3, 3, 65, -95 },
+		{ baseModel, 1, 75, 0 },
+		{ baseModel2, 2, 75, 95 },
+		{ baseModel3, 3, 75, -95 },
 		{ baseModel4, 4, -65, 70 },
 		{ baseModel5, 5, -65, -70 },
 	}
