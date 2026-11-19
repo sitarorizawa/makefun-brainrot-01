@@ -4144,9 +4144,10 @@ function WorldBuilder.build()
 				prompt.KeyboardKeyCode = Enum.KeyCode.E
 				prompt.MaxActivationDistance = 20
 				prompt.HoldDuration = 0
-				-- Model-parented prompts need an Adornee part to display at all.
-				prompt.Adornee = m:FindFirstChildWhichIsA("BasePart")
-				prompt.Parent = m
+				-- ProximityPrompt has NO Adornee property: it displays only when
+				-- parented to a BasePart, so attach it to a body part of the model.
+				local anchor = m:FindFirstChildWhichIsA("BasePart")
+				prompt.Parent = anchor or m
 			end
 		end
 
