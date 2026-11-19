@@ -4097,32 +4097,34 @@ local function buildBitcoinMonument()
 	end
 
 	local ORANGE = Color3.fromRGB(247, 147, 26)
-	local ORANGE_D = Color3.fromRGB(196, 110, 15)
+	local ORANGE_D = Color3.fromRGB(180, 100, 12)
 	local WHITE = Color3.fromRGB(245, 245, 245)
 
-	local CX, CZ = -50, -35 -- beside the market (market ends around z-13)
-	local CY = 26 -- coin center height (radius20, sits on the pedestal)
+	local CX, CZ = -50, -35 -- beside the market
+	local CY = 26 -- coin center (radius20, rests on the pedestal)
 
 	-- Pedestal
-	local ped = bp({Name="Pedestal", Size=Vector3.new(12, 6, 36), Color=Color3.fromRGB(95, 95, 102), Material=Enum.Material.Plastic})
+	local ped = bp({Name="Pedestal", Size=Vector3.new(14, 6, 40), Color=Color3.fromRGB(95, 95, 102), Material=Enum.Material.Plastic})
 	ped.CFrame = CFrame.new(CX, 3, CZ)
 	studAllFaces(ped)
 	ped.Parent = m
 
-	-- Coin rim (behind, slightly bigger — the coin edge)
-	local rim = bp({Name="CoinRim", Size=Vector3.new(6, 42, 42), Color=ORANGE_D, Material=Enum.Material.Plastic})
-	rim.CFrame = CFrame.new(CX - 2, CY, CZ)
+	-- Rim: bigger circle BEHIND the face — reads as a coin edge ring from
+	-- the front (4 studs visible all around) and as thickness from the side.
+	local rim = bp({Name="CoinRim", Size=Vector3.new(8, 48, 48), Color=ORANGE_D, Material=Enum.Material.Plastic})
+	rim.CFrame = CFrame.new(CX - 3, CY, CZ)
 	studAllFaces(rim)
 	rim.Parent = m
 
-	-- Coin face: cylinder axis = X, so the flat face looks down the road.
-	local coin = bp({Name="Coin", Size=Vector3.new(4, 40, 40), Color=ORANGE, Material=Enum.Material.Plastic})
+	-- Coin face: chunky cylinder (7 thick), axis = X so it faces the road.
+	local coin = bp({Name="Coin", Size=Vector3.new(7, 40, 40), Color=ORANGE, Material=Enum.Material.Plastic})
 	coin.CFrame = CFrame.new(CX, CY, CZ)
 	studAllFaces(coin)
 	coin.Parent = m
 
-	-- White ₿ built from blocks on the road-facing side.
-	local GX = CX + 2
+	-- White ₿: compact proportions (letter18 wide x16 tall + ticks),
+	-- mounted on the road-facing face with a wide margin of orange around it.
+	local GX = CX + 5.5 -- glyph slab center (sits flush on the coin face)
 	local function glyph(height, width, du, dv)
 		local g = bp({Name="Glyph", Size=Vector3.new(4, height, width), Color=WHITE, Material=Enum.Material.Plastic})
 		g.CFrame = CFrame.new(GX, CY + dv, CZ + du)
@@ -4130,19 +4132,19 @@ local function buildBitcoinMonument()
 		g.Parent = m
 	end
 
-	-- Stem + top/middle/bottom bars (blocky B)
-	glyph(26, 3, -6.5, 0) -- stem
-	glyph(3, 16, 0, 11.5) -- top bar
-	glyph(3, 14, 1, 0) -- middle bar
-	glyph(3, 16, 0, -11.5) -- bottom bar
-	-- Bowl right verticals
-	glyph(8.5, 3, 6.5, 5.75) -- upper right
-	glyph(8.5, 3, 6.5, -5.75) -- lower right
-	-- The two ₿ ticks extending above and below
-	glyph(5, 3, -6.5, 15.5)
-	glyph(5, 3, 6.5, 15.5)
-	glyph(5, 3, -6.5, -15.5)
-	glyph(5, 3, 6.5, -15.5)
+	-- Stem + three bars (B body), flush left edge to right edge (u -9..9)
+	glyph(16, 3.5, -7, 0) -- stem
+	glyph(3, 18, 0, 6.5) -- top bar
+	glyph(3, 15.5, 0.75, 0) -- middle bar
+	glyph(3, 18, 0, -6.5) -- bottom bar
+	-- Bowl right verticals (close the two bowls)
+	glyph(3.5, 3.5, 7.25, 3.25) -- upper right
+	glyph(3.5, 3.5, 7.25, -3.25) -- lower right
+	-- The two ₿ ticks, centered over stem and right vertical
+	glyph(4, 2.5, -7, 10)
+	glyph(4, 2.5, 7.25, 10)
+	glyph(4, 2.5, -7, -10)
+	glyph(4, 2.5, 7.25, -10)
 
 	m.Parent = workspace
 end
