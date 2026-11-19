@@ -323,6 +323,13 @@ end
 -- Parade catch: buy a brainrot straight off the road parade.
 -- ---------------------------------------------------------------------------
 
+-- Distance from a model's pivot down to its feet (so placements land on the
+-- pedestal top instead of sinking into it). Parade models keep their own scale.
+local function feetOffsetOf(m)
+	local cfr, size = m:GetBoundingBox()
+	return m:GetPivot().Position.Y - (cfr.Position.Y - size.Y / 2)
+end
+
 local function paradeNameToId(name)
 	-- "SatoshinoCrocodilo" -> "satoshino-crocodilo"
 	local out = name:sub(1, 1):lower() .. name:sub(2)
@@ -366,6 +373,7 @@ local function catchParade(player, model)
 	local traits = Config.rollTraits(rng)
 
 	state.carried = { entry = entry, mutation = mutation, traits = traits }
+	state.carriedFeetOffset = feetOffsetOf(model)
 	-- Carry a CLONE of the actual parade character (not a generic capsule).
 	local carriedModel = model:Clone()
 	carriedModel.Name = "Carried"
@@ -374,7 +382,6 @@ local function catchParade(player, model)
 		clicker:Destroy()
 	end
 	carriedModel:SetAttribute("CaughtUntil", nil)
-	carriedModel:ScaleTo(0.25)
 	state.carriedModel = carriedModel
 	state.carriedVisual = carriedModel
 	carriedModel.Parent = workspace
@@ -708,8 +715,11 @@ local function placeUnit(player, base)
 	if model == nil then
 		model = BrainrotModels.buildPlaced(carried.entry, carried.mutation, carried.traits)
 	end
-	model:ScaleTo(0.5)
-	model:PivotTo(CFrame.new(pedestal.Position + Vector3.new(0, 3.0, 0)))
+	local feetOffset = state.carriedFeetOffset or 3
+	local pedestalTop = pedestal.Position.Y + 1
+	local placedPivot = model:GetPivot()
+	model:PivotTo(CFrame.new(pedestal.Position.X, pedestalTop + feetOffset, pedestal.Position.Z)
+		* placedPivot.Rotation)
 	model.Parent = workspace
 	BrainrotModels.startSway(model)
 
@@ -721,7 +731,7 @@ local function placeUnit(player, base)
 		BrainrotModels.sparkleAt(pedestal.Position + Vector3.new(0, 2, 0), rarityColor, true)
 	end
 
-	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, traits = carried.traits, model = model }
+	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, traits = carried.traits, model = model, feetOffset = feetOffset }
 	if not reusingCarried and state.carriedModel then
 		BrainrotModels.retire(state.carriedModel)
 		state.carriedModel:Destroy()
@@ -825,10 +835,10 @@ local function finishLock(owner, state)
 		-- Clone the placed parade model so the stolen unit keeps its real look.
 		local stolen = unit.model:Clone()
 		stolen.Name = "Carried"
-		stolen:ScaleTo(0.25)
 		stolen.Parent = workspace
 		thiefState.carriedModel = stolen
 		thiefState.carriedVisual = stolen
+		thiefState.carriedFeetOffset = unit.feetOffset or 3
 
 		BrainrotModels.retire(unit.model)
 		unit.model:Destroy()
@@ -1199,8 +1209,9 @@ RunService.Heartbeat:Connect(function()
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			if root then
 				local bob = math.sin(now * 5) * 0.2
+				local lift = (state.carriedFeetOffset or 0) + Config.Capsule.carryHeight
 				model:PivotTo(
-					CFrame.new(root.Position + Vector3.new(0, Config.Capsule.carryHeight + bob, 0))
+					CFrame.new(root.Position + Vector3.new(0, lift + bob, 0))
 						* CFrame.Angles(0, math.sin(now * 1.4) * 0.35, 0)
 				)
 			end
