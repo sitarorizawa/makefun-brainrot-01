@@ -4027,7 +4027,23 @@ local function buildBase()
 			p.CFrame = p.CFrame + Vector3.new(0, 0, -95)
 		end
 	end
-	return base1, base2, base3
+	-- Two more bases flanking the MARKET on the LEFT side (x=-50, z=±50),
+	-- mirrored so their fronts face the road (+X).
+	local base4 = buildBaseAt(-50, true)
+	base4.Name = "Base4"
+	for _, p in ipairs(base4:GetDescendants()) do
+		if p:IsA("BasePart") then
+			p.CFrame = p.CFrame + Vector3.new(0, 0, 50)
+		end
+	end
+	local base5 = buildBaseAt(-50, true)
+	base5.Name = "Base5"
+	for _, p in ipairs(base5:GetDescendants()) do
+		if p:IsA("BasePart") then
+			p.CFrame = p.CFrame + Vector3.new(0, 0, -50)
+		end
+	end
+	return base1, base2, base3, base4, base5
 end
 
 -- ---------------------------------------------------------------------------
@@ -4037,6 +4053,8 @@ end
 local baseModel = nil
 local baseModel2 = nil
 local baseModel3 = nil
+local baseModel4 = nil
+local baseModel5 = nil
 
 function WorldBuilder.setBaseSign(model, title, subtitle, color)
 	local sign = model:FindFirstChild("Sign")
@@ -4085,13 +4103,13 @@ function WorldBuilder.setBaseSign(model, title, subtitle, color)
 end
 
 function WorldBuilder.buildSpawnPad(index)
-	local zOffsets = {[1] = 0, [2] = 95, [3] = -95}
+	local zOffsets = {[1] = 0, [2] = 95, [3] = -95, [4] = 50, [5] = -50}
 	local z = zOffsets[index] or 0
 	local pad = part({Name = "SpawnPad" .. index, Size = Vector3.new(6, 1, 6), Color = Color3.fromRGB(50, 200, 50), Material = Enum.Material.Plastic})
 	pad.Anchored = true
 	pad.CanCollide = true
 	pad.TopSurface = Enum.SurfaceType.Studs
-	pad.CFrame = CFrame.new(36, 0.5, z)
+	pad.CFrame = CFrame.new(index >= 4 and -20 or 36, 0.5, z)
 	pad.Parent = workspace
 	return pad
 end
@@ -4239,10 +4257,12 @@ safeStep("buildGround", buildGround)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
 	safeStep("buildBase", function()
-		local b1, b2, b3 = buildBase()
+		local b1, b2, b3, b4, b5 = buildBase()
 		baseModel = b1
 		baseModel2 = b2
 		baseModel3 = b3
+		baseModel4 = b4
+		baseModel5 = b5
 	end)
 
 	-- Base attributes used by claim/lock/tsunami (Index, CenterX, CenterZ).
@@ -4250,6 +4270,8 @@ safeStep("buildGround", buildGround)
 		{ baseModel, 1, 65, 0 },
 		{ baseModel2, 2, 65, 95 },
 		{ baseModel3, 3, 65, -95 },
+		{ baseModel4, 4, -50, 50 },
+		{ baseModel5, 5, -50, -50 },
 	}
 	for _, info in ipairs(baseInfo) do
 		local b, idx, cx, cz = info[1], info[2], info[3], info[4]
@@ -4263,8 +4285,11 @@ safeStep("buildGround", buildGround)
 	end
 
 	return {
-		pads = { WorldBuilder.buildSpawnPad(1), WorldBuilder.buildSpawnPad(2), WorldBuilder.buildSpawnPad(3) },
-		bases = { baseModel, baseModel2, baseModel3 },
+		pads = {
+			WorldBuilder.buildSpawnPad(1), WorldBuilder.buildSpawnPad(2), WorldBuilder.buildSpawnPad(3),
+			WorldBuilder.buildSpawnPad(4), WorldBuilder.buildSpawnPad(5),
+		},
+		bases = { baseModel, baseModel2, baseModel3, baseModel4, baseModel5 },
 	}
 end
 
