@@ -4084,71 +4084,6 @@ function WorldBuilder.setBaseSign(model, title, subtitle, color)
 	end
 end
 
--- Giant Bitcoin coin monument beside the market, facing the road.
-local function buildBitcoinMonument()
-	local m = Instance.new("Model")
-	m.Name = "BitcoinMonument"
-
-	local function bp(props)
-		local p = part(props)
-		p.Anchored = true
-		p.CanCollide = true
-		return p
-	end
-
-	local ORANGE = Color3.fromRGB(247, 147, 26)
-	local ORANGE_D = Color3.fromRGB(180, 100, 12)
-	local WHITE = Color3.fromRGB(245, 245, 245)
-
-	local CX, CZ = -50, -35 -- beside the market
-	local CY = 26 -- coin center (radius20, rests on the pedestal)
-
-	-- Pedestal
-	local ped = bp({Name="Pedestal", Size=Vector3.new(14, 6, 40), Color=Color3.fromRGB(95, 95, 102), Material=Enum.Material.Plastic})
-	ped.CFrame = CFrame.new(CX, 3, CZ)
-	studAllFaces(ped)
-	ped.Parent = m
-
-	-- Rim: bigger circle BEHIND the face — reads as a coin edge ring from
-	-- the front (4 studs visible all around) and as thickness from the side.
-	local rim = bp({Name="CoinRim", Size=Vector3.new(8, 48, 48), Color=ORANGE_D, Material=Enum.Material.Plastic})
-	rim.CFrame = CFrame.new(CX - 3, CY, CZ)
-	studAllFaces(rim)
-	rim.Parent = m
-
-	-- Coin face: chunky cylinder (7 thick), axis = X so it faces the road.
-	local coin = bp({Name="Coin", Size=Vector3.new(7, 40, 40), Color=ORANGE, Material=Enum.Material.Plastic})
-	coin.CFrame = CFrame.new(CX, CY, CZ)
-	studAllFaces(coin)
-	coin.Parent = m
-
-	-- White ₿: compact proportions (letter18 wide x16 tall + ticks),
-	-- mounted on the road-facing face with a wide margin of orange around it.
-	local GX = CX + 5.5 -- glyph slab center (sits flush on the coin face)
-	local function glyph(height, width, du, dv)
-		local g = bp({Name="Glyph", Size=Vector3.new(4, height, width), Color=WHITE, Material=Enum.Material.Plastic})
-		g.CFrame = CFrame.new(GX, CY + dv, CZ + du)
-		studAllFaces(g)
-		g.Parent = m
-	end
-
-	-- Stem + three bars (B body), flush left edge to right edge (u -9..9)
-	glyph(16, 3.5, -7, 0) -- stem
-	glyph(3, 18, 0, 6.5) -- top bar
-	glyph(3, 15.5, 0.75, 0) -- middle bar
-	glyph(3, 18, 0, -6.5) -- bottom bar
-	-- Bowl right verticals (close the two bowls)
-	glyph(3.5, 3.5, 7.25, 3.25) -- upper right
-	glyph(3.5, 3.5, 7.25, -3.25) -- lower right
-	-- The two ₿ ticks, centered over stem and right vertical
-	glyph(4, 2.5, -7, 10)
-	glyph(4, 2.5, 7.25, 10)
-	glyph(4, 2.5, -7, -10)
-	glyph(4, 2.5, 7.25, -10)
-
-	m.Parent = workspace
-end
-
 function WorldBuilder.buildSpawnPad(index)
 	local zOffsets = {[1] = 0, [2] = 95, [3] = -95}
 	local z = zOffsets[index] or 0
@@ -4303,7 +4238,6 @@ safeStep("buildGround", buildGround)
 	safeStep("buildBillboard", buildBillboard)
 	safeStep("buildProps", buildProps)
 	safeStep("buildGates", buildGates)
-	safeStep("buildBitcoinMonument", buildBitcoinMonument)
 	safeStep("buildBase", function()
 		local b1, b2, b3 = buildBase()
 		baseModel = b1
