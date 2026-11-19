@@ -641,6 +641,8 @@ local function buildLamps()
 
 	for _, z in ipairs({-100, -50, 0, 50, 100}) do
 		for _, sx in ipairs({-1, 1}) do
+			-- Skip the lamp directly in front of the market (x=-16, z=0).
+			if not (sx == -1 and z == 0) then
 			local x = sx * 16
 
 			-- Roblox cylinders run along X, so rotate the pole upright.
@@ -654,6 +656,7 @@ local function buildLamps()
 			head.Parent = m
 
 			-- LampLight disabled (noon lighting)
+			end
 		end
 	end
 
