@@ -186,7 +186,7 @@ local function buildPerimeterWall()
 	-- Outermost (thick, tall, grass-capped) → innermost (thin, short).
 	addWallLine("Wall1", half, 20, 12, 35, true) -- half = 150
 	addWallLine("Wall2", half - 10, 12, 8, 22, true) -- 138
-	addWallLine("Wall3", half - 22, 5, 5, 14, true) -- 126
+	addWallLine("Wall3", half - 27, 5, 5, 14, true) -- 126
 
 	m.Parent = workspace
 end
