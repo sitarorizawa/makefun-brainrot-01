@@ -235,7 +235,7 @@ end
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
-	local assetId = 108039722002949
+	local assetId = 14648192415
 	local SCALE = 0.5
 	local success, err = pcall(function()
 		local insertService = game:GetService("InsertService")
