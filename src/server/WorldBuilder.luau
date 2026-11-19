@@ -50,31 +50,21 @@ local function setupLighting()
 end
 
 -- ---------------------------------------------------------------------------
--- Ground: 10x10 grid of 30x30 Plastic tiles, 300x300 total, centered at
--- origin, Y=0. Each tile is small enough to show visible studs.
+-- Ground: single Plastic part with TopSurface.Studs — classic Roblox baseplate.
 -- ---------------------------------------------------------------------------
 
 local function buildGround()
-	local m = Instance.new("Model")
-	m.Name = "Ground"
-
-	for x = -150, 120, 30 do
-		for z = -150, 120, 30 do
-			local tile = part({
-				Name = "Tile",
-				Size = Vector3.new(30, 0.4, 30),
-				Color = GRASS,
-				Material = Enum.Material.Plastic,
-			})
-			tile.CFrame = CFrame.new(x + 15, 0, z + 15)
-			tile.Anchored = true
-			tile.TopSurface = Enum.SurfaceType.Studs
-			tile.CanCollide = true
-			tile.Parent = m
-		end
-	end
-
-	m.Parent = workspace
+	local grass = part({
+		Name = "Island",
+		Size = Vector3.new(300, 0.5, 300),
+		Color = GRASS,
+		Material = Enum.Material.Plastic,
+	})
+	grass.CFrame = CFrame.new(0, 0, 0)
+	grass.TopSurface = Enum.SurfaceType.Studs
+	grass.Anchored = true
+	grass.CanCollide = true
+	grass.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
