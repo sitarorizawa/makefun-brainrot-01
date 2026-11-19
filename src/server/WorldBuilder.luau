@@ -268,6 +268,275 @@ local function buildTunnels()
 end
 
 -- ---------------------------------------------------------------------------
+-- Decor: brainrot shop, statues, trees, lamps, billboard and props.
+-- Purely visual scenery — no game systems.
+-- ---------------------------------------------------------------------------
+
+-- Anchored solid by default; flip CanCollide off for neon / trim pieces.
+local function solid(props)
+	local p = part(props)
+	p.Anchored = true
+	p.CanCollide = true
+	return p
+end
+
+-- Shop at x=-50, west of the road. The road sits at x=0, so the shop's open
+-- front is its +X face (mirrors the base at x=65, whose open front faces -X).
+local function buildShop()
+	local m = Instance.new("Model")
+	m.Name = "Shop"
+
+	local PURPLE = Color3.fromRGB(80, 60, 140)
+	local DARK_PURPLE = Color3.fromRGB(60, 40, 110)
+	local WOOD = Color3.fromRGB(160, 120, 80)
+	local RED = Color3.fromRGB(255, 80, 80)
+	local WHITE = Color3.fromRGB(255, 255, 255)
+	local NEON_GREEN = Color3.fromRGB(0, 255, 100)
+
+	local X, Z = -50, 0
+	local W, H, D = 20, 15, 10 -- 20 wide (X), 15 tall, 10 deep (Z)
+
+	-- Back wall, away from the road
+	local back = solid({Name = "BackWall", Size = Vector3.new(1, H, D), Color = PURPLE, Material = Enum.Material.Plastic})
+	back.CFrame = CFrame.new(X - W / 2 + 0.5, H / 2, Z)
+	studAllFaces(back)
+	back.Parent = m
+
+	-- Side walls; the +X face is left open as the entrance
+	for _, sz in ipairs({-1, 1}) do
+		local wall = solid({Name = "SideWall", Size = Vector3.new(W, H, 1), Color = PURPLE, Material = Enum.Material.Plastic})
+		wall.CFrame = CFrame.new(X, H / 2, Z + sz * (D / 2 - 0.5))
+		studAllFaces(wall)
+		wall.Parent = m
+	end
+
+	-- Flat overhanging roof
+	local roof = solid({Name = "Roof", Size = Vector3.new(22, 1, 17), Color = DARK_PURPLE, Material = Enum.Material.Plastic})
+	roof.CFrame = CFrame.new(X, H + 0.5, Z)
+	studAllFaces(roof)
+	roof.Parent = m
+
+	-- Counter along the back wall
+	local counter = solid({Name = "Counter", Size = Vector3.new(1, 4, 8), Color = WOOD, Material = Enum.Material.Plastic})
+	counter.CFrame = CFrame.new(X - W / 2 + 2, 2, Z)
+	studAllFaces(counter)
+	counter.Parent = m
+
+	-- Striped awning over the entrance: 8 alternating panels, tilted down/out
+	for i = 0, 7 do
+		local stripe = solid({
+			Name = "Awning" .. (i + 1),
+			Size = Vector3.new(6, 0.4, 1.25),
+			Color = (i % 2 == 0) and RED or WHITE,
+			Material = Enum.Material.Plastic,
+		})
+		stripe.CFrame = CFrame.new(X + W / 2 + 2.5, 12.5, Z - 4.375 + i * 1.25) * CFrame.Angles(0, 0, math.rad(-15))
+		stripe.Parent = m
+	end
+
+	-- Neon sign above the entrance
+	local sign = solid({Name = "Sign", Size = Vector3.new(0.5, 2, 12), Color = NEON_GREEN, Material = Enum.Material.Neon})
+	sign.CFrame = CFrame.new(X + W / 2 + 0.25, 15, Z)
+	sign.CanCollide = false
+	sign.Parent = m
+
+	m.Parent = workspace
+end
+
+-- Statues: 4 positions along the road, both sides — 8 in total.
+local function buildStatues()
+	local m = Instance.new("Model")
+	m.Name = "Statues"
+
+	local STONE = Color3.fromRGB(120, 120, 130)
+	local GOLD = Color3.fromRGB(255, 200, 50)
+	local GOLD_LIGHT = Color3.fromRGB(255, 220, 80)
+
+	for _, z in ipairs({-60, -20, 20, 60}) do
+		for _, sx in ipairs({-1, 1}) do
+			local x = sx * 15
+
+			local pedestal = solid({Name = "Pedestal", Size = Vector3.new(4, 3, 4), Color = STONE, Material = Enum.Material.Plastic})
+			pedestal.CFrame = CFrame.new(x, 1.5, z)
+			studAllFaces(pedestal)
+			pedestal.Parent = m
+
+			local figure = solid({Name = "Figure", Size = Vector3.new(2, 4, 2), Color = GOLD, Material = Enum.Material.Plastic})
+			figure.CFrame = CFrame.new(x, 5, z)
+			studAllFaces(figure)
+			figure.Parent = m
+
+			local head = solid({Name = "Head", Size = Vector3.new(3, 1, 3), Color = GOLD_LIGHT, Material = Enum.Material.Plastic})
+			head.CFrame = CFrame.new(x, 7.5, z)
+			studAllFaces(head)
+			head.Parent = m
+		end
+	end
+
+	m.Parent = workspace
+end
+
+-- Trees: 16 blocky trees on a fixed ring around the island, clear of the road
+-- (x=0) and of the base plot (x=65).
+local function buildTrees()
+	local m = Instance.new("Model")
+	m.Name = "Trees"
+
+	local TRUNK = Color3.fromRGB(120, 80, 40)
+	local LEAF = Color3.fromRGB(50, 160, 50)
+
+	local spots = {
+		{-110, -110}, {-110, -40}, {-110, 40}, {-110, 110},
+		{-70, -120}, {-30, -120}, {30, -120}, {90, -120},
+		{-70, 120}, {-30, 120}, {30, 120}, {90, 120},
+		{110, -80}, {110, -30}, {110, 30}, {110, 80},
+	}
+
+	for i, pos in ipairs(spots) do
+		local x, z = pos[1], pos[2]
+
+		local trunk = solid({Name = "Trunk" .. i, Size = Vector3.new(1, 6, 1), Color = TRUNK, Material = Enum.Material.Plastic})
+		trunk.CFrame = CFrame.new(x, 3, z)
+		studAllFaces(trunk)
+		trunk.Parent = m
+
+		local lower = solid({Name = "Canopy" .. i, Size = Vector3.new(5, 4, 5), Color = LEAF, Material = Enum.Material.Plastic})
+		lower.CFrame = CFrame.new(x, 7, z)
+		studAllFaces(lower)
+		lower.Parent = m
+
+		local top = solid({Name = "CanopyTop" .. i, Size = Vector3.new(3, 3, 3), Color = LEAF, Material = Enum.Material.Plastic})
+		top.CFrame = CFrame.new(x, 10.5, z)
+		studAllFaces(top)
+		top.Parent = m
+	end
+
+	m.Parent = workspace
+end
+
+-- Street lamps: 5 positions along the road, both sides — 10 in total.
+local function buildLamps()
+	local m = Instance.new("Model")
+	m.Name = "Lamps"
+
+	local POLE = Color3.fromRGB(60, 60, 65)
+	local GLOW = Color3.fromRGB(255, 240, 150)
+
+	for _, z in ipairs({-100, -50, 0, 50, 100}) do
+		for _, sx in ipairs({-1, 1}) do
+			local x = sx * 16
+
+			-- Roblox cylinders run along X, so rotate the pole upright.
+			local pole = solid({Name = "Pole", Size = Vector3.new(10, 1, 1), Color = POLE, Material = Enum.Material.Plastic, Shape = Enum.PartType.Cylinder})
+			pole.CFrame = CFrame.new(x, 5, z) * CFrame.Angles(0, 0, math.rad(90))
+			pole.Parent = m
+
+			local head = solid({Name = "LampHead", Size = Vector3.new(2, 2, 2), Color = GLOW, Material = Enum.Material.Neon, Shape = Enum.PartType.Ball})
+			head.CFrame = CFrame.new(x, 11, z)
+			head.CanCollide = false
+			head.Parent = m
+
+			local light = Instance.new("PointLight")
+			light.Name = "LampLight"
+			light.Range = 20
+			light.Brightness = 1
+			light.Color = GLOW
+			light.Parent = head
+		end
+	end
+
+	m.Parent = workspace
+end
+
+-- Billboard behind the shop at x=-65, text facing the road.
+local function buildBillboard()
+	local m = Instance.new("Model")
+	m.Name = "Billboard"
+
+	local GREY = Color3.fromRGB(110, 110, 115)
+	local PANEL = Color3.fromRGB(240, 240, 240)
+
+	local X, Z = -65, 0
+
+	for _, sz in ipairs({-1, 1}) do
+		local pillar = solid({Name = "Pillar", Size = Vector3.new(1, 15, 1), Color = GREY, Material = Enum.Material.Plastic})
+		pillar.CFrame = CFrame.new(X, 7.5, Z + sz * 8)
+		studAllFaces(pillar)
+		pillar.Parent = m
+	end
+
+	local panel = solid({Name = "Panel", Size = Vector3.new(0.5, 8, 20), Color = PANEL, Material = Enum.Material.Plastic})
+	panel.CFrame = CFrame.new(X, 12, Z)
+	panel.CanCollide = false
+	panel.Parent = m
+
+	-- NormalId.Right points at +X, i.e. toward the road.
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Right
+	gui.Parent = panel
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "BRAINROT MARKET"
+	label.TextColor3 = Color3.fromRGB(0, 0, 0)
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBold
+	label.Parent = gui
+
+	m.Parent = workspace
+end
+
+-- Scattered props: crates, benches and road-end fountains.
+local function buildProps()
+	local m = Instance.new("Model")
+	m.Name = "Props"
+
+	local WOOD = Color3.fromRGB(150, 110, 70)
+	local STONE = Color3.fromRGB(120, 120, 130)
+	local WATER = Color3.fromRGB(80, 160, 255)
+
+	-- 6 crates: three by the base plot, three by the shop front
+	for i, pos in ipairs({{44, -24}, {48, -26}, {82, 20}, {-36, -8}, {-36, 8}, {-62, 12}}) do
+		local crate = solid({Name = "Crate" .. i, Size = Vector3.new(3, 3, 3), Color = WOOD, Material = Enum.Material.Plastic})
+		crate.CFrame = CFrame.new(pos[1], 1.5, pos[2])
+		studAllFaces(crate)
+		crate.Parent = m
+	end
+
+	-- 4 benches, one per z, alternating side of the road
+	for i, pos in ipairs({{-20, -40}, {20, -10}, {-20, 10}, {20, 40}}) do
+		local x, z = pos[1], pos[2]
+
+		local seat = solid({Name = "BenchSeat" .. i, Size = Vector3.new(6, 0.5, 2), Color = WOOD, Material = Enum.Material.Plastic})
+		seat.CFrame = CFrame.new(x, 2.25, z)
+		studAllFaces(seat)
+		seat.Parent = m
+
+		for _, sx in ipairs({-1, 1}) do
+			local leg = solid({Name = "BenchLeg" .. i, Size = Vector3.new(0.5, 2, 2), Color = WOOD, Material = Enum.Material.Plastic})
+			leg.CFrame = CFrame.new(x + sx * 2.75, 1, z)
+			studAllFaces(leg)
+			leg.Parent = m
+		end
+	end
+
+	-- 2 fountains on the road ends
+	for _, z in ipairs({-120, 120}) do
+		local base = solid({Name = "FountainBase", Size = Vector3.new(2, 12, 12), Color = STONE, Material = Enum.Material.Plastic, Shape = Enum.PartType.Cylinder})
+		base.CFrame = CFrame.new(0, 1, z) * CFrame.Angles(0, 0, math.rad(90))
+		base.Parent = m
+
+		local water = solid({Name = "FountainWater", Size = Vector3.new(1.5, 8, 8), Color = WATER, Material = Enum.Material.Neon, Shape = Enum.PartType.Cylinder})
+		water.CFrame = CFrame.new(0, 2.75, z) * CFrame.Angles(0, 0, math.rad(90))
+		water.CanCollide = false
+		water.Parent = m
+	end
+
+	m.Parent = workspace
+end
+
+-- ---------------------------------------------------------------------------
 -- Base: creative open-front building at x=50, facing the road (x=0).
 -- ---------------------------------------------------------------------------
 
@@ -408,6 +677,12 @@ function WorldBuilder.build()
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
 	safeStep("buildTunnels", buildTunnels)
+	safeStep("buildShop", buildShop)
+	safeStep("buildStatues", buildStatues)
+	safeStep("buildTrees", buildTrees)
+	safeStep("buildLamps", buildLamps)
+	safeStep("buildBillboard", buildBillboard)
+	safeStep("buildProps", buildProps)
 	safeStep("buildBase", function()
 		baseModel = buildBase()
 	end)
