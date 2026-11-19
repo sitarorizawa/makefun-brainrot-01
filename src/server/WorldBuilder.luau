@@ -264,8 +264,8 @@ local function buildTunnels()
 		addBox(prefix .. "Keystone", Vector3.new(6, 4, 8.5), Vector3.new(0, 15.5, z), KEYSTONE)
 	end
 
-	addArch("North", -100) -- z = -100
-	addArch("South", 100) -- z = +100
+	addArch("North", -120) -- z = -100
+	addArch("South", 120) -- z = +100
 
 	m.Parent = workspace
 end
