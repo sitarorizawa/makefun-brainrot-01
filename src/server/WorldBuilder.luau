@@ -241,7 +241,14 @@ local function buildTunnels()
 		for _, z in ipairs({-70, 70}) do
 			local model = insertService:LoadAsset(assetId)
 			model.Name = "Tunnel"
-			-- Rotate 90 degrees so arch faces the road (along Z axis)
+			-- Anchor ALL parts so they don't fall apart
+			for _, desc in ipairs(model:GetDescendants()) do
+				if desc:IsA("BasePart") then
+					desc.Anchored = true
+					desc.CanCollide = true
+				end
+			end
+			-- Rotate 90 degrees so arch faces the road
 			local pivot = CFrame.new(0, 0, z) * CFrame.Angles(0, math.rad(90), 0)
 			model:PivotTo(pivot)
 			model.Parent = m
