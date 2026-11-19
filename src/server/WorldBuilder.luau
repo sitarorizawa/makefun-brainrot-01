@@ -246,7 +246,7 @@ local function buildTunnels()
 			Name = name,
 			Size = size,
 			Color = color,
-			Material = Enum.Material.Plastic,
+			Material = Enum.Material.Slate,
 		})
 		p.CFrame = CFrame.new(pos)
 		studAllFaces(p)
