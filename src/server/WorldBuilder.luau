@@ -235,6 +235,7 @@ local function buildRoad()
 	-- Dark grey asphalt slab: width 24, length 300, thickness 0.3, Y=0.2.
 	local road = part({
 		Name = "Asphalt",
+	road.TopSurface = Enum.SurfaceType.Smooth
 		Size = Vector3.new(ROAD_WIDTH, 0.3, ROAD_HALF * 2),
 		Color = ASPHALT,
 		Material = Enum.Material.Plastic,
@@ -247,6 +248,7 @@ local function buildRoad()
 	-- White center line: 1 stud wide, Y=0.35.
 	local line = part({
 		Name = "CenterLine",
+	line.TopSurface = Enum.SurfaceType.Smooth
 		Size = Vector3.new(1, 0.1, ROAD_HALF * 2),
 		Color = Color3.fromRGB(255, 255, 255),
 		Material = Enum.Material.SmoothPlastic,
