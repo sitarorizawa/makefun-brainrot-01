@@ -1127,7 +1127,7 @@ local function buildSatoshinoCroc(posX, posZ)
 		local bb = Instance.new("BillboardGui")
 		bb.Size = UDim2.new(0, 340, 0, 68)
 		bb.StudsOffset = Vector3.new(0, 4, 0)
-		bb.MaxDistance = 200
+		bb.MaxDistance = 100
 		bb.AlwaysOnTop = false
 		bb.SizeOffset = Vector2.new(0, 0)
 		bb.Parent = head
