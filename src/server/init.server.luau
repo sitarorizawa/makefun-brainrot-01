@@ -489,29 +489,78 @@ local function paintParadeLabel(obj)
 	if not obj:IsA("Model") then
 		return
 	end
+	-- Resolve the catalog entry for this parade model first.
+	local id = paradeNameToId(obj.Name)
+	local entry
+	for _, e in ipairs(Config.Brainrots) do
+		if e.id == id then
+			entry = e
+			break
+		end
+	end
+	if entry == nil then
+		return
+	end
+
+	-- Aura for God / Secret: sparkle particles + a neon ring at the feet.
+	if (entry.rarity == "God" or entry.rarity == "Secret") and not obj:GetAttribute("AuraAdded") then
+		obj:SetAttribute("AuraAdded", true)
+		local auraColor = Config.rarity(entry.rarity).color
+		local pivot = obj:GetPivot()
+		local cfr, size = obj:GetBoundingBox()
+
+		local core = Instance.new("Part")
+		core.Name = "AuraCore"
+		core.Size = Vector3.new(1, 1, 1)
+		core.Transparency = 1
+		core.CanCollide = false
+		core.Anchored = true
+		core.CFrame = CFrame.new(pivot.Position)
+		core.Parent = obj
+
+		local pe = Instance.new("ParticleEmitter")
+		pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		pe.Color = ColorSequence.new(auraColor)
+		pe.Rate = 20
+		pe.Lifetime = NumberRange.new(0.8, 1.6)
+		pe.Speed = NumberRange.new(1.5, 3)
+		pe.SpreadAngle = Vector2.new(180, 180)
+		pe.Size = NumberSequence.new(0.55, 0)
+		pe.Transparency = NumberSequence.new(0.1, 1)
+		pe.LightEmission = 1
+		pe.Parent = core
+
+		local ring = Instance.new("Part")
+		ring.Name = "AuraRing"
+		ring.Shape = Enum.PartType.Cylinder
+		ring.Size = Vector3.new(0.3, 7, 7)
+		ring.Color = auraColor
+		ring.Material = Enum.Material.Neon
+		ring.Transparency = 0.35
+		ring.Anchored = true
+		ring.CanCollide = false
+		local feetY = cfr.Position.Y - size.Y / 2
+		ring.CFrame = CFrame.new(pivot.Position.X, feetY + 0.2, pivot.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+		ring.Parent = obj
+	end
+
+	-- Price label (skip when already painted).
 	local bb = obj:FindFirstChildWhichIsA("BillboardGui", true)
 	local label = bb and bb:FindFirstChildWhichIsA("TextLabel")
 	if label == nil or label:GetAttribute("Priced") then
 		return
 	end
-	local id = paradeNameToId(obj.Name)
-	for _, e in ipairs(Config.Brainrots) do
-		if e.id == id then
-			label:SetAttribute("Priced", true)
-			label.TextWrapped = true
-			bb.Size = UDim2.new(0, 360, 0, 92)
-			label.Text = string.format(
-				"%s\n[%s]  $%s to catch  ·  $%d/s",
-				e.name, e.rarity, fmt(Config.catchPrice(e.rarity)), e.rate
-			)
-			-- ProximityPrompt label: name + price on the E-key prompt.
-			local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
-			if prompt then
-				prompt.ObjectText = e.name
-				prompt.ActionText = string.format("Catch - $%s", fmt(Config.catchPrice(e.rarity)))
-			end
-			break
-		end
+	label:SetAttribute("Priced", true)
+	label.TextWrapped = true
+	bb.Size = UDim2.new(0, 360, 0, 92)
+	label.Text = string.format(
+		"%s\n[%s]  $%s to catch  ·  $%d/s",
+		entry.name, entry.rarity, fmt(Config.catchPrice(entry.rarity)), entry.rate
+	)
+	local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+	if prompt then
+		prompt.ObjectText = entry.name
+		prompt.ActionText = string.format("Catch - $%s", fmt(Config.catchPrice(entry.rarity)))
 	end
 end
 
