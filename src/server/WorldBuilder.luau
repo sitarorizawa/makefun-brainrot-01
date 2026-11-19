@@ -4029,14 +4029,14 @@ local function buildBase()
 	end
 	-- Two more bases flanking the MARKET on the LEFT side (x=-50, z=±50),
 	-- mirrored so their fronts face the road (+X).
-	local base4 = buildBaseAt(-65, true)
+	local base4 = buildBaseAt(-75, true)
 	base4.Name = "Base4"
 	for _, p in ipairs(base4:GetDescendants()) do
 		if p:IsA("BasePart") then
 			p.CFrame = p.CFrame + Vector3.new(0, 0, 70)
 		end
 	end
-	local base5 = buildBaseAt(-65, true)
+	local base5 = buildBaseAt(-75, true)
 	base5.Name = "Base5"
 	for _, p in ipairs(base5:GetDescendants()) do
 		if p:IsA("BasePart") then
@@ -4109,7 +4109,7 @@ function WorldBuilder.buildSpawnPad(index)
 	pad.Anchored = true
 	pad.CanCollide = true
 	pad.TopSurface = Enum.SurfaceType.Studs
-	pad.CFrame = CFrame.new(index >= 4 and -35 or 46, 0.5, z)
+	pad.CFrame = CFrame.new(index >= 4 and -45 or 46, 0.5, z)
 	pad.Parent = workspace
 	return pad
 end
@@ -4270,8 +4270,8 @@ safeStep("buildGround", buildGround)
 		{ baseModel, 1, 75, 0 },
 		{ baseModel2, 2, 75, 95 },
 		{ baseModel3, 3, 75, -95 },
-		{ baseModel4, 4, -65, 70 },
-		{ baseModel5, 5, -65, -70 },
+		{ baseModel4, 4, -75, 70 },
+		{ baseModel5, 5, -75, -70 },
 	}
 	for _, info in ipairs(baseInfo) do
 		local b, idx, cx, cz = info[1], info[2], info[3], info[4]
