@@ -518,6 +518,9 @@ local function buildShop()
 	mouth.CanCollide = false
 	mouth.Parent = m
 
+	-- Sign text: BRAINROT MARKET (reuses setBaseSign's SurfaceGui builder).
+	WorldBuilder.setBaseSign(m, "BRAINROT MARKET", "press E at the counter", Color3.fromRGB(0, 220, 90))
+
 	m.Parent = workspace
 end
 
