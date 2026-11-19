@@ -121,7 +121,7 @@ local function buildPerimeterWall()
 			Name = def.Name,
 			Size = def.Size,
 			Color = WALL_COLOR,
-			Material = Enum.Material.Brick,
+			Material = Enum.Material.Plastic,
 		})
 		w.CFrame = CFrame.new(def.Pos)
 		w.TopSurface = Enum.SurfaceType.Studs
@@ -138,7 +138,7 @@ local function buildPerimeterWall()
 				Name = "CornerPillar",
 				Size = Vector3.new(4, 20, 4),
 				Color = WALL_COLOR,
-				Material = Enum.Material.Brick,
+				Material = Enum.Material.Plastic,
 			})
 			pillar.CFrame = CFrame.new(sx, 10, sz)
 			pillar.TopSurface = Enum.SurfaceType.Studs
