@@ -229,76 +229,25 @@ local function buildRoad()
 end
 
 -- ---------------------------------------------------------------------------
--- Tunnels: one arch over each road end (z = ±150). Side walls stand at
--- x = ±15 just outside the road edges, a 36-wide arch top spans them at
--- Y = 12 (level with the wall tops), and a lighter keystone caps the crown.
--- The gap between the walls is left open so the road passes through.
+-- Tunnels: one imported FBX mesh at each road end (z = ±120).
 -- ---------------------------------------------------------------------------
-
-local STONE_COLOR = Color3.fromRGB(120, 120, 130)  -- grey stone
-local KEYSTONE = Color3.fromRGB(150, 150, 160) -- slightly lighter brown
 
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
-
-	local function addPart(props)
-		local p = part(props)
-		studAllFaces(p)
-		return p
-	-- MeshPart tunnel (FBX import)
-	local mesh = Instance.new("MeshPart")
-	mesh.Name = "TunnelMesh"
-	mesh.MeshId = "rbxassetid://121370385967065"
-	mesh.Size = Vector3.new(40, 25, 8)
-	mesh.Anchored = true
-	mesh.CanCollide = true
-	mesh.Color = Color3.fromRGB(110, 110, 120)
-	mesh.Material = Enum.Material.Slate
+	local meshId = "rbxassetid://121370385967065"
 	for _, z in ipairs({-120, 120}) do
-		local clone = mesh:Clone()
-		clone.CFrame = CFrame.new(0, 0, z)
-		clone.Parent = m
+		local mesh = Instance.new("MeshPart")
+		mesh.Name = "Tunnel"
+		mesh.MeshId = meshId
+		mesh.Size = Vector3.new(40, 25, 8)
+		mesh.CFrame = CFrame.new(0, 12.5, z)
+		mesh.Anchored = true
+		mesh.CanCollide = true
+		mesh.Color = Color3.fromRGB(110, 110, 120)
+		mesh.Material = Enum.Material.Slate
+		mesh.Parent = m
 	end
-	mesh:Destroy()
-	end
-
-	local function buildOneTunnel(z)
-		-- Side pillars with plinths and caps
-		for _, side in ipairs({ -1, 1 }) do
-			local plinth = addPart({Name="Plinth", Size=Vector3.new(6,2,8), Color=Color3.fromRGB(80,80,90), Material=Enum.Material.Slate})
-			plinth.CFrame = CFrame.new(side*16, 1, z)
-			plinth.Parent = m
-
-			local pillar = addPart({Name="Pillar", Size=Vector3.new(4,14,6), Color=Color3.fromRGB(110,110,120), Material=Enum.Material.Slate})
-			pillar.CFrame = CFrame.new(side*16, 9, z)
-			pillar.Parent = m
-
-			local cap = addPart({Name="Cap", Size=Vector3.new(5,1.5,7), Color=Color3.fromRGB(150,150,160), Material=Enum.Material.Slate})
-			cap.CFrame = CFrame.new(side*16, 16.75, z)
-			cap.Parent = m
-		end
-
-		-- Curved arch: 7 wedges in a semicircle from left cap to right cap
-		local archY = 17
-		local R = 16
-		for i = 0, 6 do
-			local t = math.pi * i / 6
-			local wx = math.cos(t) * R
-			local wy = archY + math.sin(t) * 5
-			local wedge = addPart({Name="Arch", Size=Vector3.new(4.5,4,6), Color=Color3.fromRGB(110,110,120), Material=Enum.Material.Slate})
-			wedge.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(0, 0, t - math.pi/2)
-			wedge.Parent = m
-		end
-
-		-- Keystone at peak
-		local key = addPart({Name="Keystone", Size=Vector3.new(5,5,7), Color=Color3.fromRGB(150,150,160), Material=Enum.Material.Slate})
-		key.CFrame = CFrame.new(0, archY + 5, z)
-		key.Parent = m
-	end
-
-	buildOneTunnel(-120)
-	buildOneTunnel(120)
 	m.Parent = workspace
 end
 
