@@ -241,7 +241,9 @@ local function buildTunnels()
 		for _, z in ipairs({-70, 70}) do
 			local model = insertService:LoadAsset(assetId)
 			model.Name = "Tunnel"
-			model:PivotTo(CFrame.new(0, 0, z))
+			-- Rotate 90 degrees so arch faces the road (along Z axis)
+			local pivot = CFrame.new(0, 0, z) * CFrame.Angles(0, math.rad(90), 0)
+			model:PivotTo(pivot)
 			model.Parent = m
 		end
 	end)
