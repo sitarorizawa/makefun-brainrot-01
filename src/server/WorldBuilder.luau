@@ -50,21 +50,29 @@ local function setupLighting()
 end
 
 -- ---------------------------------------------------------------------------
--- Ground: single Plastic part with TopSurface.Studs — classic Roblox baseplate.
+-- Ground: 6x6 grid of 50x50 Plastic tiles with TopSurface.Studs — studs stay
+-- visible at gameplay distance (a single 300x300 part culls them out).
 -- ---------------------------------------------------------------------------
 
 local function buildGround()
-	local grass = part({
-		Name = "Island",
-		Size = Vector3.new(300, 0.5, 300),
-		Color = GRASS,
-		Material = Enum.Material.Plastic,
-	})
-	grass.CFrame = CFrame.new(0, 0, 0)
-	grass.TopSurface = Enum.SurfaceType.Studs
-	grass.Anchored = true
-	grass.CanCollide = true
-	grass.Parent = workspace
+	local m = Instance.new("Model")
+	m.Name = "Ground"
+	for x = -150, 100, 50 do
+		for z = -150, 100, 50 do
+			local tile = part({
+				Name = "Tile",
+				Size = Vector3.new(50, 0.5, 50),
+				Color = GRASS,
+				Material = Enum.Material.Plastic,
+			})
+			tile.CFrame = CFrame.new(x + 25, 0, z + 25)
+			tile.TopSurface = Enum.SurfaceType.Studs
+			tile.Anchored = true
+			tile.CanCollide = true
+			tile.Parent = m
+		end
+	end
+	m.Parent = workspace
 end
 
 -- ---------------------------------------------------------------------------
