@@ -727,6 +727,16 @@ local function buildGates()
 			bush.Parent = m
 		end
 
+		-- Black interior (solid block filling the arch opening)
+		local blackBlock = bp({Name="GateInterior", Size=Vector3.new(24, 22, 10), Color=Color3.fromRGB(15, 15, 18), Material=Enum.Material.SmoothPlastic})
+		blackBlock.CFrame = CFrame.new(0, 11, z)
+		blackBlock.Parent = m
+
+		-- Black floor inside tunnel
+		local blackFloor = bp({Name="GateFloor", Size=Vector3.new(26, 0.5, 14), Color=Color3.fromRGB(10, 10, 12), Material=Enum.Material.SmoothPlastic})
+		blackFloor.CFrame = CFrame.new(0, 0.25, z)
+		blackFloor.Parent = m
+
 		-- Small rocks scattered at base
 		for _, rx in ipairs({-20, -7, 7, 20}) do
 			local rock = bp({Name="SmallRock", Size=Vector3.new(2, 1.5, 2), Color=Color3.fromRGB(130, 125, 120), Material=Enum.Material.Slate, Shape=Enum.PartType.Ball})
