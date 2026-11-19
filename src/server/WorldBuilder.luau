@@ -4029,18 +4029,18 @@ local function buildBase()
 	end
 	-- Two more bases flanking the MARKET on the LEFT side (x=-50, z=±50),
 	-- mirrored so their fronts face the road (+X).
-	local base4 = buildBaseAt(-50, true)
+	local base4 = buildBaseAt(-65, true)
 	base4.Name = "Base4"
 	for _, p in ipairs(base4:GetDescendants()) do
 		if p:IsA("BasePart") then
-			p.CFrame = p.CFrame + Vector3.new(0, 0, 50)
+			p.CFrame = p.CFrame + Vector3.new(0, 0, 70)
 		end
 	end
-	local base5 = buildBaseAt(-50, true)
+	local base5 = buildBaseAt(-65, true)
 	base5.Name = "Base5"
 	for _, p in ipairs(base5:GetDescendants()) do
 		if p:IsA("BasePart") then
-			p.CFrame = p.CFrame + Vector3.new(0, 0, -50)
+			p.CFrame = p.CFrame + Vector3.new(0, 0, -70)
 		end
 	end
 	return base1, base2, base3, base4, base5
@@ -4103,13 +4103,13 @@ function WorldBuilder.setBaseSign(model, title, subtitle, color)
 end
 
 function WorldBuilder.buildSpawnPad(index)
-	local zOffsets = {[1] = 0, [2] = 95, [3] = -95, [4] = 50, [5] = -50}
+	local zOffsets = {[1] = 0, [2] = 95, [3] = -95, [4] = 70, [5] = -70}
 	local z = zOffsets[index] or 0
 	local pad = part({Name = "SpawnPad" .. index, Size = Vector3.new(6, 1, 6), Color = Color3.fromRGB(50, 200, 50), Material = Enum.Material.Plastic})
 	pad.Anchored = true
 	pad.CanCollide = true
 	pad.TopSurface = Enum.SurfaceType.Studs
-	pad.CFrame = CFrame.new(index >= 4 and -20 or 36, 0.5, z)
+	pad.CFrame = CFrame.new(index >= 4 and -35 or 36, 0.5, z)
 	pad.Parent = workspace
 	return pad
 end
@@ -4270,8 +4270,8 @@ safeStep("buildGround", buildGround)
 		{ baseModel, 1, 65, 0 },
 		{ baseModel2, 2, 65, 95 },
 		{ baseModel3, 3, 65, -95 },
-		{ baseModel4, 4, -50, 50 },
-		{ baseModel5, 5, -50, -50 },
+		{ baseModel4, 4, -65, 70 },
+		{ baseModel5, 5, -65, -70 },
 	}
 	for _, info in ipairs(baseInfo) do
 		local b, idx, cx, cz = info[1], info[2], info[3], info[4]
