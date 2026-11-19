@@ -236,19 +236,22 @@ local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
 	local assetId = 4859586766
+	local SCALE = 0.5
 	local success, err = pcall(function()
 		local insertService = game:GetService("InsertService")
 		for _, z in ipairs({-70, 70}) do
 			local model = insertService:LoadAsset(assetId)
 			model.Name = "Tunnel"
-			-- Anchor ALL parts so they don't fall apart
+			-- Anchor ALL parts
 			for _, desc in ipairs(model:GetDescendants()) do
 				if desc:IsA("BasePart") then
 					desc.Anchored = true
 					desc.CanCollide = true
+					-- Scale down
+					desc.Size = desc.Size * SCALE
 				end
 			end
-			-- Rotate 90 degrees so arch faces the road
+			-- Recenter and position
 			local pivot = CFrame.new(0, 0, z) * CFrame.Angles(0, math.rad(90), 0)
 			model:PivotTo(pivot)
 			model.Parent = m
