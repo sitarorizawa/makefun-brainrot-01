@@ -956,6 +956,119 @@ local function buildBase()
 	mat.CanCollide = false
 	mat.Parent = m
 
+	-- === BRAINROT THEME DECORATIONS ===
+
+	-- 10. Brainrot character pedestals (4 display spots for caught brainrots)
+	local pedestalColors = {
+		Color3.fromRGB(255, 80, 80),   -- red
+		Color3.fromRGB(80, 255, 120),  -- green
+		Color3.fromRGB(80, 150, 255),  -- blue
+		Color3.fromRGB(255, 220, 50),  -- yellow
+	}
+	for i, pos in ipairs({{-10, -15}, {-10, 15}, {10, -15}, {10, 15}}) do
+		-- Pedestal base (rotating display feel)
+		local ped = bp({Name="BrainrotPedestal", Size=Vector3.new(5, 2, 5), Color=pedestalColors[i], Material=Enum.Material.SmoothPlastic})
+		ped.CFrame = CFrame.new(BASE_X + pos[1], 2, pos[2])
+		studAllFaces(ped)
+		ped.Parent = m
+
+		-- Neon ring on pedestal
+		local ring = bp({Name="PedestalRing", Size=Vector3.new(5.5, 0.3, 5.5), Color=pedestalColors[i], Material=Enum.Material.Neon})
+		ring.CFrame = CFrame.new(BASE_X + pos[1], 3.1, pos[2])
+		ring.CanCollide = false
+		ring.Parent = m
+
+		-- Question mark placeholder (where brainrot will stand)
+		local placeholder = bp({Name="Placeholder", Size=Vector3.new(2, 3, 2), Color=Color3.fromRGB(60,60,65), Material=Enum.Material.Neon})
+		placeholder.CFrame = CFrame.new(BASE_X + pos[1], 4.5, pos[2])
+		placeholder.CanCollide = false
+		placeholder.Parent = m
+	end
+
+	-- 11. Neon brain icon on back wall (big, centered)
+	local brainOuter = bp({Name="BrainIcon", Size=Vector3.new(0.5, 6, 6), Color=Color3.fromRGB(255, 100, 180), Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
+	brainOuter.CFrame = CFrame.new(BASE_X + BASE_W/2 - 1, 14, 0)
+	brainOuter.CanCollide = false
+	brainOuter.Parent = m
+
+	local brainInner = bp({Name="BrainIconInner", Size=Vector3.new(0.5, 4, 4), Color=Color3.fromRGB(255, 200, 220), Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
+	brainInner.CFrame = CFrame.new(BASE_X + BASE_W/2 - 1.3, 14, 0)
+	brainInner.CanCollide = false
+	brainInner.Parent = m
+
+	-- 12. Meme-style wall stripes (diagonal neon bars on side walls)
+	local stripeColors = {
+		Color3.fromRGB(255, 50, 50),
+		Color3.fromRGB(50, 255, 150),
+		Color3.fromRGB(50, 150, 255),
+		Color3.fromRGB(255, 255, 50),
+	}
+	for i, c in ipairs(stripeColors) do
+		for _, sz in ipairs({-1, 1}) do
+			local stripe = bp({Name="MemeStripe", Size=Vector3.new(0.3, 1.5, 8), Color=c, Material=Enum.Material.Neon})
+			stripe.CFrame = CFrame.new(BASE_X - 5 + i * 8, 15, sz * (BASE_D/2 - 0.3)) * CFrame.Angles(math.rad(15), 0, 0)
+			stripe.CanCollide = false
+			stripe.Parent = m
+		end
+	end
+
+	-- 13. Ceiling: hanging brainrot capsules (colored spheres)
+	local capsuleColors = {
+		Color3.fromRGB(255, 100, 100),
+		Color3.fromRGB(100, 255, 150),
+		Color3.fromRGB(100, 180, 255),
+		Color3.fromRGB(255, 220, 80),
+		Color3.fromRGB(200, 100, 255),
+		Color3.fromRGB(255, 150, 50),
+	}
+	for i, c in ipairs(capsuleColors) do
+		local capsule = bp({Name="Capsule", Size=Vector3.new(2, 3, 2), Color=c, Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
+		capsule.CFrame = CFrame.new(BASE_X - 15 + i * 6, BASE_H - 2, math.sin(i * 1.5) * 12)
+		capsule.CanCollide = false
+		capsule.Parent = m
+
+		-- String hanging from ceiling
+		local string = bp({Name="CapsuleString", Size=Vector3.new(0.2, 3, 0.2), Color=Color3.fromRGB(200,200,200), Material=Enum.Material.SmoothPlastic})
+		string.CFrame = CFrame.new(BASE_X - 15 + i * 6, BASE_H - 0.5, math.sin(i * 1.5) * 12)
+		string.CanCollide = false
+		string.Parent = m
+	end
+
+	-- 14. Graffiti-style floor arrows pointing to pedestals
+	for i, pos in ipairs({{-10, -15}, {-10, 15}, {10, -15}, {10, 15}}) do
+		local arrow = bp({Name="FloorArrow", Size=Vector3.new(3, 0.05, 1.5), Color=pedestalColors[i], Material=Enum.Material.Neon})
+		arrow.CFrame = CFrame.new(BASE_X + pos[1] - 5, 1.16, pos[2]) * CFrame.Angles(0, math.rad(pos[2] > 0 and -30 or 30), 0)
+		arrow.CanCollide = false
+		arrow.Parent = m
+	end
+
+	-- 15. Crown on top of sign (king of brainrot)
+	for i = 0, 4 do
+		local spike = bp({Name="CrownSpike", Size=Vector3.new(1, 2 + (i == 2 and 1 or 0), 1), Color=Color3.fromRGB(255, 200, 50), Material=Enum.Material.Metal})
+		spike.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 6, -4 + i * 2)
+		spike.Parent = m
+	end
+	local crownBase = bp({Name="CrownBase", Size=Vector3.new(1, 1, 10), Color=Color3.fromRGB(255, 200, 50), Material=Enum.Material.Metal})
+	crownBase.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 5, 0)
+	crownBase.Parent = m
+
+	-- 16. Speed lines / motion stripes on exterior walls
+	for i = 0, 5 do
+		local line = bp({Name="SpeedLine", Size=Vector3.new(0.2, 0.8, 4 + i), Color=Color3.fromRGB(255,255,255), Material=Enum.Material.Neon})
+		line.CFrame = CFrame.new(BASE_X + BASE_W/2 + 0.1, 4 + i * 2.5, -10 + i * 4)
+		line.CanCollide = false
+		line.Parent = m
+	end
+
+	-- 17. Rarity sign on interior wall (Common/Rare/Epic/Mythic colors)
+	local rarityY = 7
+	for i, rc in ipairs({Color3.fromRGB(180,180,180), Color3.fromRGB(80,150,255), Color3.fromRGB(200,80,255), Color3.fromRGB(255,180,50)}) do
+		local rarityBar = bp({Name="RarityBar", Size=Vector3.new(0.3, 1.5, 4), Color=rc, Material=Enum.Material.Neon})
+		rarityBar.CFrame = CFrame.new(BASE_X + BASE_W/2 - 0.5, rarityY, -12 + i * 8)
+		rarityBar.CanCollide = false
+		rarityBar.Parent = m
+	end
+
 	m.Parent = workspace
 	return m
 end
