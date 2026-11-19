@@ -164,6 +164,18 @@ local function buildPerimeterWall()
 		addSegment("WallWest", Vector3.new(20, h, SEGMENT_LENGTH), Vector3.new(-half, h/2, offset))
 	end
 
+
+	-- Second wall line, closer to center, thinner and shorter
+	local half2 = half - 12  -- 138
+	for i = 0, SEGMENT_COUNT - 1 do
+		local offset = SEGMENT_START + i * SEGMENT_LENGTH
+		local h1 = rng:NextNumber(12, 35)  -- first wall height
+		local h2 = h1 * 0.6  -- second wall shorter than first
+		addSegment("Wall2North", Vector3.new(SEGMENT_LENGTH, h2, 12), Vector3.new(offset, h2/2, -half2))
+		addSegment("Wall2South", Vector3.new(SEGMENT_LENGTH, h2, 12), Vector3.new(offset, h2/2, half2))
+		addSegment("Wall2East", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(half2, h2/2, offset))
+		addSegment("Wall2West", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(-half2, h2/2, offset))
+	end
 	m.Parent = workspace
 end
 
