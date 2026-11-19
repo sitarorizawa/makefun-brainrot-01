@@ -1264,6 +1264,10 @@ Wave.start({
 -- Players: join, spawn, leave
 -- ---------------------------------------------------------------------------
 
+-- Where characters appear: the grass in front of the market. Enforced in
+-- code so it holds on join, on respawn, and even with Studio "Play Here".
+local SPAWN_POS = Vector3.new(-29, 3.5, 0)
+
 local function onCharacterAdded(player, character)
 	local state = states[player]
 	if state == nil then
@@ -1273,6 +1277,12 @@ local function onCharacterAdded(player, character)
 	humanoid.WalkSpeed = Config.Economy.baseWalkSpeed + state.speedLevel * Config.Economy.speedPerLevel
 	humanoid.Died:Connect(function()
 		dropCarried(player, "died")
+	end)
+	task.defer(function()
+		local hrp = character:WaitForChild("HumanoidRootPart", 5)
+		if hrp then
+			hrp.CFrame = CFrame.new(SPAWN_POS)
+		end
 	end)
 end
 
