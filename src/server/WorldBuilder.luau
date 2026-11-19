@@ -118,9 +118,9 @@ local function buildPerimeterWall()
 	m.Name = "PerimeterWall"
 
 	local half = ISLAND_SIZE / 2 -- 150
-	local SEGMENT_COUNT = 10
-	local SEGMENT_LENGTH = 30
-	local SEGMENT_START = -135 -- first segment center; -135 + i*30 covers -150..+150
+	local SEGMENT_COUNT = 12
+	local SEGMENT_LENGTH = 25
+	local SEGMENT_START = -137 -- first segment center; -135 + i*30 covers -150..+150
 
 	local function addSegment(name, size, pos)
 		local w = part({
