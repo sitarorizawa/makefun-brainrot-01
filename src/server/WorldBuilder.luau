@@ -82,6 +82,17 @@ local function buildGround()
 			tile.Parent = m
 		end
 	end
+
+	-- Third wall line, thinnest and shortest
+	local half3 = half - 24  -- 126
+	for i = 0, SEGMENT_COUNT - 1 do
+		local offset = SEGMENT_START + i * SEGMENT_LENGTH
+		local h3 = rng:NextNumber(6, 18)  -- shortest wall
+		addSegment("Wall3North", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, -half3))
+		addSegment("Wall3South", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, half3))
+		addSegment("Wall3East", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(half3, h3/2, offset))
+		addSegment("Wall3West", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(-half3, h3/2, offset))
+	end
 	m.Parent = workspace
 end
 
@@ -176,6 +187,17 @@ local function buildPerimeterWall()
 		addSegment("Wall2East", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(half2, h2/2, offset))
 		addSegment("Wall2West", Vector3.new(12, h2, SEGMENT_LENGTH), Vector3.new(-half2, h2/2, offset))
 	end
+
+	-- Third wall line, thinnest and shortest
+	local half3 = half - 24  -- 126
+	for i = 0, SEGMENT_COUNT - 1 do
+		local offset = SEGMENT_START + i * SEGMENT_LENGTH
+		local h3 = rng:NextNumber(6, 18)  -- shortest wall
+		addSegment("Wall3North", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, -half3))
+		addSegment("Wall3South", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, half3))
+		addSegment("Wall3East", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(half3, h3/2, offset))
+		addSegment("Wall3West", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(-half3, h3/2, offset))
+	end
 	m.Parent = workspace
 end
 
@@ -213,6 +235,17 @@ local function buildRoad()
 	line.CanCollide = false
 	line.Parent = m
 
+
+	-- Third wall line, thinnest and shortest
+	local half3 = half - 24  -- 126
+	for i = 0, SEGMENT_COUNT - 1 do
+		local offset = SEGMENT_START + i * SEGMENT_LENGTH
+		local h3 = rng:NextNumber(6, 18)  -- shortest wall
+		addSegment("Wall3North", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, -half3))
+		addSegment("Wall3South", Vector3.new(SEGMENT_LENGTH, h3, 5), Vector3.new(offset, h3/2, half3))
+		addSegment("Wall3East", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(half3, h3/2, offset))
+		addSegment("Wall3West", Vector3.new(5, h3, SEGMENT_LENGTH), Vector3.new(-half3, h3/2, offset))
+	end
 	m.Parent = workspace
 end
 
