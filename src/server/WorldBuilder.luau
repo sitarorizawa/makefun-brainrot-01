@@ -121,6 +121,7 @@ local function buildPerimeterWall()
 	local SEGMENT_COUNT = 12
 	local SEGMENT_LENGTH = 25
 	local SEGMENT_START = -137 -- first segment center; -135 + i*30 covers -150..+150
+	local rng = Random.new(42)
 
 	local function addSegment(name, size, pos)
 		local w = part({
@@ -153,10 +154,14 @@ local function buildPerimeterWall()
 	local sizeAlongZ = Vector3.new(20, 25, SEGMENT_LENGTH)
 	for i = 0, SEGMENT_COUNT - 1 do
 		local offset = SEGMENT_START + i * SEGMENT_LENGTH
-		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 12.5, -half))
-		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 12.5, half))
-		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 12.5, offset))
-		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 12.5, offset))
+		local h = rng:NextNumber(12, 35)
+		addSegment("WallNorth", Vector3.new(SEGMENT_LENGTH, h, 20), Vector3.new(offset, h/2, -half))
+		local h = rng:NextNumber(12, 35)
+		addSegment("WallSouth", Vector3.new(SEGMENT_LENGTH, h, 20), Vector3.new(offset, h/2, half))
+		local h = rng:NextNumber(12, 35)
+		addSegment("WallEast", Vector3.new(20, h, SEGMENT_LENGTH), Vector3.new(half, h/2, offset))
+		local h = rng:NextNumber(12, 35)
+		addSegment("WallWest", Vector3.new(20, h, SEGMENT_LENGTH), Vector3.new(-half, h/2, offset))
 	end
 
 	m.Parent = workspace
