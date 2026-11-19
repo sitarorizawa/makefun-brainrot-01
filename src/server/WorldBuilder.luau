@@ -452,24 +452,62 @@ local function buildShop()
 		step.Parent = m
 	end
 
-	-- === SHOPKEEPER (Noob NPC from catalog) ===
-	local npcOk, npcErr = pcall(function()
-		local insertService = game:GetService("InsertService")
-		local npcModel = insertService:LoadAsset(4446576906)
-		npcModel.Name = "Shopkeeper"
-		-- Anchor all parts
-		for _, desc in ipairs(npcModel:GetDescendants()) do
-			if desc:IsA("BasePart") then
-				desc.Anchored = true
-			end
-		end
-		-- Position: behind counter, facing front (positive X)
-		npcModel:PivotTo(CFrame.new(SX - 2, 2, 0) * CFrame.Angles(0, math.rad(90), 0))
-		npcModel.Parent = m
-	end)
-	if not npcOk then
-		warn("NPC load failed: " .. tostring(npcErr))
+	-- === SHOPKEEPER (green, facing road) ===
+	local nx, nz = SX - 2, 0
+	local skin = Color3.fromRGB(255, 225, 190)
+	local shirt = Color3.fromRGB(50, 170, 95)
+	local pants = Color3.fromRGB(55, 55, 60)
+	local hairC = Color3.fromRGB(30, 30, 30)
+	local FY = 2
+	-- Face road (positive X direction)
+	local cf = CFrame.new(nx, 0, nz) * CFrame.Angles(0, math.rad(-90), 0)
+
+	-- Legs
+	for _, lx in ipairs({-0.55, 0.55}) do
+		local leg = bp({Name="Leg", Size=Vector3.new(0.9, 2.5, 0.9), Color=pants, Material=Enum.Material.SmoothPlastic})
+		leg.CFrame = cf * CFrame.new(lx, FY + 1.25, 0)
+		leg.Parent = m
 	end
+
+	-- Torso
+	local torso = bp({Name="Torso", Size=Vector3.new(2.4, 2.8, 1.3), Color=shirt, Material=Enum.Material.SmoothPlastic})
+	torso.CFrame = cf * CFrame.new(0, FY + 3.9, 0)
+	torso.Parent = m
+
+	-- Arms
+	for _, ax in ipairs({-1.65, 1.65}) do
+		local arm = bp({Name="Arm", Size=Vector3.new(0.9, 2.8, 0.9), Color=shirt, Material=Enum.Material.SmoothPlastic})
+		arm.CFrame = cf * CFrame.new(ax, FY + 3.9, 0)
+		arm.Parent = m
+
+		local hand = bp({Name="Hand", Size=Vector3.new(0.9, 0.6, 0.9), Color=skin, Material=Enum.Material.SmoothPlastic})
+		hand.CFrame = cf * CFrame.new(ax, FY + 2.2, 0)
+		hand.Parent = m
+	end
+
+	-- Head
+	local head = bp({Name="Head", Size=Vector3.new(1.8, 1.8, 1.8), Color=skin, Material=Enum.Material.SmoothPlastic})
+	head.CFrame = cf * CFrame.new(0, FY + 6.2, 0)
+	head.Parent = m
+
+	-- Hair
+	local hairBlock = bp({Name="Hair", Size=Vector3.new(1.9, 0.7, 1.9), Color=hairC, Material=Enum.Material.SmoothPlastic})
+	hairBlock.CFrame = cf * CFrame.new(0, FY + 7.4, 0)
+	hairBlock.Parent = m
+
+	-- Eyes
+	for _, ex in ipairs({-0.4, 0.4}) do
+		local eye = bp({Name="Eye", Size=Vector3.new(0.3, 0.35, 0.1), Color=Color3.fromRGB(30, 30, 35), Material=Enum.Material.SmoothPlastic})
+		eye.CFrame = cf * CFrame.new(ex, FY + 6.4, 0.95)
+		eye.CanCollide = false
+		eye.Parent = m
+	end
+
+	-- Mouth
+	local mouth = bp({Name="Mouth", Size=Vector3.new(0.5, 0.15, 0.1), Color=Color3.fromRGB(180, 100, 100), Material=Enum.Material.SmoothPlastic})
+	mouth.CFrame = cf * CFrame.new(0, FY + 5.8, 0.95)
+	mouth.CanCollide = false
+	mouth.Parent = m
 
 	m.Parent = workspace
 end
