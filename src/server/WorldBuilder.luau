@@ -418,6 +418,15 @@ local function buildShop()
 	studAllFaces(counterTop)
 	counterTop.Parent = m
 
+	-- Interactable: press E at the counter to open the shop panel.
+	local marketPrompt = Instance.new("ProximityPrompt")
+	marketPrompt.ActionText = "Open Shop"
+	marketPrompt.ObjectText = "Brainrot Market"
+	marketPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	marketPrompt.MaxActivationDistance = 14
+	marketPrompt.HoldDuration = 0
+	marketPrompt.Parent = counterTop
+
 	local counterBody = bp({Name="CounterBody", Size=Vector3.new(2, 5, 14), Color=WOOD_DARK, Material=Enum.Material.Plastic})
 	counterBody.CFrame = CFrame.new(SX - 8, 3.5, 0)
 	studAllFaces(counterBody)
@@ -3979,6 +3988,55 @@ local baseModel2 = nil
 local baseModel3 = nil
 
 function WorldBuilder.setBaseSign(model, title, subtitle, color)
+	-- Floating owner billboard above the base (visible from the road).
+	local anchor = model:FindFirstChild("OwnerBillboard")
+	if anchor == nil then
+		local cfr = model:GetBoundingBox()
+		anchor = Instance.new("Part")
+		anchor.Name = "OwnerBillboard"
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.Transparency = 1
+		anchor.Size = Vector3.new(1, 1, 1)
+		anchor.CFrame = CFrame.new(cfr.Position.X, 32, cfr.Position.Z)
+		anchor.Parent = model
+		local bb = Instance.new("BillboardGui")
+		bb.Name = "OwnerBill"
+		bb.Size = UDim2.new(0, 420, 0, 110)
+		bb.StudsOffset = Vector3.new(0, 4, 0)
+		bb.MaxDistance = 220
+		bb.AlwaysOnTop = false
+		bb.Parent = anchor
+		local titleL = Instance.new("TextLabel")
+		titleL.Name = "Title"
+		titleL.Size = UDim2.new(1, 0, 0.55, 0)
+		titleL.BackgroundTransparency = 1
+		titleL.TextScaled = true
+		titleL.Font = Enum.Font.GothamBold
+		titleL.Parent = bb
+		local subL = Instance.new("TextLabel")
+		subL.Name = "Subtitle"
+		subL.Size = UDim2.new(1, 0, 0.4, 0)
+		subL.Position = UDim2.new(0, 0, 0.58, 0)
+		subL.BackgroundTransparency = 1
+		subL.TextScaled = true
+		subL.Font = Enum.Font.Gotham
+		subL.Parent = bb
+	end
+	local bb = anchor:FindFirstChild("OwnerBill")
+	if bb then
+		local t = bb:FindFirstChild("Title")
+		local s = bb:FindFirstChild("Subtitle")
+		if t then
+			t.Text = title
+			t.TextColor3 = color
+		end
+		if s then
+			s.Text = subtitle
+			s.TextColor3 = Color3.fromRGB(235, 235, 240)
+		end
+	end
+
 	local sign = model:FindFirstChild("Sign")
 	if sign == nil then
 		return
@@ -4119,13 +4177,23 @@ function WorldBuilder.build()
 			end
 		end
 
-		-- Pasang ClickDetector biar bisa di-catch (handler di init.server).
+		-- Catch interaction: ProximityPrompt (press E) + ClickDetector fallback.
 		for _, m in ipairs(models) do
 			local clicker = m:FindFirstChildWhichIsA("ClickDetector", true)
 			if clicker == nil then
 				clicker = Instance.new("ClickDetector")
 				clicker.MaxActivationDistance = 25
 				clicker.Parent = m
+			end
+			local prompt = m:FindFirstChildWhichIsA("ProximityPrompt", true)
+			if prompt == nil then
+				prompt = Instance.new("ProximityPrompt")
+				prompt.ActionText = "Catch"
+				prompt.ObjectText = m.Name
+				prompt.KeyboardKeyCode = Enum.KeyCode.E
+				prompt.MaxActivationDistance = 20
+				prompt.HoldDuration = 0
+				prompt.Parent = m
 			end
 		end
 
@@ -4184,6 +4252,7 @@ safeStep("buildGround", buildGround)
 			b:SetAttribute("Index", idx)
 			b:SetAttribute("CenterX", cx)
 			b:SetAttribute("CenterZ", cz)
+			WorldBuilder.setBaseSign(b, "OPEN BASE", "stand on it to claim", Color3.fromRGB(120, 230, 140))
 		end
 	end
 

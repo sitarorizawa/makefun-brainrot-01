@@ -425,12 +425,33 @@ local function wireParadeModel(obj)
 			catchParade(player, obj)
 		end)
 	end
+	local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+	if prompt and not prompt:GetAttribute("Wired") then
+		prompt:SetAttribute("Wired", true)
+		prompt.Triggered:Connect(function(player)
+			catchParade(player, obj)
+		end)
+	end
 end
 
 for _, obj in ipairs(workspace:GetChildren()) do
 	wireParadeModel(obj)
 end
 workspace.DescendantAdded:Connect(wireParadeModel)
+
+-- Market counter prompt: flag the player so the client opens the shop panel.
+local function wireMarketPrompt(inst)
+	if inst:IsA("ProximityPrompt") and inst.ObjectText == "Brainrot Market" and not inst:GetAttribute("Wired") then
+		inst:SetAttribute("Wired", true)
+		inst.Triggered:Connect(function(player)
+			player:SetAttribute("ShopOpenAt", tick())
+		end)
+	end
+end
+for _, d in ipairs(workspace:GetDescendants()) do
+	wireMarketPrompt(d)
+end
+workspace.DescendantAdded:Connect(wireMarketPrompt)
 
 -- Paint the catch price + income onto every parade billboard label.
 local function paintParadeLabel(obj)
@@ -452,6 +473,12 @@ local function paintParadeLabel(obj)
 				"%s\n[%s]  $%s to catch  ·  $%d/s",
 				e.name, e.rarity, fmt(Config.catchPrice(e.rarity)), e.rate
 			)
+			-- ProximityPrompt label: name + price on the E-key prompt.
+			local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+			if prompt then
+				prompt.ObjectText = e.name
+				prompt.ActionText = string.format("Catch - $%s", fmt(Config.catchPrice(e.rarity)))
+			end
 			break
 		end
 	end

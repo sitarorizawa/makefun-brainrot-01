@@ -409,6 +409,12 @@ showToast = function(text)
 	end)
 end
 
+-- Market counter (press E) asks the server for the shop; open it here.
+player:GetAttributeChangedSignal("ShopOpenAt"):Connect(function()
+	shopPanel.Visible = true
+	indexPanel.Visible = false
+end)
+
 player:GetAttributeChangedSignal("ToastAt"):Connect(function()
 	local text = player:GetAttribute("Toast")
 	if text and text ~= "" then
