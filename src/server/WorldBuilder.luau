@@ -328,63 +328,133 @@ end
 local function buildShop()
 	local m = Instance.new("Model")
 	m.Name = "Shop"
+	local function bp(props)
+		local p = part(props)
+		p.Anchored = true
+		p.CanCollide = true
+		return p
+	end
 
-	local PURPLE = Color3.fromRGB(80, 60, 140)
-	local DARK_PURPLE = Color3.fromRGB(60, 40, 110)
-	local WOOD = Color3.fromRGB(160, 120, 80)
-	local RED = Color3.fromRGB(255, 80, 80)
-	local WHITE = Color3.fromRGB(255, 255, 255)
-	local NEON_GREEN = Color3.fromRGB(0, 255, 100)
+	local WALL = Color3.fromRGB(80, 60, 140)     -- purple
+	local WALL_DARK = Color3.fromRGB(55, 40, 100) -- darker purple
+	local ROOF = Color3.fromRGB(45, 30, 80)
+	local WOOD = Color3.fromRGB(150, 110, 70)
+	local WOOD_DARK = Color3.fromRGB(110, 80, 50)
+	local FOUND = Color3.fromRGB(100, 100, 108)
+	local SIGN_C = Color3.fromRGB(0, 220, 90)
 
-	local X, Z = -50, 0
-	local W, H, D = 20, 15, 10 -- 20 wide (X), 15 tall, 10 deep (Z)
+	local SX = -50  -- center X
+	local SW = 30   -- width (bigger from 20)
+	local SD = 26   -- depth (bigger from 20)
+	local SH = 20   -- height (bigger from 15)
 
-	-- Back wall, away from the road
-	local back = solid({Name = "BackWall", Size = Vector3.new(1, H, D), Color = PURPLE, Material = Enum.Material.Plastic})
-	back.CFrame = CFrame.new(X - W / 2 + 0.5, H / 2, Z)
+	-- === THICK FOUNDATION ===
+	local foundation = bp({Name="Foundation", Size=Vector3.new(SW + 6, 6, SD + 6), Color=FOUND, Material=Enum.Material.Plastic})
+	foundation.CFrame = CFrame.new(SX, -2, 0)
+	studAllFaces(foundation)
+	foundation.Parent = m
+
+	-- === FLOOR ===
+	local floor = bp({Name="Floor", Size=Vector3.new(SW, 1, SD), Color=Color3.fromRGB(65, 50, 110), Material=Enum.Material.Plastic})
+	floor.CFrame = CFrame.new(SX, 1.5, 0)
+	studAllFaces(floor)
+	floor.Parent = m
+
+	-- === WALLS (thick, 2 studs) ===
+	-- Back wall (away from road, negative X)
+	local back = bp({Name="BackWall", Size=Vector3.new(2, SH, SD), Color=WALL, Material=Enum.Material.Plastic})
+	back.CFrame = CFrame.new(SX - SW/2, SH/2 + 2, 0)
 	studAllFaces(back)
 	back.Parent = m
 
-	-- Side walls; the +X face is left open as the entrance
+	-- Side walls (thick)
 	for _, sz in ipairs({-1, 1}) do
-		local wall = solid({Name = "SideWall", Size = Vector3.new(W, H, 1), Color = PURPLE, Material = Enum.Material.Plastic})
-		wall.CFrame = CFrame.new(X, H / 2, Z + sz * (D / 2 - 0.5))
+		local wall = bp({Name="SideWall", Size=Vector3.new(SW, SH, 2), Color=WALL, Material=Enum.Material.Plastic})
+		wall.CFrame = CFrame.new(SX, SH/2 + 2, sz * SD/2)
 		studAllFaces(wall)
 		wall.Parent = m
+
+		-- Wall pillar accents (darker, structural)
+		for _, px in ipairs({-SW/2 + 2, 0, SW/2 - 2}) do
+			local pillar = bp({Name="WallPillar", Size=Vector3.new(3, SH, 3), Color=WALL_DARK, Material=Enum.Material.Plastic})
+			pillar.CFrame = CFrame.new(SX + px, SH/2 + 2, sz * SD/2)
+			studAllFaces(pillar)
+			pillar.Parent = m
+		end
 	end
 
-	-- Flat overhanging roof
-	local roof = solid({Name = "Roof", Size = Vector3.new(22, 1, 17), Color = DARK_PURPLE, Material = Enum.Material.Plastic})
-	roof.CFrame = CFrame.new(X, H + 0.5, Z)
+	-- Front wall pillars (open front at positive X)
+	for _, sz in ipairs({-1, 1}) do
+		local fp = bp({Name="FrontPillar", Size=Vector3.new(3, SH + 2, 3), Color=WALL_DARK, Material=Enum.Material.Plastic})
+		fp.CFrame = CFrame.new(SX + SW/2, (SH + 2)/2 + 2, sz * SD/2)
+		studAllFaces(fp)
+		fp.Parent = m
+	end
+
+	-- === ROOF (thick, overhanging) ===
+	local roof = bp({Name="Roof", Size=Vector3.new(SW + 4, 2, SD + 4), Color=ROOF, Material=Enum.Material.Plastic})
+	roof.CFrame = CFrame.new(SX, SH + 3.5, 0)
 	studAllFaces(roof)
 	roof.Parent = m
 
-	-- Counter along the back wall
-	local counter = solid({Name = "Counter", Size = Vector3.new(1, 4, 8), Color = WOOD, Material = Enum.Material.Plastic})
-	counter.CFrame = CFrame.new(X - W / 2 + 2, 2, Z)
-	studAllFaces(counter)
-	counter.Parent = m
+	-- Roof trim
+	local roofTrim = bp({Name="RoofTrim", Size=Vector3.new(SW + 6, 1, SD + 6), Color=WALL_DARK, Material=Enum.Material.Plastic})
+	roofTrim.CFrame = CFrame.new(SX, SH + 5, 0)
+	studAllFaces(roofTrim)
+	roofTrim.Parent = m
 
-	-- Striped awning over the entrance: 8 alternating panels, tilted down/out
-	for i = 0, 7 do
-		local stripe = solid({
-			Name = "Awning" .. (i + 1),
-			Size = Vector3.new(6, 0.4, 1.25),
-			Color = (i % 2 == 0) and RED or WHITE,
-			Material = Enum.Material.Plastic,
-		})
-		stripe.CFrame = CFrame.new(X + W / 2 + 2.5, 12.5, Z - 4.375 + i * 1.25) * CFrame.Angles(0, 0, math.rad(-15))
+	-- === AWNING (striped, over entrance) ===
+	for i = 0, 9 do
+		local c = (i % 2 == 0) and Color3.fromRGB(255, 80, 80) or Color3.fromRGB(255, 255, 255)
+		local stripe = bp({Name="Awning", Size=Vector3.new(5, 0.5, SD/5), Color=c, Material=Enum.Material.Plastic})
+		stripe.CFrame = CFrame.new(SX + SW/2 + 3, SH - 2, -SD/2 + (i + 0.5) * SD/10) * CFrame.Angles(0, 0, math.rad(-25))
+		studAllFaces(stripe)
 		stripe.Parent = m
 	end
 
-	-- Neon sign above the entrance
-	local sign = solid({Name = "Sign", Size = Vector3.new(0.5, 2, 12), Color = NEON_GREEN, Material = Enum.Material.SmoothPlastic})
-	sign.CFrame = CFrame.new(X + W / 2 + 0.25, 15, Z)
+	-- === COUNTER (bigger) ===
+	local counterTop = bp({Name="CounterTop", Size=Vector3.new(2, 0.5, 14), Color=WOOD, Material=Enum.Material.Plastic})
+	counterTop.CFrame = CFrame.new(SX - 8, 6, 0)
+	studAllFaces(counterTop)
+	counterTop.Parent = m
+
+	local counterBody = bp({Name="CounterBody", Size=Vector3.new(2, 5, 14), Color=WOOD_DARK, Material=Enum.Material.Plastic})
+	counterBody.CFrame = CFrame.new(SX - 8, 3.5, 0)
+	studAllFaces(counterBody)
+	counterBody.Parent = m
+
+	-- === SHELVES inside (back wall, 3 rows) ===
+	for row = 1, 3 do
+		local shelf = bp({Name="Shelf", Size=Vector3.new(3, 0.5, SD - 6), Color=WOOD, Material=Enum.Material.Plastic})
+		shelf.CFrame = CFrame.new(SX - SW/2 + 4, row * 4 + 4, 0)
+		studAllFaces(shelf)
+		shelf.Parent = m
+	end
+
+	-- === SIGN above entrance ===
+	local sign = bp({Name="Sign", Size=Vector3.new(1, 4, 18), Color=Color3.fromRGB(25, 25, 30), Material=Enum.Material.Plastic})
+	sign.CFrame = CFrame.new(SX + SW/2, SH + 7, 0)
+	studAllFaces(sign)
 	sign.CanCollide = false
 	sign.Parent = m
 
+	-- Neon green stripe on sign
+	local stripe2 = bp({Name="SignStripe", Size=Vector3.new(0.5, 1, 18), Color=SIGN_C, Material=Enum.Material.Plastic})
+	stripe2.CFrame = CFrame.new(SX + SW/2 + 0.5, SH + 5.5, 0)
+	stripe2.CanCollide = false
+	stripe2.Parent = m
+
+	-- === FRONT STEPS ===
+	for i = 1, 2 do
+		local step = bp({Name="Step", Size=Vector3.new(3, 1, SD - 4), Color=FOUND, Material=Enum.Material.Plastic})
+		step.CFrame = CFrame.new(SX + SW/2 + i * 2.5, 1.5 - (i-1), 0)
+		studAllFaces(step)
+		step.Parent = m
+	end
+
 	m.Parent = workspace
 end
+
 
 -- Statues: 4 positions along the road, both sides — 8 in total.
 local function buildStatues()
