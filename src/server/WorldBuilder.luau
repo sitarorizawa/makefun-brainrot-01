@@ -785,11 +785,6 @@ local function buildBase()
 		shelf.Parent = m
 	end
 
-	-- Neon strip on top of open front
-	local neon = bp({Name="NeonStrip", Size=Vector3.new(0.5, 0.5, BASE_D), Color=Color3.fromRGB(0,255,255), Material=Enum.Material.Neon})
-	neon.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 1, 0)
-	neon.CanCollide = false
-	neon.Parent = m
 
 	-- Sign board above open front
 	local sign = bp({Name="Sign", Size=Vector3.new(0.5, 3, 20), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
@@ -863,7 +858,7 @@ local function buildBase()
 	monitor.CanCollide = false
 	monitor.Parent = m
 
-	local screen = bp({Name="MonitorScreen", Size=Vector3.new(0.1, 1.2, 1.8), Color=Color3.fromRGB(0,255,255), Material=Enum.Material.Neon})
+	local screen = bp({Name="MonitorScreen", Size=Vector3.new(0.1, 1.2, 1.8), Color=Color3.fromRGB(40,40,45), Material=Enum.Material.SmoothPlastic})
 	screen.CFrame = CFrame.new(BASE_X - 15.7, 5.3, 0)
 	screen.CanCollide = false
 	screen.Parent = m
@@ -898,13 +893,6 @@ local function buildBase()
 		end
 	end
 
-	-- Posters on back wall
-	for _, pz in ipairs({-8, 8}) do
-		local poster = bp({Name="Poster", Size=Vector3.new(0.2, 4, 3), Color=Color3.fromRGB(0,255,100), Material=Enum.Material.Neon})
-		poster.CFrame = CFrame.new(BASE_X + BASE_W/2 - 0.5, 13, pz)
-		poster.CanCollide = false
-		poster.Parent = m
-	end
 
 	-- 7. Roof details
 	-- Roof railing
@@ -973,13 +961,13 @@ local function buildBase()
 		ped.Parent = m
 
 		-- Neon ring on pedestal
-		local ring = bp({Name="PedestalRing", Size=Vector3.new(5.5, 0.3, 5.5), Color=pedestalColors[i], Material=Enum.Material.Neon})
+		local ring = bp({Name="PedestalRing", Size=Vector3.new(5.5, 0.3, 5.5), Color=pedestalColors[i], Material=Enum.Material.SmoothPlastic})
 		ring.CFrame = CFrame.new(BASE_X + pos[1], 3.1, pos[2])
 		ring.CanCollide = false
 		ring.Parent = m
 
 		-- Question mark placeholder (where brainrot will stand)
-		local placeholder = bp({Name="Placeholder", Size=Vector3.new(2, 3, 2), Color=Color3.fromRGB(60,60,65), Material=Enum.Material.Neon})
+		local placeholder = bp({Name="Placeholder", Size=Vector3.new(2, 3, 2), Color=Color3.fromRGB(60,60,65), Material=Enum.Material.SmoothPlastic})
 		placeholder.CFrame = CFrame.new(BASE_X + pos[1], 4.5, pos[2])
 		placeholder.CanCollide = false
 		placeholder.Parent = m
@@ -996,120 +984,7 @@ local function buildBase()
 	brainInner.CanCollide = false
 	brainInner.Parent = m
 
-	-- 12. Meme-style wall stripes (diagonal neon bars on side walls)
-	local stripeColors = {
-		Color3.fromRGB(255, 50, 50),
-		Color3.fromRGB(50, 255, 150),
-		Color3.fromRGB(50, 150, 255),
-		Color3.fromRGB(255, 255, 50),
-	}
-	for i, c in ipairs(stripeColors) do
-		for _, sz in ipairs({-1, 1}) do
-			local stripe = bp({Name="MemeStripe", Size=Vector3.new(0.3, 1.5, 8), Color=c, Material=Enum.Material.Neon})
-			stripe.CFrame = CFrame.new(BASE_X - 5 + i * 8, 15, sz * (BASE_D/2 - 0.3)) * CFrame.Angles(math.rad(15), 0, 0)
-			stripe.CanCollide = false
-			stripe.Parent = m
-		end
-	end
 
-	-- 13. Ceiling: hanging brainrot capsules (colored spheres)
-	local capsuleColors = {
-		Color3.fromRGB(255, 100, 100),
-		Color3.fromRGB(100, 255, 150),
-		Color3.fromRGB(100, 180, 255),
-		Color3.fromRGB(255, 220, 80),
-		Color3.fromRGB(200, 100, 255),
-		Color3.fromRGB(255, 150, 50),
-	}
-	for i, c in ipairs(capsuleColors) do
-		local capsule = bp({Name="Capsule", Size=Vector3.new(2, 3, 2), Color=c, Material=Enum.Material.Neon, Shape=Enum.PartType.Ball})
-		capsule.CFrame = CFrame.new(BASE_X - 15 + i * 6, BASE_H - 2, math.sin(i * 1.5) * 12)
-		capsule.CanCollide = false
-		capsule.Parent = m
-
-		-- String hanging from ceiling
-		local string = bp({Name="CapsuleString", Size=Vector3.new(0.2, 3, 0.2), Color=Color3.fromRGB(200,200,200), Material=Enum.Material.SmoothPlastic})
-		string.CFrame = CFrame.new(BASE_X - 15 + i * 6, BASE_H - 0.5, math.sin(i * 1.5) * 12)
-		string.CanCollide = false
-		string.Parent = m
-	end
-
-	-- 14. Graffiti-style floor arrows pointing to pedestals
-	for i, pos in ipairs({{-10, -15}, {-10, 15}, {10, -15}, {10, 15}}) do
-		local arrow = bp({Name="FloorArrow", Size=Vector3.new(3, 0.05, 1.5), Color=pedestalColors[i], Material=Enum.Material.Neon})
-		arrow.CFrame = CFrame.new(BASE_X + pos[1] - 5, 1.16, pos[2]) * CFrame.Angles(0, math.rad(pos[2] > 0 and -30 or 30), 0)
-		arrow.CanCollide = false
-		arrow.Parent = m
-	end
-
-	-- 15. Crown on top of sign (king of brainrot)
-	for i = 0, 4 do
-		local spike = bp({Name="CrownSpike", Size=Vector3.new(1, 2 + (i == 2 and 1 or 0), 1), Color=Color3.fromRGB(255, 200, 50), Material=Enum.Material.Metal})
-		spike.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 6, -4 + i * 2)
-		spike.Parent = m
-	end
-	local crownBase = bp({Name="CrownBase", Size=Vector3.new(1, 1, 10), Color=Color3.fromRGB(255, 200, 50), Material=Enum.Material.Metal})
-	crownBase.CFrame = CFrame.new(BASE_X - BASE_W/2, BASE_H + 5, 0)
-	crownBase.Parent = m
-
-	-- 16. Speed lines / motion stripes on exterior walls
-	for i = 0, 5 do
-		local line = bp({Name="SpeedLine", Size=Vector3.new(0.2, 0.8, 4 + i), Color=Color3.fromRGB(255,255,255), Material=Enum.Material.Neon})
-		line.CFrame = CFrame.new(BASE_X + BASE_W/2 + 0.1, 4 + i * 2.5, -10 + i * 4)
-		line.CanCollide = false
-		line.Parent = m
-	end
-
-	-- 17. Rarity sign on interior wall (Common/Rare/Epic/Mythic colors)
-	local rarityY = 7
-	for i, rc in ipairs({Color3.fromRGB(180,180,180), Color3.fromRGB(80,150,255), Color3.fromRGB(200,80,255), Color3.fromRGB(255,180,50)}) do
-		local rarityBar = bp({Name="RarityBar", Size=Vector3.new(0.3, 1.5, 4), Color=rc, Material=Enum.Material.Neon})
-		rarityBar.CFrame = CFrame.new(BASE_X + BASE_W/2 - 0.5, rarityY, -12 + i * 8)
-		rarityBar.CanCollide = false
-		rarityBar.Parent = m
-	end
-
-	m.Parent = workspace
-	return m
-end
-
-function WorldBuilder.setBaseSign(model, title, _subtitle, _color)
-	if not model then return end
-	local sign = model:FindFirstChild("Sign")
-	if not sign then return end
-	local gui = Instance.new("SurfaceGui")
-	gui.Face = Enum.NormalId.Left
-	gui.Parent = sign
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.Text = title or "YOUR BASE"
-	label.TextColor3 = Color3.fromRGB(255, 220, 50)
-	label.TextScaled = true
-	label.Font = Enum.Font.GothamBold
-	label.Parent = gui
-end
-
-function WorldBuilder.buildSpawnPad(index)
-	local pad = part({Name="Pad" .. index, Size=Vector3.new(6, 1, 6), Color=Color3.fromRGB(50,200,50), Material=Enum.Material.Plastic})
-	pad.CFrame = CFrame.new(BASE_X, 1.6, 0)
-	pad.Anchored = true
-	pad.CanCollide = true
-	studAllFaces(pad)
-	return pad
-end
-
--- ---------------------------------------------------------------------------
--- Build everything. Returns { pads = {}, bases = {} }.
--- ---------------------------------------------------------------------------
-
-function WorldBuilder.build()
-	local function safeStep(name, fn)
-		local ok, err = pcall(fn)
-		if not ok then
-			warn("[WorldBuilder] step failed (" .. name .. "): " .. tostring(err))
-		end
-	end
 
 	local template = workspace:FindFirstChild("Baseplate")
 	if template then
