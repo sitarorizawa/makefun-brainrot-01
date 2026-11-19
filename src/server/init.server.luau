@@ -366,9 +366,17 @@ local function catchParade(player, model)
 	local traits = Config.rollTraits(rng)
 
 	state.carried = { entry = entry, mutation = mutation, traits = traits }
-	local carriedModel = BrainrotModels.buildCarried(entry, mutation, traits)
+	-- Carry a CLONE of the actual parade character (not a generic capsule).
+	local carriedModel = model:Clone()
 	carriedModel.Name = "Carried"
+	local clicker = carriedModel:FindFirstChildWhichIsA("ClickDetector")
+	if clicker then
+		clicker:Destroy()
+	end
+	carriedModel:SetAttribute("CaughtUntil", nil)
+	carriedModel:ScaleTo(0.25)
 	state.carriedModel = carriedModel
+	state.carriedVisual = carriedModel
 	carriedModel.Parent = workspace
 
 	local rarityColor = Config.rarity(entry.rarity).color
@@ -622,6 +630,7 @@ local function dropCarried(player, reason)
 	BrainrotModels.retire(state.carriedModel)
 	state.carriedModel:Destroy()
 	state.carriedModel = nil
+	state.carriedVisual = nil
 	state.carried = nil
 	updateStats(player)
 
@@ -693,8 +702,13 @@ local function placeUnit(player, base)
 	end
 
 	local carried = state.carried
-	local model = BrainrotModels.buildPlaced(carried.entry, carried.mutation, carried.traits)
-	-- Pedestal top sits 0.9 above its center; lift the unit so its feet land there.
+	-- Prefer the cloned parade model so the placed unit LOOKS like the real character.
+	local model = state.carriedVisual
+	local reusingCarried = model ~= nil
+	if model == nil then
+		model = BrainrotModels.buildPlaced(carried.entry, carried.mutation, carried.traits)
+	end
+	model:ScaleTo(0.5)
 	model:PivotTo(CFrame.new(pedestal.Position + Vector3.new(0, 3.0, 0)))
 	model.Parent = workspace
 	BrainrotModels.startSway(model)
@@ -708,8 +722,12 @@ local function placeUnit(player, base)
 	end
 
 	state.pedestals[slot] = { entry = carried.entry, mutation = carried.mutation, traits = carried.traits, model = model }
-	BrainrotModels.retire(state.carriedModel)
-	state.carriedModel:Destroy()
+	if not reusingCarried and state.carriedModel then
+		BrainrotModels.retire(state.carriedModel)
+		state.carriedModel:Destroy()
+	end
+	state.carriedModel = nil
+	state.carriedVisual = nil
 	state.carried = nil
 
 	updateStats(player)
@@ -803,15 +821,18 @@ local function finishLock(owner, state)
 		local slot = occupied[rng:NextInteger(1, #occupied)]
 		local unit = state.pedestals[slot]
 		state.pedestals[slot] = nil
+		thiefState.carried = { entry = unit.entry, mutation = unit.mutation, traits = unit.traits }
+		-- Clone the placed parade model so the stolen unit keeps its real look.
+		local stolen = unit.model:Clone()
+		stolen.Name = "Carried"
+		stolen:ScaleTo(0.25)
+		stolen.Parent = workspace
+		thiefState.carriedModel = stolen
+		thiefState.carriedVisual = stolen
+
 		BrainrotModels.retire(unit.model)
 		unit.model:Destroy()
 		resetPedestalVisual(state.baseModel, slot, state.slots)
-
-		thiefState.carried = { entry = unit.entry, mutation = unit.mutation, traits = unit.traits }
-		local stolen = BrainrotModels.buildCarried(unit.entry, unit.mutation, unit.traits)
-		stolen.Name = "Carried"
-		stolen.Parent = workspace
-		thiefState.carriedModel = stolen
 
 		showToast(owner, string.format("ROBBED! %s stole your %s", robber.DisplayName, unit.entry.name))
 		showToast(robber, string.format("You stole %s from %s!",
