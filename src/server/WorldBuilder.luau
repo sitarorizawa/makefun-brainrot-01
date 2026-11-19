@@ -498,14 +498,14 @@ local function buildShop()
 	-- Eyes
 	for _, ex in ipairs({-0.4, 0.4}) do
 		local eye = bp({Name="Eye", Size=Vector3.new(0.3, 0.35, 0.1), Color=Color3.fromRGB(30, 30, 35), Material=Enum.Material.SmoothPlastic})
-		eye.CFrame = cf * CFrame.new(ex, FY + 6.4, 0.95)
+		eye.CFrame = cf * CFrame.new(ex, FY + 6.4, -0.95)
 		eye.CanCollide = false
 		eye.Parent = m
 	end
 
 	-- Mouth
 	local mouth = bp({Name="Mouth", Size=Vector3.new(0.5, 0.15, 0.1), Color=Color3.fromRGB(180, 100, 100), Material=Enum.Material.SmoothPlastic})
-	mouth.CFrame = cf * CFrame.new(0, FY + 5.8, 0.95)
+	mouth.CFrame = cf * CFrame.new(0, FY + 5.8, -0.95)
 	mouth.CanCollide = false
 	mouth.Parent = m
 
