@@ -138,31 +138,14 @@ local function buildPerimeterWall()
 
 	-- North/south run along X at z=±150; east/west run along Z at x=±150.
 	-- Bottom sits at Y=0, so center is at Y=12.5.
-	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 25, 6)
-	local sizeAlongZ = Vector3.new(6, 25, SEGMENT_LENGTH)
+	local sizeAlongX = Vector3.new(SEGMENT_LENGTH, 25, 20)
+	local sizeAlongZ = Vector3.new(20, 25, SEGMENT_LENGTH)
 	for i = 0, SEGMENT_COUNT - 1 do
 		local offset = SEGMENT_START + i * SEGMENT_LENGTH
 		addSegment("WallNorth", sizeAlongX, Vector3.new(offset, 12.5, -half))
 		addSegment("WallSouth", sizeAlongX, Vector3.new(offset, 12.5, half))
 		addSegment("WallEast", sizeAlongZ, Vector3.new(half, 12.5, offset))
 		addSegment("WallWest", sizeAlongZ, Vector3.new(-half, 12.5, offset))
-	end
-
-	-- Corner pillars: 8x8x30, straddling each corner to joint the walls.
-	for _, sx in ipairs({ -half, half }) do
-		for _, sz in ipairs({ -half, half }) do
-			local pillar = part({
-				Name = "CornerPillar",
-				Size = Vector3.new(8, 30, 8),
-				Color = WALL_COLOR,
-				Material = Enum.Material.Plastic,
-			})
-			pillar.CFrame = CFrame.new(sx, 15, sz)
-			studAllFaces(pillar)
-			pillar.Anchored = true
-			pillar.CanCollide = true
-			pillar.Parent = m
-		end
 	end
 
 	m.Parent = workspace
