@@ -3986,8 +3986,6 @@ function WorldBuilder.build()
 	end
 
 	safeStep("setupLighting", setupLighting)
-	--43 characters walking on asphalt road,10 stud spacing,2 lanes
-	-- 43 characters:1 baris di tengah aspal, spacing20, LOOP jalan terus
 	-- Build all43 characters (parade script yang atur posisi/jalan)
 	safeStep("buildSatoshinoCroc", function() buildSatoshinoCroc(0, 0) end)
 	safeStep("buildBananitaWhalebit", function() buildBananitaWhalebit(0, 0) end)
@@ -4033,42 +4031,47 @@ function WorldBuilder.build()
 	safeStep("buildProsciuttoSmoke", function() buildProsciuttoSmoke(0, 0) end)
 	safeStep("buildPolentaPillar", function() buildPolentaPillar(0, 0) end)
 
-	local PARADE_NAMES = {"SatoshinoCrocodilo", "BananitaWhalebit", "PatapimNode", "TralaleroRugpull", "BombombiniGasfee", "BombardiroAirdrop", "BanditoreArbitrage", "BrrBrrNodek", "FrigoCameloWhale", "TungTungSahur", "CapuccinaMining", "PipiPotatoStake", "ChimpanziniSolana", "HamsteroWheel", "LamenoTungsten", "GorillahMemecoin", "PenguinoStable", "FroggoMaker", "SerpentinoDex", "OwlcornOracle", "ElephanteBridge", "CrabettoCex", "PandanoVault", "TortugaLedger", "ViperinoNode", "AquilinoStake", "CucumbroChain", "GelatinoMint", "PiccioneBridge", "GattinoSwap", "BruschettaBlock", "VolpeOracle", "ZucchinoVault", "MoscatoWhale", "CannoliBlaster", "GnocchiGolem", "FocacciaNode", "PestoPirate", "TiramisuTower", "ArancinoBomb", "LimoneFrost", "ProsciuttoSmoke", "PolentaPillar"}
+-- Streaming parade:43 karakter berurutan masuk jalan, spacing20, no overlap.
+	-- Window [0,290] di aspal; di luar window = hide (muncul berurutan dari z=-145).
 	safeStep("buildParade", function()
-		-- Posisi awal:1 baris, x=0, z mulai dari -145
-		for i, n in ipairs(PARADE_NAMES) do
-			local m = workspace:FindFirstChild(n)
-			if m then
-				local z = -145 + (i - 1) * 20
-				local p = m:GetPivot().Position
-				m:PivotTo(CFrame.new(0, p.Y, z))
-			end
-		end
-
-		-- Loop: semua karakter jalan ke +Z terus, wrap ke -Z (kayak brainrot parade)
 		local RunService = game:GetService("RunService")
-		local SPEED = 6 -- stud per detik
-		local SPAN = 290 -- dari -145 ke +145
+		local SPEED = 6
+		local SPACING = 20
+		local SPAN = 290
+		local PARADE_NAMES = {"SatoshinoCrocodilo", "BananitaWhalebit", "PatapimNode", "TralaleroRugpull", "BombombiniGasfee", "BombardiroAirdrop", "BanditoreArbitrage", "BrrBrrNodek", "FrigoCameloWhale", "TungTungSahur", "CapuccinaMining", "PipiPotatoStake", "ChimpanziniSolana", "HamsteroWheel", "LamenoTungsten", "GorillahMemecoin", "PenguinoStable", "FroggoMaker", "SerpentinoDex", "OwlcornOracle", "ElephanteBridge", "CrabettoCex", "PandanoVault", "TortugaLedger", "ViperinoNode", "AquilinoStake", "CucumbroChain", "GelatinoMint", "PiccioneBridge", "GattinoSwap", "BruschettaBlock", "VolpeOracle", "ZucchinoVault", "MoscatoWhale", "CannoliBlaster", "GnocchiGolem", "FocacciaNode", "PestoPirate", "TiramisuTower", "ArancinoBomb", "LimoneFrost", "ProsciuttoSmoke", "PolentaPillar"}
+		local CYCLE = #PARADE_NAMES * SPACING
 		local t = 0
+
 		local models = {}
 		local ys = {}
-		for i, n in ipairs(PARADE_NAMES) do
+		for _, n in ipairs(PARADE_NAMES) do
 			local m = workspace:FindFirstChild(n)
 			if m then
 				models[#models + 1] = m
 				ys[#ys + 1] = m:GetPivot().Position.Y
 			end
 		end
+
+		local function update()
+			for i, m in ipairs(models) do
+				local pos = ((i - 1) * SPACING + t) % CYCLE
+				if pos <= SPAN then
+					if m.Parent ~= workspace then m.Parent = workspace end
+					m:PivotTo(CFrame.new(0, ys[i], -145 + pos))
+				else
+					if m.Parent ~= nil then m.Parent = nil end
+				end
+			end
+		end
+
+		update()
 		RunService.Heartbeat:Connect(function(dt)
 			t = t + dt * SPEED
-			for i, m in ipairs(models) do
-				local z = -145 + ((i - 1) * 20 + t) % SPAN
-				m:PivotTo(CFrame.new(0, ys[i], z))
-			end
+			update()
 		end)
 	end)
 
-	safeStep("buildGround", buildGround)
+safeStep("buildGround", buildGround)
 	safeStep("buildOcean", buildOcean)
 	safeStep("buildPerimeterWall", buildPerimeterWall)
 	safeStep("buildRoad", buildRoad)
