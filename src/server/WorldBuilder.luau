@@ -229,103 +229,44 @@ local function buildRoad()
 end
 
 -- ---------------------------------------------------------------------------
--- Tunnels: stone arch gates at z=±120. Each has side pillars, a curved
--- wedge arch, keystone, plinths, and torches.
-local STONE_DARK = Color3.fromRGB(80, 80, 90)
-local STONE_MID = Color3.fromRGB(110, 110, 120)
-local STONE_LIGHT = Color3.fromRGB(150, 150, 160)
-local TORCH_COLOR = Color3.fromRGB(255, 160, 40)
+-- Tunnels: one arch over each road end (z = ±150). Side walls stand at
+-- x = ±15 just outside the road edges, a 36-wide arch top spans them at
+-- Y = 12 (level with the wall tops), and a lighter keystone caps the crown.
+-- The gap between the walls is left open so the road passes through.
+-- ---------------------------------------------------------------------------
+
+local STONE_COLOR = Color3.fromRGB(120, 120, 130)  -- grey stone
+local KEYSTONE = Color3.fromRGB(150, 150, 160) -- slightly lighter brown
 
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
 
-	local function addPart(props)
-		local p = part(props)
-		studAllFaces(p)
-		return p
-	end
-
-	local function buildOneTunnel(z)
-		-- Side pillars
-		for _, side in ipairs({ -1, 1 }) do
-			-- Base plinth
-			local plinth = addPart({
-				Name = "Plinth",
-				Size = Vector3.new(6, 2, 8),
-				Color = STONE_DARK,
-				Material = Enum.Material.Slate,
-			})
-			plinth.CFrame = CFrame.new(side * 16, 1, z)
-			plinth.Parent = m
-
-			-- Pillar
-			local pillar = addPart({
-				Name = "Pillar",
-				Size = Vector3.new(4, 14, 6),
-				Color = STONE_MID,
-				Material = Enum.Material.Slate,
-			})
-			pillar.CFrame = CFrame.new(side * 16, 9, z)
-			pillar.Parent = m
-
-			-- Pillar cap
-			local cap = addPart({
-				Name = "PillarCap",
-				Size = Vector3.new(5, 1.5, 7),
-				Color = STONE_LIGHT,
-				Material = Enum.Material.Slate,
-			})
-			cap.CFrame = CFrame.new(side * 16, 16.75, z)
-			cap.Parent = m
-
-
-		-- Curved arch: 7 wedges in a semicircle
-		local archCenterY = 17
-		local radius = 16
-		for i = 0, 6 do
-			local angle = math.pi * i / 6  -- 0 to 180 degrees
-			local wx = math.cos(angle) * radius
-			local wy = archCenterY + math.sin(angle) * 5
-
-			local wedge = addPart({
-				Name = "ArchWedge",
-				Size = Vector3.new(4.5, 4, 6),
-				Color = STONE_MID,
-				Material = Enum.Material.Slate,
-			})
-			-- Rotate wedge to follow the curve
-			local rot = CFrame.Angles(0, 0, angle - math.pi/2)
-			wedge.CFrame = CFrame.new(wx, wy, z) * rot
-			wedge.Parent = m
-
-			-- Trim strip on the outer edge
-			local trim = addPart({
-				Name = "ArchTrim",
-				Size = Vector3.new(4.5, 0.8, 6.5),
-				Color = STONE_LIGHT,
-				Material = Enum.Material.SmoothPlastic,
-			})
-			local trimX = math.cos(angle) * (radius + 2)
-			local trimY = archCenterY + math.sin(angle) * 7
-			trim.CFrame = CFrame.new(trimX, trimY, z) * rot
-			trim.CanCollide = false
-			trim.Parent = m
-		end
-
-		-- Keystone at peak
-		local keystone = addPart({
-			Name = "Keystone",
-			Size = Vector3.new(5, 5, 7),
-			Color = STONE_LIGHT,
+	local function addBox(name, size, pos, color)
+		local p = part({
+			Name = name,
+			Size = size,
+			Color = color,
 			Material = Enum.Material.Slate,
 		})
-		keystone.CFrame = CFrame.new(0, archCenterY + 5, z)
-		keystone.Parent = m
+		p.CFrame = CFrame.new(pos)
+		studAllFaces(p)
+		p.Anchored = true
+		p.CanCollide = true
+		p.Parent = m
 	end
 
-	buildOneTunnel(-120)
-	buildOneTunnel(120)
+	-- Walls sit on the ground (center Y = height / 2). The arch top's center
+	-- is at Y = 12; the keystone rests on its crown (12 + 3/2 + 4/2).
+	local function addArch(prefix, z)
+		addBox(prefix .. "WallWest", Vector3.new(6, 12, 8), Vector3.new(-15, 6, z), STONE_COLOR)
+		addBox(prefix .. "WallEast", Vector3.new(6, 12, 8), Vector3.new(15, 6, z), STONE_COLOR)
+		addBox(prefix .. "ArchTop", Vector3.new(36, 3, 8), Vector3.new(0, 12, z), STONE_COLOR)
+		addBox(prefix .. "Keystone", Vector3.new(6, 4, 8.5), Vector3.new(0, 15.5, z), KEYSTONE)
+	end
+
+	addArch("North", -120) -- z = -100
+	addArch("South", 120) -- z = +100
 
 	m.Parent = workspace
 end
