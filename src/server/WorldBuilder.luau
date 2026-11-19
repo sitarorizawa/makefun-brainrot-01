@@ -452,6 +452,57 @@ local function buildShop()
 		step.Parent = m
 	end
 
+	-- === SHOPKEEPERS (blocky NPC people inside) ===
+	local npcSkins = {
+		{skin=Color3.fromRGB(255, 200, 160), shirt=Color3.fromRGB(220, 50, 50), pants=Color3.fromRGB(40, 40, 60)},
+		{skin=Color3.fromRGB(200, 150, 110), shirt=Color3.fromRGB(50, 120, 220), pants=Color3.fromRGB(60, 60, 65)},
+		{skin=Color3.fromRGB(255, 220, 180), shirt=Color3.fromRGB(50, 180, 100), pants=Color3.fromRGB(80, 60, 40)},
+	}
+	local npcPositions = {
+		{SX - 8, 0, -4},      -- behind counter
+		{SX - 2, 0, 6},       -- customer browsing
+		{SX + 4, 0, -6},      -- customer near shelf
+	}
+
+	for i, npc in ipairs(npcSkins) do
+		local pos = npcPositions[i]
+		local baseY = 2  -- floor top
+
+		-- Legs (2 blocks)
+		for _, lx in ipairs({-0.6, 0.6}) do
+			local leg = bp({Name="NPCLeg", Size=Vector3.new(1, 2.5, 1), Color=npc.pants, Material=Enum.Material.Plastic})
+			leg.CFrame = CFrame.new(pos[1] + lx, baseY + 1.25, pos[3])
+			studAllFaces(leg)
+			leg.Parent = m
+		end
+
+		-- Torso
+		local torso = bp({Name="NPCTorso", Size=Vector3.new(2.5, 3, 1.5), Color=npc.shirt, Material=Enum.Material.Plastic})
+		torso.CFrame = CFrame.new(pos[1], baseY + 4, pos[3])
+		studAllFaces(torso)
+		torso.Parent = m
+
+		-- Arms (2 blocks)
+		for _, ax in ipairs({-1.7, 1.7}) do
+			local arm = bp({Name="NPCArm", Size=Vector3.new(1, 3, 1), Color=npc.shirt, Material=Enum.Material.Plastic})
+			arm.CFrame = CFrame.new(pos[1] + ax, baseY + 4, pos[3])
+			studAllFaces(arm)
+			arm.Parent = m
+		end
+
+		-- Head
+		local head = bp({Name="NPCHead", Size=Vector3.new(1.8, 1.8, 1.8), Color=npc.skin, Material=Enum.Material.Plastic})
+		head.CFrame = CFrame.new(pos[1], baseY + 6.4, pos[3])
+		studAllFaces(head)
+		head.Parent = m
+
+		-- Hair (dark cap on top)
+		local hair = bp({Name="NPCHair", Size=Vector3.new(2, 0.6, 2), Color=Color3.fromRGB(35, 30, 25), Material=Enum.Material.Plastic})
+		hair.CFrame = CFrame.new(pos[1], baseY + 7.5, pos[3])
+		studAllFaces(hair)
+		hair.Parent = m
+	end
+
 	m.Parent = workspace
 end
 
