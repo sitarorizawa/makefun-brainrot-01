@@ -235,18 +235,18 @@ end
 local function buildTunnels()
 	local m = Instance.new("Model")
 	m.Name = "Tunnels"
-	local meshId = "rbxassetid://4859586766"
-	for _, z in ipairs({-70, 70}) do
-		local mesh = Instance.new("MeshPart")
-		mesh.Name = "Tunnel"
-		mesh.MeshId = meshId
-		mesh.Size = Vector3.new(40, 25, 8)
-		mesh.CFrame = CFrame.new(0, 12.5, z)
-		mesh.Anchored = true
-		mesh.CanCollide = true
-		mesh.Color = Color3.fromRGB(110, 110, 120)
-		mesh.Material = Enum.Material.Slate
-		mesh.Parent = m
+	local assetId = 4859586766
+	local success, err = pcall(function()
+		local insertService = game:GetService("InsertService")
+		for _, z in ipairs({-70, 70}) do
+			local model = insertService:LoadAsset(assetId)
+			model.Name = "Tunnel"
+			model:PivotTo(CFrame.new(0, 0, z))
+			model.Parent = m
+		end
+	end)
+	if not success then
+		warn("Tunnel load failed: " .. tostring(err))
 	end
 	m.Parent = workspace
 end
