@@ -57,6 +57,13 @@ end
 
 local function setupLighting()
 	-- Noon sun: bright overhead light, no shadows
+	local light = game:GetService("Lighting")
+	-- Remove existing DirectionalLights (singleton)
+	for _, obj in ipairs(light:GetChildren()) do
+		if obj:IsA("DirectionalLight") then
+			obj:Destroy()
+		end
+	end
 	local sun = Instance.new("DirectionalLight")
 	sun.Name = "NoonSun"
 	sun.Brightness = 3
@@ -65,10 +72,9 @@ local function setupLighting()
 	sun.Angle = 15
 	-- Point straight down (noon): rotation looking down
 	sun.CFrame = CFrame.new(0, 100, 0) * CFrame.Angles(math.rad(-80), math.rad(10), 0)
-	sun.Parent = game:GetService("Lighting")
+	sun.Parent = light
 
 	-- Ambient: bright so no dark corners
-	local light = game:GetService("Lighting")
 	light.Ambient = Color3.fromRGB(140, 140, 140)
 	light.OutdoorAmbient = Color3.fromRGB(160, 160, 160)
 	light.Brightness = 3

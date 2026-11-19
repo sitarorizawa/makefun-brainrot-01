@@ -13,7 +13,9 @@ local BrainrotModels = require(script.BrainrotModels)
 local Wave = require(script.Wave)
 
 local rng = Random.new()
-local world = WorldBuilder.build()
+local ok, worldOrErr = pcall(function() return WorldBuilder.build() end)
+local world = ok and worldOrErr or { pads = {}, bases = {} }
+if not ok then warn("WorldBuilder.build failed: " .. tostring(worldOrErr)) end
 
 -- One RemoteEvent for every shop button; the client sends an action string.
 local shopRemote = Instance.new("RemoteEvent")
@@ -1068,11 +1070,17 @@ end
 -- 	spawnCapsule(index)
 -- end
 
-for _, base in ipairs(world.bases) do
-	local island = base:FindFirstChild("Island")
-	island.Touched:Connect(function(hit)
-		onBaseTouched(base, hit)
-	end)
+if world and world.bases then
+	for _, base in ipairs(world.bases) do
+		if base then
+			local island = base:FindFirstChild("Island") or base:FindFirstChild("Floor")
+			if island then
+				island.Touched:Connect(function(hit)
+					onBaseTouched(base, hit)
+				end)
+			end
+		end
+	end
 end
 
 print("Brainrot Vault Tycoon server online")
