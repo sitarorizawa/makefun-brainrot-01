@@ -35,8 +35,6 @@ local YELLOW_LINE = Color3.fromRGB(255, 220, 40)
 local function part(props)
 	local p = Instance.new("Part")
 	p.Anchored = true
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
 	for key, value in pairs(props) do
 		p[key] = value
 	end
