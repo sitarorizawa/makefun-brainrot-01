@@ -939,129 +939,120 @@ local function buildBananitaWhalebit(posX, posZ)
 		return CFrame.new(posX + x, FY + y, posZ + z) * CFrame.Angles(0, math.rad(ry or 0), 0)
 	end
 
-	-- === HEAD: Whale (big, round, snub) ===
-	-- Main head (rounded box)
-	local skull = bp({Name="WhaleHead", Size=Vector3.new(4, 3.5, 4), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-	skull.CFrame = cf(0, 11.5, -0.5)
+	-- === BODY: Bitcoin golden coin (BIG, clearly visible, at bottom) ===
+	-- Main coin: vertical disc facing forward (front = -Z)
+	local coin = bp({Name="BitcoinBody", Size=Vector3.new(5.5, 6, 1.5), Color=GOLD, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	coin.CFrame = cf(0, 5.5, 0) * CFrame.Angles(math.rad(90), 0, 0)
+	studAllFaces(coin)
+	coin.Parent = m
+
+	-- Coin rim (darker gold, slightly bigger)
+	local rim = bp({Name="CoinRim", Size=Vector3.new(6, 6.3, 1.2), Color=GOLD_DARK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	rim.CFrame = cf(0, 5.5, 0.1) * CFrame.Angles(math.rad(90), 0, 0)
+	rim.Parent = m
+
+	-- Bitcoin B symbol (on front face, -Z side)
+	local bBar = bp({Name="BTC_B_Bar", Size=Vector3.new(0.7, 3.5, 0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	bBar.CFrame = cf(-0.6, 5.5, -0.9)
+	bBar.CanCollide = false
+	bBar.Parent = m
+
+	local bTop = bp({Name="BTC_B_Top", Size=Vector3.new(1.8, 1.4, 0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	bTop.CFrame = cf(0.1, 6.8, -0.9)
+	bTop.CanCollide = false
+	bTop.Parent = m
+
+	local bBot = bp({Name="BTC_B_Bot", Size=Vector3.new(2, 1.6, 0.3), Color=BLACK, Material=Enum.Material.Plastic})
+	bBot.CFrame = cf(0.2, 4.2, -0.9)
+	bBot.CanCollide = false
+	bBot.Parent = m
+
+	-- === HEAD: Whale (smaller, sits ON TOP of coin) ===
+	local skull = bp({Name="WhaleHead", Size=Vector3.new(3.5, 3, 3.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+	skull.CFrame = cf(0, 10, -0.5)
 	studAllFaces(skull)
 	skull.Parent = m
 
-	-- Forehead bump (whale dome)
-	local dome = bp({Name="WhaleDome", Size=Vector3.new(3.5, 1.5, 3.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-	dome.CFrame = cf(0, 13.5, -0.5)
+	-- Forehead dome
+	local dome = bp({Name="WhaleDome", Size=Vector3.new(3, 1.2, 3), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+	dome.CFrame = cf(0, 12, -0.5)
 	studAllFaces(dome)
 	dome.Parent = m
 
-	-- Blowhole (small dark cylinder on top)
-	local blowhole = bp({Name="Blowhole", Size=Vector3.new(0.8, 0.4, 1.2), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
-	blowhole.CFrame = cf(0, 14.4, -0.5) * CFrame.Angles(math.rad(90), 0, 0)
+	-- Blowhole
+	local blowhole = bp({Name="Blowhole", Size=Vector3.new(0.7, 0.4, 1), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
+	blowhole.CFrame = cf(0, 12.8, -0.5) * CFrame.Angles(math.rad(90), 0, 0)
 	blowhole.Parent = m
 
-	-- Snout (front, wide whale mouth)
-	local snout = bp({Name="WhaleSnout", Size=Vector3.new(3.8, 2, 2), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-	snout.CFrame = cf(0, 10.5, -3)
+	-- Snout (front, shorter)
+	local snout = bp({Name="WhaleSnout", Size=Vector3.new(3.2, 1.8, 1.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+	snout.CFrame = cf(0, 9, -2.5)
 	studAllFaces(snout)
 	snout.Parent = m
 
-	-- Belly jaw (light color)
-	local jaw = bp({Name="WhaleJaw", Size=Vector3.new(3.6, 1.2, 2), Color=WHALE_BELLY, Material=Enum.Material.Plastic})
-	jaw.CFrame = cf(0, 9.3, -3)
+	-- Belly jaw (light)
+	local jaw = bp({Name="WhaleJaw", Size=Vector3.new(3, 1, 1.5), Color=WHALE_BELLY, Material=Enum.Material.Plastic})
+	jaw.CFrame = cf(0, 8, -2.5)
 	studAllFaces(jaw)
 	jaw.Parent = m
 
-	-- Mouth line (dark thin strip)
-	local mouth = bp({Name="MouthLine", Size=Vector3.new(3.4, 0.2, 0.3), Color=BLACK, Material=Enum.Material.Plastic})
-	mouth.CFrame = cf(0, 9.9, -4)
+	-- Mouth line
+	local mouth = bp({Name="MouthLine", Size=Vector3.new(2.8, 0.2, 0.2), Color=BLACK, Material=Enum.Material.Plastic})
+	mouth.CFrame = cf(0, 8.5, -3.3)
 	mouth.CanCollide = false
 	mouth.Parent = m
 
-	-- Eyes (big, on sides of head)
-	for _, ex in ipairs({-1.7, 1.7}) do
-		local eyeW = bp({Name="EyeWhite", Size=Vector3.new(1.2, 1.2, 1.2), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
-		eyeW.CFrame = cf(ex, 12, -2)
+	-- Eyes (on sides of head, big)
+	for _, ex in ipairs({-1.5, 1.5}) do
+		local eyeW = bp({Name="EyeWhite", Size=Vector3.new(1, 1, 1), Color=WHITE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		eyeW.CFrame = cf(ex, 10.5, -1.8)
 		eyeW.Parent = m
 
-		local pupil = bp({Name="Pupil", Size=Vector3.new(0.6, 0.6, 0.6), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
-		pupil.CFrame = cf(ex + (ex > 0 and 0.2 or -0.2), 12, -2.4)
+		local pupil = bp({Name="Pupil", Size=Vector3.new(0.5, 0.5, 0.5), Color=BLACK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
+		pupil.CFrame = cf(ex + (ex > 0 and 0.15 or -0.15), 10.5, -2.2)
 		pupil.Parent = m
 	end
 
-	-- Cheek blush (pink circles)
-	for _, ex in ipairs({-1.8, 1.8}) do
-		local blush = bp({Name="Blush", Size=Vector3.new(0.8, 0.5, 0.2), Color=Color3.fromRGB(255, 150, 160), Material=Enum.Material.Plastic})
-		blush.CFrame = cf(ex, 10.5, -3.5)
+	-- Blush
+	for _, ex in ipairs({-1.5, 1.5}) do
+		local blush = bp({Name="Blush", Size=Vector3.new(0.7, 0.4, 0.2), Color=Color3.fromRGB(255, 150, 160), Material=Enum.Material.Plastic})
+		blush.CFrame = cf(ex, 9, -3.1)
 		blush.CanCollide = false
 		blush.Parent = m
 	end
 
-	-- === BODY: Bitcoin golden coin (vertical cylinder) ===
-	-- Main coin (vertical, facing forward)
-	local coin = bp({Name="BitcoinBody", Size=Vector3.new(4.5, 5, 1.2), Color=GOLD, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
-	coin.CFrame = cf(0, 5.5, 1) * CFrame.Angles(math.rad(90), 0, 0)
-	studAllFaces(coin)
-	coin.Parent = m
-
-	-- Coin inner ring (darker gold, slightly smaller)
-	local coinRing = bp({Name="CoinRing", Size=Vector3.new(3.8, 5.2, 0.8), Color=GOLD_DARK, Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
-	coinRing.CFrame = cf(0, 5.5, 1) * CFrame.Angles(math.rad(90), 0, 0)
-	coinRing.Parent = m
-
-	-- Bitcoin "B" symbol (front of coin) - made of blocks
-	-- Vertical bar of B
-	local bBar = bp({Name="BTC_B_Bar", Size=Vector3.new(0.6, 3, 0.4), Color=BLACK, Material=Enum.Material.Plastic})
-	bBar.CFrame = cf(-0.5, 5.5, 0.2)
-	bBar.CanCollide = false
-	bBar.Parent = m
-
-	-- Top loop of B
-	local bTop = bp({Name="BTC_B_Top", Size=Vector3.new(1.5, 1.2, 0.4), Color=BLACK, Material=Enum.Material.Plastic})
-	bTop.CFrame = cf(0.2, 6.6, 0.2)
-	bTop.CanCollide = false
-	bTop.Parent = m
-
-	-- Bottom loop of B
-	local bBot = bp({Name="BTC_B_Bot", Size=Vector3.new(1.7, 1.4, 0.4), Color=BLACK, Material=Enum.Material.Plastic})
-	bBot.CFrame = cf(0.3, 4.5, 0.2)
-	bBot.CanCollide = false
-	bBot.Parent = m
-
-	-- === FINS/ARMS (whale side fins) ===
+	-- === FINS (whale side fins, attached to coin sides) ===
 	for _, sx in ipairs({-1, 1}) do
-		local fin = bp({Name="Fin", Size=Vector3.new(2.5, 1, 1.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-		fin.CFrame = cf(sx * 3, 7, 0.5) * CFrame.Angles(0, 0, math.rad(sx * 30))
+		local fin = bp({Name="Fin", Size=Vector3.new(2.5, 1.2, 1.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+		fin.CFrame = cf(sx * 3.5, 6.5, 0) * CFrame.Angles(0, 0, math.rad(sx * 25))
 		studAllFaces(fin)
 		fin.Parent = m
 	end
 
-	-- === LEGS: whale tail flukes (bottom) ===
-	-- Tail stem
-	local tailStem = bp({Name="TailStem", Size=Vector3.new(1.5, 2, 2), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-	tailStem.CFrame = cf(0, 2, 2.5)
-	studAllFaces(tailStem)
-	tailStem.Parent = m
+	-- === LEGS (2 stubby, whale-blue) ===
+	for _, lx in ipairs({-1.3, 1.3}) do
+		local leg = bp({Name="Leg", Size=Vector3.new(1.3, 2.5, 1.3), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+		leg.CFrame = cf(lx, 0.25, 0)
+		studAllFaces(leg)
+		leg.Parent = m
 
-	-- Tail flukes (2 triangular parts)
-	for _, sx in ipairs({-1, 1}) do
-		local fluke = bp({Name="TailFluke", Size=Vector3.new(2.5, 0.6, 2), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
-		fluke.CFrame = cf(sx * 1.5, 1.5, 3.5) * CFrame.Angles(0, math.rad(sx * 30), math.rad(sx * 15))
-		studAllFaces(fluke)
-		fluke.Parent = m
-	end
-
-	-- Feet (small stubby)
-	for _, lx in ipairs({-1, 1}) do
-		local foot = bp({Name="Foot", Size=Vector3.new(1.2, 1, 1.5), Color=WHALE_BELLY, Material=Enum.Material.Plastic})
-		foot.CFrame = cf(lx * 1.2, 1, 0)
+		local foot = bp({Name="Foot", Size=Vector3.new(1.6, 0.8, 2), Color=WHALE_BELLY, Material=Enum.Material.Plastic})
+		foot.CFrame = cf(lx, -0.6, -0.3)
 		studAllFaces(foot)
 		foot.Parent = m
 	end
 
-	-- === BACK RIDGE (whale bumps) ===
-	for i = 0, 3 do
-		local bump = bp({Name="BackBump", Size=Vector3.new(1, 0.5, 1), Color=WHALE_BLUE, Material=Enum.Material.Plastic, Shape=Enum.PartType.Ball})
-		bump.CFrame = cf(0, 13 - i * 0.3, 0.5 + i * 1.2)
-		bump.CanCollide = false
-		bump.Parent = m
+	-- === TAIL (behind coin) ===
+	local tail1 = bp({Name="Tail1", Size=Vector3.new(1.5, 1.5, 2), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+	tail1.CFrame = cf(0, 5.5, 2) * CFrame.Angles(math.rad(-20), 0, 0)
+	studAllFaces(tail1)
+	tail1.Parent = m
+
+	for _, sx in ipairs({-1, 1}) do
+		local fluke = bp({Name="TailFluke", Size=Vector3.new(2, 0.5, 1.5), Color=WHALE_BLUE, Material=Enum.Material.Plastic})
+		fluke.CFrame = cf(sx * 1.2, 5.5, 3.5) * CFrame.Angles(0, math.rad(sx * 35), 0)
+		studAllFaces(fluke)
+		fluke.Parent = m
 	end
 
 	-- === LABEL ===
@@ -1075,7 +1066,7 @@ local function buildBananitaWhalebit(posX, posZ)
 		bb.SizeOffset = Vector2.new(0, 0)
 		bb.Parent = head
 		local label = Instance.new("TextLabel")
-		label.Size = UDim2.new(1, 0, 1, 0)
+		label.Size = UDim2.new(1, 0, 1,  0)
 		label.BackgroundTransparency = 1
 		label.Text = "Bananita Whalebit [EPIC]"
 		label.TextColor3 = Color3.fromRGB(80, 150, 255)
