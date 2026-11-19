@@ -977,8 +977,23 @@ local function buildBase()
 
 	-- 11. Neon brain icon on back wall (big, centered)
 
+	m.Parent = workspace
+	return m
+end
 
+-- ---------------------------------------------------------------------------
+-- Build everything.
+-- ---------------------------------------------------------------------------
 
+local baseModel = nil
+
+function WorldBuilder.build()
+	local function safeStep(name, fn)
+		local ok, err = pcall(fn)
+		if not ok then
+			warn("[WorldBuilder] step failed (" .. name .. "): " .. tostring(err))
+		end
+	end
 
 	local template = workspace:FindFirstChild("Baseplate")
 	if template then
