@@ -63,7 +63,7 @@ local function setupLighting()
 	if sun then
 		sun.Brightness = 3
 		sun.Color = Color3.fromRGB(255, 250, 240)
-		sun.Shadows = false
+		sun.Shadows = true
 		sun.Angle = 15
 	else
 		-- Only create if none exists
@@ -82,7 +82,7 @@ local function setupLighting()
 	end
 
 	-- Kill all shadows
-	light.GlobalShadows = false
+	light.GlobalShadows = true
 	light.Ambient = Color3.fromRGB(140, 140, 140)
 	light.OutdoorAmbient = Color3.fromRGB(160, 160, 160)
 	light.Brightness = 3
@@ -4250,6 +4250,22 @@ safeStep("buildGround", buildGround)
 			b:SetAttribute("CenterX", cx)
 			b:SetAttribute("CenterZ", cz)
 			WorldBuilder.setBaseSign(b, "OPEN BASE", "stand on it to claim", Color3.fromRGB(120, 230, 140))
+		end
+	end
+
+	-- Shadows: ONLY the gate structure casts (the shadow inside the arch).
+	-- Everything else stays shadowless to keep the clean noon look.
+	for _, desc in ipairs(workspace:GetDescendants()) do
+		if desc:IsA("BasePart") then
+			desc.CastShadow = false
+		end
+	end
+	local gates = workspace:FindFirstChild("Gates")
+	if gates then
+		for _, desc in ipairs(gates:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.CastShadow = true
+			end
 		end
 	end
 
