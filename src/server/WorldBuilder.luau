@@ -838,59 +838,57 @@ local function buildGates()
 				root.Parent = m
 			end
 
-			-- Small flowers on top
+			-- Small flowers on top of the box lintel
 			for f = 0, 2 do
 				local stem = bp({Name="Stem", Size=Vector3.new(0.4, 2, 0.4), Color=MOSS_DARK, Material=Enum.Material.Grass})
-				stem.CFrame = CFrame.new(sx * (13 + f), 18.5, z + f * 2 - 2)
+				stem.CFrame = CFrame.new(sx * (16 + f), 23.3, z + f * 2 - 2)
 				stem.CanCollide = false
 				stem.Parent = m
 
 				local flower = bp({Name="Flower", Size=Vector3.new(1.2, 1.2, 1.2), Color=(f % 2 == 0) and FLOWER1 or FLOWER2, Material=Enum.Material.SmoothPlastic, Shape=Enum.PartType.Ball})
-				flower.CFrame = CFrame.new(sx * (13 + f), 20, z + f * 2 - 2)
+				flower.CFrame = CFrame.new(sx * (16 + f), 24.8, z + f * 2 - 2)
 				flower.CanCollide = false
 				flower.Parent = m
 			end
 		end
 
-		-- Arch: natural stone rocks in a curve
-		local archY = 17
-		local R = 14
-		for i = 0, 10 do
-			local t = math.pi * i / 10
-			local wx = math.cos(t) * R
-			local wy = archY + math.sin(t) * 5
-			local sz = 5 + (i % 3)
-			local block = bp({Name="ArchRock", Size=Vector3.new(sz, sz - 1, 7), Color=Color3.fromRGB(105 + (i % 3) * 8, 100 + (i % 3) * 8, 95 + (i % 3) * 8), Material=Enum.Material.Slate})
-			block.CFrame = CFrame.new(wx, wy, z) * CFrame.Angles(math.rad(i * 7 % 10), math.rad(i * 13 % 15), t - math.pi/2)
-			studAllFaces(block)
-			block.Parent = m
+		-- Box lintel: square stone beam across the pillars (keeps the slate
+		-- nature look, just no curve).
+		local lintel = bp({Name="ArchRock", Size=Vector3.new(38, 5, 7), Color=Color3.fromRGB(108, 103, 98), Material=Enum.Material.Slate})
+		lintel.CFrame = CFrame.new(0, 19.5, z)
+		studAllFaces(lintel)
+		lintel.Parent = m
 
-			-- Moss on arch rocks (alternating)
-			if i % 2 == 0 then
-				local moss = bp({Name="ArchMoss", Size=Vector3.new(sz - 1, 1, 4), Color=MOSS, Material=Enum.Material.Grass})
-				moss.CFrame = CFrame.new(wx, wy + sz/2, z) * CFrame.Angles(0, 0, t - math.pi/2)
-				moss.CanCollide = false
-				moss.Parent = m
-			end
+		local lintel2 = bp({Name="ArchRock", Size=Vector3.new(28, 4, 7), Color=Color3.fromRGB(116, 111, 105), Material=Enum.Material.Slate})
+		lintel2.CFrame = CFrame.new(0, 24, z)
+		studAllFaces(lintel2)
+		lintel2.Parent = m
+
+		-- Moss patches on the box top
+		for _, lx in ipairs({-11, 11}) do
+			local moss = bp({Name="ArchMoss", Size=Vector3.new(5, 1, 5), Color=MOSS, Material=Enum.Material.Grass})
+			moss.CFrame = CFrame.new(lx, 26.4, z)
+			moss.CanCollide = false
+			moss.Parent = m
 		end
 
-		-- Keystone: big round boulder
-		local key = bp({Name="Keystone", Size=Vector3.new(7, 6, 8), Color=Color3.fromRGB(120, 115, 108), Material=Enum.Material.Slate, Shape=Enum.PartType.Ball})
-		key.CFrame = CFrame.new(0, archY + 8, z)
+		-- Keystone: square crown block on top
+		local key = bp({Name="Keystone", Size=Vector3.new(10, 5, 8), Color=Color3.fromRGB(120, 115, 108), Material=Enum.Material.Slate})
+		key.CFrame = CFrame.new(0, 28.5, z)
 		studAllFaces(key)
 		key.Parent = m
 
 		-- Moss on keystone
-		local keyMoss = bp({Name="KeyMoss", Size=Vector3.new(5, 1.5, 5), Color=MOSS, Material=Enum.Material.Grass})
-		keyMoss.CFrame = CFrame.new(0, archY + 11, z)
+		local keyMoss = bp({Name="KeyMoss", Size=Vector3.new(7, 1.5, 6), Color=MOSS, Material=Enum.Material.Grass})
+		keyMoss.CFrame = CFrame.new(0, 31.6, z)
 		keyMoss.CanCollide = false
 		keyMoss.Parent = m
 
-		-- Vines hanging from arch
+		-- Vines hanging from the box lintel bottom
 		for v = 0, 4 do
-			local hang = bp({Name="HangingVine", Size=Vector3.new(1, 4 + v, 1), Color=VINE, Material=Enum.Material.Grass})
-			local t = math.pi * (v + 1) / 6
-			hang.CFrame = CFrame.new(math.cos(t) * R, archY + math.sin(t) * 5 - 3, z + math.sin(v * 2) * 2)
+			local len = 4 + v
+			local hang = bp({Name="HangingVine", Size=Vector3.new(1, len, 1), Color=VINE, Material=Enum.Material.Grass})
+			hang.CFrame = CFrame.new((v - 2) * 5, 17 - len / 2, z + math.sin(v * 2) * 2)
 			hang.CanCollide = false
 			hang.Parent = m
 		end
