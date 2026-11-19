@@ -4144,6 +4144,8 @@ function WorldBuilder.build()
 				prompt.KeyboardKeyCode = Enum.KeyCode.E
 				prompt.MaxActivationDistance = 20
 				prompt.HoldDuration = 0
+				-- Model-parented prompts need an Adornee part to display at all.
+				prompt.Adornee = m:FindFirstChildWhichIsA("BasePart")
 				prompt.Parent = m
 			end
 		end

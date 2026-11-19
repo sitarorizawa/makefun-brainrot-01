@@ -455,7 +455,9 @@ local function wireParadeModel(obj)
 		end)
 	end
 	local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
-	if prompt and not prompt:GetAttribute("Wired") then
+	-- Skip the market counter prompt: wireMarketPrompt owns that one (this
+	-- loop runs first and would otherwise mark it Wired and steal the Triggered).
+	if prompt and prompt.ObjectText ~= "Brainrot Market" and not prompt:GetAttribute("Wired") then
 		prompt:SetAttribute("Wired", true)
 		prompt.Triggered:Connect(function(player)
 			catchParade(player, obj)
