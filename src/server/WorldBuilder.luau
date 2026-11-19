@@ -846,7 +846,7 @@ local function buildBase()
 		panel.Parent = m
 	end
 
-	-- === BRAINROT PEDESTALS (4 spots on floor) ===
+	-- === BRAINROT DISPLAY STEPS (4 spots, flat platforms) ===
 	local pedColors = {
 		Color3.fromRGB(220, 70, 50),
 		Color3.fromRGB(50, 180, 100),
@@ -855,14 +855,17 @@ local function buildBase()
 	}
 	local pedPositions = {{-8, -12}, {-8, 12}, {8, -12}, {8, 12}}
 	for i, pos in ipairs(pedPositions) do
-		local ped = bp({Name="BrainrotPedestal", Size=Vector3.new(5, 2.5, 5), Color=pedColors[i], Material=Enum.Material.Plastic, Shape=Enum.PartType.Cylinder})
-		ped.CFrame = CFrame.new(BASE_X + pos[1], 4.75, pos[2]) * CFrame.Angles(0, 0, math.rad(90))
-		studAllFaces(ped)
-		ped.Parent = m
+		-- Base step (wide, flat)
+		local step1 = bp({Name="DisplayStep", Size=Vector3.new(7, 1, 7), Color=pedColors[i], Material=Enum.Material.Plastic})
+		step1.CFrame = CFrame.new(BASE_X + pos[1], 4, pos[2])
+		studAllFaces(step1)
+		step1.Parent = m
 
-		local plate = bp({Name="PedestalTop", Size=Vector3.new(5.5, 0.3, 5.5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
-		plate.CFrame = CFrame.new(BASE_X + pos[1], 6.15, pos[2])
-		plate.Parent = m
+		-- Top step (smaller, raised)
+		local step2 = bp({Name="DisplayStepTop", Size=Vector3.new(5, 0.5, 5), Color=Color3.fromRGB(30,30,35), Material=Enum.Material.Plastic})
+		step2.CFrame = CFrame.new(BASE_X + pos[1], 4.75, pos[2])
+		studAllFaces(step2)
+		step2.Parent = m
 	end
 
 	-- === FRONT STEPS (thick, sturdy) ===
