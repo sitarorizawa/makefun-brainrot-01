@@ -557,6 +557,11 @@ local function paintParadeLabel(obj)
 		"%s\n[%s]  $%s to catch  ·  $%d/s",
 		entry.name, entry.rarity, fmt(Config.catchPrice(entry.rarity)), entry.rate
 	)
+	-- Whole label (name, rarity tag, price, rate) in the rarity color.
+	local rarityColor = Config.rarity(entry.rarity).color
+	label.TextColor3 = rarityColor
+	label.TextStrokeColor3 = Color3.fromRGB(10, 10, 14)
+	label.TextStrokeTransparency = 0.2
 	local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
 	if prompt then
 		prompt.ObjectText = entry.name
