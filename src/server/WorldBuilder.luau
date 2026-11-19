@@ -1128,6 +1128,8 @@ local function buildSatoshinoCroc(posX, posZ)
 		bb.Size = UDim2.new(0, 340, 0, 68)
 		bb.StudsOffset = Vector3.new(0, 4, 0)
 		bb.MaxDistance = 200
+		bb.AlwaysOnTop = false
+		bb.SizeOffset = Vector2.new(0, 0)
 		bb.Parent = head
 		local label = Instance.new("TextLabel")
 		label.Size = UDim2.new(1, 0, 1, 0)
@@ -1136,7 +1138,8 @@ local function buildSatoshinoCroc(posX, posZ)
 		label.TextColor3 = Color3.fromRGB(255, 200, 50)
 		label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 		label.TextStrokeTransparency = 0.25
-		label.TextScaled = true
+		label.TextScaled = false
+		label.TextSize = 18
 		label.Font = Enum.Font.GothamBold
 		label.Parent = bb
 	end
