@@ -117,6 +117,8 @@ local moneyCounter = label({
 })
 moneyCounter.Parent = moneyPanel
 
+local showToast -- forward declaration: the button handler below calls it
+
 -- ---------------------------------------------------------------------------
 -- Panels: Shop + Index (opened from the left-edge buttons)
 -- ---------------------------------------------------------------------------
@@ -388,7 +390,6 @@ local toast = label({
 toast.Parent = gui
 
 local toastToken = 0
-local showToast -- forward declaration (used by the button handler above)
 showToast = function(text)
 	toastToken += 1
 	local token = toastToken
